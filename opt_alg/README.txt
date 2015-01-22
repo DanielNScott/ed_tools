@@ -6,7 +6,9 @@
   plotting_tools and matlab_central
 
 
-TO USE THE OPTIMIZATION FRAMEWORK:
+------------------------------------------------------------
+To use the optimization framework:
+------------------------------------------------------------
 1) Put the folders listed above somewhere in your filesystem.
 
 2) Open the files optimize_ed.sh and runopt.sh under opt_alg
@@ -34,6 +36,11 @@ TO USE THE OPTIMIZATION FRAMEWORK:
    call, the optimization algorithm will try to load a file './myNewSettings.m' instead of the default
    'settings.m' in it's configuration.
 
+
+
+------------------------------------------------------------
+You already know how to get a hold of me:
+------------------------------------------------------------
 Email me with questions/comments or post them to the github page.
 Email : dscott@fas.harvard.edu
 Github: https://github.com/DanielNScott/ED_Tools
