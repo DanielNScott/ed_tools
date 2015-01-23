@@ -1,81 +1,103 @@
-function [] = process_output(poly_names, call_loc)
-% This function is called by mpost.sh and is intended to interface the
-% shell with the matlab post processing scripts.
-%  Inputs: poly_names - Names of polygon folders found.
-%          call_loc - The dir. this script was called from.
+function [] = process_output(sim_names, call_loc)
+%PROCESS_OUTPUT: This function is called by mpost.sh and is intended to interface a shell with
+%some ED post processing scripts written in Matlab.
+%  Inputs: 
+%     - sim_names: Names of polygon folders found, as a string with no whitespace.
+%     - call_loc : The directory this script was called from.
 
-
-%----------- Setup some basics -----------------------------------------------------------%
+%----------- Inform user of minor preprocessing. ----------------------------------------------%
 % Tell the user what this script sees. 
-disp(['Mpost_interface sees poly_names variable as: ' , poly_names])
+disp('process_output sees the input varaible sim_names as:')
+disp(sim_names)
 
-% Reformat the poly_names variable to be more easily used in Matlab scripts. 
-poly_names     = textscan(poly_names,'%s','Delimiter',',');    % Returns 1x1 cell w/ a 
-poly_names     = poly_names{1};                                % cell in it.
+% Reformat the sim_names variable to be more easily used in Matlab scripts. 
+sim_names = textscan(sim_names,'%s','Delimiter',',');    % Returns 1x1 cell w/ a cell in it.
+sim_names = sim_names{1};                                % Extract the interior cell.
 
-% Tell the user what 
-disp(['Now as ' , poly_names{1}])
+% Tell the user what this is interpreted as.
+disp('Which is being interpreted as the set of polygons: ')
+disp(sim_names)
 
 % Get the number of polygons and the run lengths (start/fin times)
-npolygons = length(poly_names);
-runlen    = read_joborder(npolygons,call_loc);
-
-
+n_sims = length(sim_names);
 
 %----------- Import Runs ----------------------------------------------------------------%
-for polynum = 1:npolygons
+for sim_num = 1:n_sims
+   cur_sim_name = sim_names{sim_num};
+   ed2in_fname  = [cur_sim_name,'/','ED2IN'];
+   namelists.(cur_sim_name) = read_namelist(ed2in_fname,'ED_NL');
    
-   import_nl.(poly_names{polynum}).f_type   = poly_names{polynum};
-   import_nl.(poly_names{polynum}).out_type = 'Q';
-   import_nl.(poly_names{polynum}).start    = [ runlen.(poly_names{polynum}).iyeara ,'-', ...
-                                                runlen.(poly_names{polynum}).imontha,'-', ...
-                                                runlen.(poly_names{polynum}).idatea ,'-', ...
-                                                runlen.(poly_names{polynum}).itimea ,'-', ...
+   namelists.(cur_sim_name).f_type    = cur_sim_name;
+   namelists.(cur_sim_name).start     = [ namelists.(cur_sim_name).IYEARA ,'-', ...
+                                          namelists.(cur_sim_name).IMONTHA,'-', ...
+                                          namelists.(cur_sim_name).IDATEA ,'-', ...
+                                          namelists.(cur_sim_name).ITIMEA ,'-', ...
                                                 ];
-
-   import_nl.(poly_names{polynum}).end      = [ runlen.(poly_names{polynum}).iyearz ,'-', ...
-                                                runlen.(poly_names{polynum}).imonthz,'-', ...
-                                                runlen.(poly_names{polynum}).idatez ,'-', ...
-                                                runlen.(poly_names{polynum}).itimez ,'-', ...
+   namelists.(cur_sim_name).end       = [ namelists.(cur_sim_name).IYEARZ ,'-', ...
+                                          namelists.(cur_sim_name).IMONTHZ,'-', ...
+                                          namelists.(cur_sim_name).IDATEZ ,'-', ...
+                                          namelists.(cur_sim_name).ITIMEZ ,'-', ...
                                                 ];
-   import_nl.(poly_names{polynum}).inc      = '000000';
-   import_nl.(poly_names{polynum}).dir      = [call_loc,'/',poly_names{polynum},'/analy/'];
-   import_nl.(poly_names{polynum}).splflg   = 1;
-   import_nl.(poly_names{polynum}).c13out   = not(strcmp(runlen.(poly_names{polynum}).c13af,'0'));
+   namelists.(cur_sim_name).inc       = '000000';
+   namelists.(cur_sim_name).dir       = [call_loc,'/',cur_sim_name,'/analy/'];
+   namelists.(cur_sim_name).splflg    = 1;
+   namelists.(cur_sim_name).c13out    = strcmp(namelists.(cur_sim_name).C13AF,'1');
    
+   %-------------------------------------------------------------------------------------------
+   % Read all of the hdf5 output settings
+   %-------------------------------------------------------------------------------------------
+   simres.daily   = 0;
+   simres.monthly = 0;
+   simres.yearly  = 0;
+   simres.fast    = 0;
+   namelists.(cur_sim_name).out_types = '';
+   if str2double(namelists.(cur_sim_name).IFOUTPUT) == 3
+      simres.daily = 1;
+   end
+   %if str2double(namelists.(cur_sim_name).IDOUTPUT) == 3
+   %   simres.fast = 1;
+   %end
+   %if str2double(namelists.(cur_sim_name).IMOUTPUT) == 3
+   %   simres.monthly = 1;
+   %end
+   if str2double(namelists.(cur_sim_name).IQOUTPUT) == 3
+      simres.monthly = 1;
+   end
+   if str2double(namelists.(cur_sim_name).IYOUTPUT) == 3
+      simres.yearly = 1;
+   end
+   if str2double(namelists.(cur_sim_name).ITOUTPUT) == 3
+      simres.fast = 1;
+   end
+      
+   %-------------------------------------------------------------------------------------------
+   % Tell the user what this script thinks the simulation looks like.
+   %-------------------------------------------------------------------------------------------
    disp(' ')
    disp('==================================================================')
-   disp(['Opening directory: ',import_nl.(poly_names{polynum}).dir])
+   disp(['Opening directory: ',namelists.(cur_sim_name).dir])
    disp('==================================================================')
    disp('Import_poly.m "believes" the following about this polygon:')   
-   disp(['file type: ' import_nl.(poly_names{polynum}).f_type           ])
-   disp(['out. type: ' import_nl.(poly_names{polynum}).out_type         ])
-   disp(['    start: ' import_nl.(poly_names{polynum}).start            ])
-   disp(['      end: ' import_nl.(poly_names{polynum}).end              ])
-   disp(['increment: ' import_nl.(poly_names{polynum}).inc              ])
-   disp(['directory: ' import_nl.(poly_names{polynum}).dir              ])
-   disp(['split flg: ' num2str(import_nl.(poly_names{polynum}).splflg)  ])
-   disp(['      c13: ' num2str(import_nl.(poly_names{polynum}).c13out)  ])
+   disp(['file type: ' namelists.(cur_sim_name).f_type           ])
+   disp([' ifoutput: ' namelists.(cur_sim_name).IFOUTPUT         ])
+   disp([' idoutput: ' namelists.(cur_sim_name).IDOUTPUT         ])
+   disp([' imoutput: ' namelists.(cur_sim_name).IMOUTPUT         ])
+   disp([' iqoutput: ' namelists.(cur_sim_name).IQOUTPUT         ])
+   disp([' iyoutput: ' namelists.(cur_sim_name).IYOUTPUT         ])
+   disp([' itoutput: ' namelists.(cur_sim_name).ITOUTPUT         ])
+   disp(['    start: ' namelists.(cur_sim_name).start            ])
+   disp(['      end: ' namelists.(cur_sim_name).end              ])
+   disp(['increment: ' namelists.(cur_sim_name).inc              ])
+   disp(['directory: ' namelists.(cur_sim_name).dir              ])
+   disp(['split flg: ' num2str(namelists.(cur_sim_name).splflg)  ])
+   disp(['      c13: ' num2str(namelists.(cur_sim_name).c13out)  ])
    disp(' ')
    
-
-%    try
-   % Call import_poly to actually read in HDF5 info. This is the main function of this program.
-   data.(poly_names{polynum}) = import_poly(import_nl.(poly_names{polynum}));
-%    catch ME
-%         mythrow(ME,'(this is a filler string)')
-%    end
-   % Yearly Read...
-   import_nl.(poly_names{polynum}).out_type = 'Y';
-   yrout = import_poly(import_nl.(poly_names{polynum}));
 
    %-------------------------------------------------------------------------------------------
    % Merge the yearly and monthly cell structures.
    %-------------------------------------------------------------------------------------------
-   yroutflds = fieldnames(yrout.T);
-   for ifld = 1:numel(yroutflds)
-      data.(poly_names{polynum}).T.(yroutflds{ifld}) = yrout.T.(yroutflds{ifld});
-   end
+   data.(cur_sim_name) = import_poly_multi(namelists.(cur_sim_name),simres,0);
    %-------------------------------------------------------------------------------------------
 end
 
@@ -87,9 +109,9 @@ write_time = strcat(num2str(write_time(1)),'_',num2str(write_time(2)),'_', ...
                     num2str(write_time(3)),'_',num2str(write_time(4)),'_', ...
                     num2str(write_time(5)));
 
-mpost.import_nl = import_nl;
+mpost.namelists = namelists;
 mpost.data      = data;
-mpost.poly_nls  = runlen;
+mpost.poly_nls  = namelists;
 
 disp('==================================================================')
 disp(['Saving mpost_',write_time,'.mat ...'])
@@ -97,21 +119,4 @@ save(['mpost_',write_time],'mpost')
 
 disp(' ')
 disp('mpost_interface has finished!')
-end
-
-
-function [] = mythrow(ME,type)
-disp('--------------------------------------------------------------------')
-disp(['MATLAB has encountered an ',type,' error! Error messages will be displayed below.'])
-disp('')
-disp('ME Identifier:')
-disp(ME.identifier)
-disp('ME Message:')
-disp(ME.message)
-disp('ME Stack:')
-disp(ME.stack(1))
-disp('ME Cause:')
-disp(ME.cause)
-disp('')
-disp('MATLAB will now continue execution.')
 end
