@@ -1,4 +1,4 @@
-function [ ] = graph_resps_analy( data )
+function [ ] = plot_resps_analy( data )
 %GEN_BREAKDOWN_GRAPH Summary of this function goes here
 %   Detailed explanation goes here
 

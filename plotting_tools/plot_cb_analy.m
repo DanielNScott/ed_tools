@@ -1,4 +1,4 @@
-function [ ] = graph_cb_analy( data )
+function [ ] = plot_cb_analy( data )
 %GRAPH_CB_ANALY Plots a 6 panel plot outlining carbon use for runinfo input as 'data'
 %   Input:
 %     data - structure with fields 'T','Hw','Co' etc.

@@ -577,6 +577,7 @@ end
 
 if strcmp(varname,'CB')
    tempVar = out.raw.NPLANT{fnum}.*out.raw.(varname){fnum}(currMon,:)';
+   plant_intensive = 0;
 end
 
 if plant_intensive

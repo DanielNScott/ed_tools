@@ -1,4 +1,4 @@
-function [] = graph_ed_output(data,c13,years,save)
+function [] = plot_ed_output(data,c13,years,save)
 % COMPARE_MPOST_DATA Takes as input data supplied in mpost's output format
 % and outputs graphs of that data.
 %----------------------------------------------------------------------
