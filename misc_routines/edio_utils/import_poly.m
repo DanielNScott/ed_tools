@@ -10,7 +10,7 @@ function [ out ] = import_poly( varargin )
       out.nl = varargin{1};
    else
       out.nl.f_type   = 'HFF_Fast';
-      out.nl.out_type = 'Y';
+      out.nl.out_type = 'Q';
       out.nl.dir      = 'C:\Users\Dan\Moorcroft Lab\ED Output\r85-DS\HFF_Fast_1994_1997\analy\';
       out.nl.splflg   = 1;
       out.nl.c13out   = 0;
@@ -43,13 +43,13 @@ function [ out ] = import_poly( varargin )
       return;
    end
    
+   map = def_ed_varmap();
+   
    disp('Importing model output using import_poly.m...')
-   out      = init_out_struct (out);
+   out      = init_out_struct (out,map);
    out.raw  = read_vars       (out.raw,fnames,out.nl.out_type,dbug);
-   out      = process_vars    (out,fnames,out.nl.out_type,dbug);
+   out      = process_vars    (out,fnames,out.nl.out_type,map,dbug);
    out.desc = 'Created with import_poly using nl in (this).nl';
-
-   %save('out.mat','out')
 
 end
 %======================================================================================%
@@ -107,14 +107,16 @@ end
 
 
 %======================================================================================%
-function [ out ] = process_vars(out,fnames,res,dbug)
+function [ out ] = process_vars(out,fnames,res,map,dbug)
 
    %----------------------------------------------------------------------%
-   % Some Set Up                                                          %
+   % Some set up...                                                       %
    %----------------------------------------------------------------------%
-   nfiles = length(fnames);      %
-   flds   = fieldnames(out.raw); % 
-   tables();                     % Import tables for QMEAN night time mask
+   nfiles   = length(fnames);          %
+   flds     = fieldnames(out.raw);     % 
+   read_c13 = out.nl.c13out;
+   splt_flg = out.nl.splflg;
+   tables();                           % Import tables for QMEAN night time mask
 
    %Convert SLZ to layer thickness
    if res ~= 'T'
@@ -135,10 +137,10 @@ function [ out ] = process_vars(out,fnames,res,dbug)
       if dbug; disp('----------------------------------------------------------'); end
       if dbug; disp(['Processing vars from file: ',fnames{fnum}])                ; end
       
-      %Cycle through vars -----------------------------------------------
+      %--- Cycle through vars -----------------------------------------------
       for varnum = 1:numel(flds)
-         varname = flds{varnum}; % Most vars we'll load by their name and save under it too...
-         savname = varname;      % ...but we save vars we manipulate alot under different names
+         varname = flds{varnum};       % Load & save most vars by their names...
+         savname = varname;            % ...but save vars we manipulate alot w/ different names.
          
          % This var flags output vars which are scaled (in the HDF5) by nplant.
          % Currently, there is only one other kind of variable (LAI) that we process
@@ -147,27 +149,31 @@ function [ out ] = process_vars(out,fnames,res,dbug)
          
          % Exceptions: For these vars either skip this entire block or
          % skip some portion of it.
-         if strcmp(varname,'NPLANT'       )  ; continue           ; end
-         if strcmp(varname,'PFT'          )  ; continue           ; end
-         if strcmp(varname,'SLZ'     )       ; continue           ; end
-         if strcmp(varname,'AREA'    )       ; continue           ; end
-         if strcmp(varname,'PACO_ID' )       ; continue           ; end
-         if strcmp(varname,'nl'    ); continue            ; end
-         if strcmp(varname,'map'   ); continue            ; end
-         if strcmp(varname,'T'     ); continue            ; end
-         if strcmp(varname,'Co'    ); continue            ; end
-         if strcmp(varname,'Hw'    ); continue            ; end
-         if strcmp(varname,'Gr'    ); continue            ; end
-         if strcmp(varname,'thick' ); continue            ; end
-         if strcmp(varname,'raw'   ); continue            ; end
-         if strcmp(varname(end-1:end),'3C')  ; continue           ; end
-         if strcmp(varname(end-1:end),'13')  ; continue           ; end
+         if strcmp(varname,'NPLANT'       ); continue; end
+         if strcmp(varname,'PFT'          ); continue; end
+         if strcmp(varname,'SLZ'          ); continue; end
+         if strcmp(varname,'AREA'         ); continue; end
+         if strcmp(varname,'PACO_ID'      ); continue; end
+         if strcmp(varname,'nl'           ); continue; end
+         if strcmp(varname,'map'          ); continue; end
+         if strcmp(varname,'T'            ); continue; end
+         if strcmp(varname,'Co'           ); continue; end
+         if strcmp(varname,'Hw'           ); continue; end
+         if strcmp(varname,'Gr'           ); continue; end
+         if strcmp(varname,'thick'        ); continue; end
+         if strcmp(varname,'raw'          ); continue; end
+         if any(strfind(varname,'C13')    ); continue; end
+         if any(strfind(varname,'13C')    ); continue; end
          
-         if strcmp(varname,'LAI_CO'       )  ; plant_intensive = 0; end
-         if strcmp(varname,'MMEAN_LAI_CO' )  ; plant_intensive = 0; end
+         if strcmp(varname,'LAI_CO'       ); plant_intensive = 0  ; end
+         if strcmp(varname,'MMEAN_LAI_CO' ); plant_intensive = 0  ; end
+         
+         vartype    = map.(varname){1};         % Variable type, ie patch up to grid.
+         anlg_exist = map.(varname){2};         % C13 version exists? Boolean
+         splt_poss  = map.(varname){3};         % Split-By-PFT is possible? Boolean
          
          %Process Patch Vars -----------------------------------------------
-         if out.map.(varname){1}
+         if strcmp(vartype,'pa')
             if dbug; disp([' - Processing Pa Var: ', varname]); end
 
             % Scale the patch var...
@@ -177,52 +183,42 @@ function [ out ] = process_vars(out,fnames,res,dbug)
             out.T.(savname)(fnum) = sum(tempVar);
 
             % PROCESS SPLIT -----------------------------------------------
-            if out.nl.splflg == 1 && out.map.(varname){5}
+            if splt_flg && splt_poss
                if dbug; disp('    - Processing Split'); end
                out = process_split(out,savname,fnum,tempVar);
             end
             
             % DETERMINE R AND DELTA, but only if c13out == 1 -----------------%
-            if out.nl.c13out && out.map.(varname){4}
-               %var     = out.(spltFlds{n}).(varname)(fnum);
-               %var_C13 = out.(spltFlds{n}).([varname,'_C13'])(fnum);
-
-               %out.(spltFlds{n}).([varname,'_d13C'])(fnum) = ((var_C13/(var - var_C13))/0.011237 - 1.0)*1000.0;
-               savname = [varname '_C13'];
-               delname = [varname '_d13C'];
-               [tempVar,savname] = scale_patch_var(out,savname,fnum,plant_intensive);
+            if read_c13 && anlg_exist
+               [c13name, delname] = get_iso_name(varname);
+               [tempVar, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive);
                
                var     = out.T.(varname)(fnum);
                var_C13 = sum(tempVar);
 
-               out.T.(savname)(fnum) = var_C13;
-               out.T.(delname)(fnum) = ((var_C13/(var - var_C13))/0.011237 - 1.0)*1000.0;
+               out.T.(c13name)(fnum) = var_C13;
+               out.T.(delname)(fnum) = get_d13C(var_C13,var);
             end
             
          %Process Site Vars -----------------------------------------------
-         elseif out.map.(varname){2}
+         elseif strcmp(vartype,'si')
             if dbug; disp([' - Processing Si Var: ',varname]); end
             out.T.(varname)(fnum) = out.raw.AREA{fnum}'*out.raw.(varname){fnum};
             
-            if out.nl.c13out && out.map.(varname){4}
-               if strcmp(varname(end-1:end),'_C')
-                  savname = [varname '13'];
-               else
-                  savname = [varname '_C13'];
-               end
-               delname = [varname '_d13C'];
+            if read_c13 && anlg_exist
+               [c13name, delname] = get_iso_name(varname);
                
                var     = out.T.(varname)(fnum);
-               var_C13 = out.raw.AREA{fnum}'*out.raw.(savname){fnum};
+               var_C13 = out.raw.AREA{fnum}'*out.raw.(c13name){fnum};
                
-               out.T.(savname)(fnum) = var_C13;
-               out.T.(delname)(fnum) = ((var_C13/(var - var_C13))/0.011237 - 1.0)*1000.0;
+               out.T.(c13name)(fnum) = var_C13;
+               out.T.(delname)(fnum) = get_d13C(var_C13,var);
             end
          
          %Process Ed Vars -----------------------------------------------
-         elseif out.map.(varname){3}
+         elseif strcmp(vartype,'ed')
             if dbug; disp([' - Processing Ed Var: ',varname]); end
-            if strcmp(out.map.(varname){6},'Q')
+            if any(strcmp(map.(varname){4},'Q'))
                savname = ['MMEAN' varname(6:end) '_Night'];
                tempMsk = logical(month_night_hrs{mod(fnum+4,12)+1}');
                tempDiv = sum(tempMsk); 
@@ -235,7 +231,7 @@ function [ out ] = process_vars(out,fnames,res,dbug)
             end
             
          %Process Uncatagorized Vars -------------------------------------
-         else
+         elseif strcmp(vartype,'un')
             if dbug; disp([' - Processing Uncat Var: ',varname]); end
             if strcmp(varname,'BASAL_AREA_MORT')  || ...
                strcmp(varname,'BASAL_AREA_GROWTH')
@@ -295,7 +291,6 @@ function [ out ] = process_vars(out,fnames,res,dbug)
       out.X.FMEAN_VAPOR_CA_PY           = -1*out.T.FMEAN_VAPOR_AC_PY * 1000 * 2.260;
    end
    %-------------------------------------------------------------------------------------%
-
    
    
    %-------------------------------------------------------------------------------------%
@@ -306,7 +301,6 @@ function [ out ] = process_vars(out,fnames,res,dbug)
    end
    %-------------------------------------------------------------------------------------%
 
-   
    
    
    %-------------------------------------------------------------------------------------%
@@ -320,9 +314,9 @@ function [ out ] = process_vars(out,fnames,res,dbug)
       out.X.Het_Frac   = out.T.MMEAN_RH_PA    ./ out.X.Reco;
       out.X.Soil_Resp  = out.T.MMEAN_RH_PA     + out.T.MMEAN_ROOT_RESP_CO;
 
-      if out.nl.c13out
-         out.X.Reco_C13      = out.T.MMEAN_PLRESP_CO_C13 + out.T.MMEAN_RH_PA_C13;
-         out.X.Soil_Resp_C13 = out.T.MMEAN_RH_PA_C13     + out.T.MMEAN_ROOT_RESP_CO_C13;
+      if read_c13
+         out.X.Reco_C13      = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
+         out.X.Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
 
          out.X.Reco_d13C      = get_d13C(out.X.Reco_C13, out.X.Reco);
          out.X.Soil_Resp_d13C = get_d13C(out.X.Soil_Resp_C13,out.X.Soil_Resp);
@@ -374,191 +368,92 @@ end
 
 
 
-
-
-
-
-
 %======================================================================================%
-function [ out ] = init_out_struct(out)
+function [ out ] = init_out_struct(out,map)
+% Creates a structure 'out' with the fields we want it to have, based on 'map'
 
-%--------------------------------------------------------------------------
-% Create a structure with the names we want
-%--------------------------------------------------------------------------
-% Patch Level (dim = ncohorts)
-% Site  Level (dim = npatches)
-% Grid  Level (dim = npolygons) !EXCEPT dim(TRANSLOSS) = (nzg, npoly)
+read_c13  = out.nl.c13out;
+splt_flg  = out.nl.splflg;
+fields    = fieldnames(map);
+nfields   = numel(fields);
+type      = out.nl.out_type;
+out.thick = [ ];
 
-% Var Shorthands:
-c13 = out.nl.c13out;
-spl = out.nl.splflg;
-
-%---------- Map Flags: -------------------------------------------------------%
-% Pa   = patch level
-% Si   = site level
-% Ed   = grid level
-% C13  = has c13 analogue (assumed to be named varname_C13)
-% sp   = is a 'splittable' variable (is indexed by pft)
-% type = which outputs it's present in.
-
-% Type:
-%   Which output files is this var included in?
-%   I - Instantaneous ONLY
-%   D - Daily
-%   E - Monthly
-%   Q - Qmeans
-%   Y - Yearly
-%   T - Tower
-
-%-----------------------------------------------------------------------------------------------
-% Variable Name                   Pa , Si , Ed , C13 ,sp, type      h5 units
-%-----------------------------------------------------------------------------------------------
-map.AREA                      = { 0  , 1  , 0  , 0   , 0, 'YQEDI' };
-map.PACO_ID                   = { 0  , 1  , 0  , 0   , 0, 'YQEDI' };
-map.AGB_CO                    = { 1  , 0  , 0  , 0   , 1, 'YQED' }; % 
-map.BLEAF                     = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BROOT                     = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BSTORAGE                  = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BSAPWOODA                 = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BSAPWOODB                 = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BALIVE                    = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.BDEAD                     = { 1  , 0  , 0  , 1   , 1, 'YQED' };
-map.LAI_CO                    = { 1  , 0  , 0  , 0   , 1, 'YQED' };
-map.NPLANT                    = { 1  , 0  , 0  , 0   , 0, 'YQED' };
-map.PFT                       = { 1  , 0  , 0  , 0   , 0, 'YQED' };
- ... %% DAILY: 
-map.DMEAN_FS_OPEN_CO          = { 1  , 0  , 0  , 0   , 1, 'D' };
-map.DMEAN_LEAF_RESP_CO        = { 1  , 0  , 0  , 1   , 1, 'D' };
-%map.DMEAN_LASSIM_RESP_CO      = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_ROOT_RESP_CO        = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_GROWTH_RESP_CO      = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_STORAGE_RESP_CO     = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_VLEAF_RESP_CO       = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_GPP_CO              = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_NPP_CO              = { 1  , 0  , 0  , 1   , 1, 'D' };   % kgC / pl / yr
-map.DMEAN_RH_PA               = { 0  , 1  , 0  , 1   , 0, 'D' };
-map.DMEAN_CWD_RH_PA           = { 0  , 1  , 0  , 1   , 0, 'D' };
-map.LEAF_MAINTENANCE          = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.ROOT_MAINTENANCE          = { 1  , 0  , 0  , 1   , 1, 'D' };
-map.DMEAN_PLRESP_CO           = { 1  , 0  , 0  , 1   , 1, 'D' };   % kgC / pl / yr
-map.DMEAN_NEP_PY              = { 0  , 0  , 1  , 0   , 0, 'D' };   % kgC / pl / yr
- ... %% MONTHLY:
-map.BA_CO                     = { 1  , 0  , 0  , 0   , 1, 'QE' };   % cm^2
-map.CB                        = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl
-map.DBH                       = { 1  , 0  , 0  , 0   , 1, 'QE' };   % cm^2
-map.HITE                      = { 1  , 0  , 0  , 0   , 1, 'QE' };   % m
-map.MMEAN_FS_OPEN_CO          = { 1  , 0  , 0  , 0   , 1, 'QE' };
-map.MMEAN_LEAF_DROP_CO        = { 1  , 0  , 0  , 0   , 1, 'QE' };
-map.MMEAN_LAI_CO              = { 1  , 0  , 0  , 0   , 1, 'QE' };   % m2l / m2 grnd
-map.MMEAN_BLEAF_CO            = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl
-map.MMEAN_BROOT_CO            = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl
-map.MMEAN_BSTORAGE_CO         = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl
-map.MMEAN_LEAF_RESP_CO        = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-%map.MMEAN_LASSIM_RESP_CO      = { 1  , 0  , 0  , 1   , 1, 'QE' };
-map.MMEAN_ROOT_RESP_CO        = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_GROWTH_RESP_CO      = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_STORAGE_RESP_CO     = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_VLEAF_RESP_CO       = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_GPP_CO              = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPP_CO              = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NEP_PY              = { 0  , 0  , 1  , 0   , 0, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPDAILY_CO         = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPCROOT_CO         = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPFROOT_CO         = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPLEAF_CO          = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPSAPWOOD_CO       = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPSEEDS_CO         = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_NPPWOOD_CO          = { 1  , 0  , 0  , 0   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_PLRESP_CO           = { 1  , 0  , 0  , 1   , 1, 'QE' };   % kgC / pl / yr
-map.MMEAN_RH_PA               = { 0  , 1  , 0  , 1   , 0, 'QE' };
-map.MMEAN_RH_PY               = { 0  , 0  , 1  , 1   , 0, 'QE' };
-map.MMEAN_CWD_RH_PA           = { 0  , 1  , 0  , 1   , 0, 'QE' };
-map.MMEAN_CWD_RH_PY           = { 0  , 0  , 1  , 1   , 0, 'QE' };
-map.MMEAN_FAST_SOIL_C         = { 0  , 1  , 0  , 1   , 0, 'QE' };
-map.MMEAN_SLOW_SOIL_C         = { 0  , 1  , 0  , 1   , 0, 'QE' };
-map.MMEAN_LEAF_MAINTENANCE_CO = { 1  , 0  , 0  , 1   , 1, 'QE' };
-map.MMEAN_ROOT_MAINTENANCE_CO = { 1  , 0  , 0  , 1   , 1, 'QE' };
-map.MMEAN_SENSIBLE_AC_PY      = { 0  , 0  , 0  , 0   , 1, 'QE' };   %   W / m^2
-map.MMEAN_VAPOR_AC_PY         = { 0  , 0  , 0  , 0   , 1, 'QE' };   %  kg / m^2 / s
-%map.MMEAN_MORT_RATE_CO       = { 0  , 0  , 0  , 0   , 1, 'QE' };   %  kg / m^2 / s
-%map.BASAL_AREA_PY            = { 0  , 0  , 1  , 0   , 0, 'QE' };
-map.QMEAN_NPP_CO              = { 1  , 0  , 0  , 0   , 1, 'Q' };   % kgC / pl / yr
-map.QMEAN_NEP_PY              = { 0  , 0  , 1  , 0   , 1, 'Q' };   % kgC / pl / yr
-map.QMEAN_PLRESP_CO           = { 1  , 0  , 0  , 0   , 1, 'Q' };   % kgC / pl / yr
-map.QMEAN_RH_PY               = { 0  , 0  , 1  , 0   , 1, 'Q' };   % 
- ... %% YEARLY:
-map.FAST_SOIL_C               = { 0  , 1  , 0  , 0   , 0, 'Y' };
-map.SLOW_SOIL_C               = { 0  , 1  , 0  , 0   , 0, 'Y' };
-map.STRUCTURAL_SOIL_C         = { 0  , 1  , 0  , 0   , 0, 'Y' };
-map.STRUCTURAL_SOIL_L         = { 0  , 1  , 0  , 0   , 0, 'Y' };
-map.BASAL_AREA_GROWTH         = { 0  , 0  , 0  , 0   , 0, 'Y' };   % cm^2/ m^2 / yr
-map.BASAL_AREA_MORT           = { 0  , 0  , 0  , 0   , 0, 'Y' };   % cm^2/ m^2 / yr
-map.TOTAL_BASAL_AREA          = { 0  , 0  , 1  , 0   , 0, 'Y' };
-map.TOTAL_BASAL_AREA_GROWTH   = { 0  , 0  , 1  , 0   , 0, 'Y' };
-map.TOTAL_BASAL_AREA_MORT     = { 0  , 0  , 1  , 0   , 0, 'Y' };
-map.TOTAL_BASAL_AREA_RECRUIT  = { 0  , 0  , 1  , 0   , 0, 'Y' };
- ... %% TOWER:
-map.FMEAN_NEP_PY              = { 0  , 0  , 1  , 0   , 0, 'T' };
-map.FMEAN_VAPOR_AC_PY         = { 0  , 0  , 1  , 0   , 0, 'T' };
-
-
-%% Create the data structure, using map
-fields  = fieldnames(map);
-nfields = numel(fields);
-
-type = out.nl.out_type;
 for i = 1:nfields
+   %-------------------------------------------------------------------------------------------%
+   % Initialize some things...                                                                 %
+   %-------------------------------------------------------------------------------------------%
+   vname      = fields{i};                                  % Short-hand the variable name
+   anlg_exist = map.(vname){2};                             % Boolean, "c13 analog exists" 
+   splt_poss  = map.(vname){3};                             % Boolean, var can be split by pft?
+   %-------------------------------------------------------------------------------------------%
+
+   
+   %-------------------------------------------------------------------------------------------%
    % Only deal with variables of relevant output frequency:
    % If it's of the 'wrong' out type, cycle loop except under certain conditions.
+   %-------------------------------------------------------------------------------------------%
    create_var = 0;
-   token_str = map.(fields{i}){6};
+   token_str  = map.(vname){4};
    for j = 1:numel(token_str)
-      token = token_str(j);
+      token      = token_str(j);
       create_var = create_var + strcmp(type,token);
    end
    
    if create_var == 0; continue; end
+   %-------------------------------------------------------------------------------------------%
+
    
+   %-------------------------------------------------------------------------------------------%
+   % Create basic C13 and d13C Vars                                                            %
+   %-------------------------------------------------------------------------------------------%
+   out.raw.(vname) = { };                                   % Flds for raw hdf5 reads
+   out.T.(vname)   = [ ];                                   % Vars with no pft splitting done
    
-   out.raw.(fields{i}) = { };
-   out.T.(fields{i})   = [ ];
-   
-   if map.(fields{i}){4} && c13 % Create basic C13 and d13C Vars
-      if strcmp(fields{i}(end),'C')
-         out.raw.([fields{i},'13']) = { };
-         out.T.([fields{i},'13'])   = [ ];
-      else
-         out.raw.([fields{i},'_C13'])  = { };
-         out.T.([fields{i},'_C13'])    = [ ];
-      end
-      out.T.([fields{i},'_d13C']) = [ ];
+   if anlg_exist && read_c13
+      % Get the fieldnames for C-13 and Del-13C vars.
+      [c13_name, d13C_name] = get_iso_name(vname);
+
+      % Create the fields.
+      out.raw.(c13_name) = { };
+      out.T.(c13_name)   = [ ];
+      out.T.(d13C_name)  = [ ];
    end
+   %-------------------------------------------------------------------------------------------%
    
-   if map.(fields{i}){5} && spl % Split Variables
-      out.C.(fields{i}) = [ ];
-      out.H.(fields{i}) = [ ];
-      out.G.(fields{i}) = [ ];
-      if map.(fields{i}){4} && c13 % Split C13 Variables
-         out.T.([fields{i},'_C13']) = [ ];
-         out.C.([fields{i},'_C13']) = [ ];
-         out.H.([fields{i},'_C13']) = [ ];
-         out.G.([fields{i},'_C13']) = [ ];
+
+   
+   %-------------------------------------------------------------------------------------------%
+   % Create by-pft-class split fields.                                                         % 
+   %-------------------------------------------------------------------------------------------%
+   if splt_poss && splt_flg
+      out.C.(vname) = [ ];
+      out.H.(vname) = [ ];
+      out.G.(vname) = [ ];
+      
+      if anlg_exist && read_c13
+         out.T.(c13_name) = [ ];
+         out.C.(c13_name) = [ ];
+         out.H.(c13_name) = [ ];
+         out.G.(c13_name) = [ ];
          
-         out.T.([fields{i},'_d13C']) = [ ];
-         out.C.([fields{i},'_d13C']) = [ ];
-         out.H.([fields{i},'_d13C']) = [ ];
-         out.G.([fields{i},'_d13C']) = [ ];
+         out.T.(d13C_name) = [ ];
+         out.C.(d13C_name) = [ ];
+         out.H.(d13C_name) = [ ];
+         out.G.(d13C_name) = [ ];
       end
    end
-   
-   out.map   = map;
-   out.thick = [ ];
+   %-------------------------------------------------------------------------------------------%
 
 end
 end
-%======================================================================================%
+%==============================================================================================%
 
 
+
+
+
+%==============================================================================================%
 function [ tempVar, savname ] = scale_patch_var( out,varname,fnum,plant_intensive )
 
 tables();
@@ -602,7 +497,14 @@ tempVar(ind:end)  = out.raw.AREA   {fnum}(larea)*tempVar(ind:end);
 %------------------------------------------------------------------------%
 
 end
+%==============================================================================================%
 
+
+
+
+
+
+%==============================================================================================%
 function [ out ] = process_split(out,savname,fnum,tempVar)
 
 out.C.(savname)(fnum) = 0.0;
@@ -619,3 +521,4 @@ for k=1:length(tempVar)
 end
 
 end
+%==============================================================================================%

@@ -41,8 +41,14 @@ for sim_num = 1:n_sims
    namelists.(cur_sim_name).inc       = '000000';
    namelists.(cur_sim_name).dir       = [call_loc,'/',cur_sim_name,'/analy/'];
    namelists.(cur_sim_name).splflg    = 1;
-   namelists.(cur_sim_name).c13out    = strcmp(namelists.(cur_sim_name).C13AF,'1');
-   
+
+   % Check to see if the ED2IN is compatible with c13 code. If no, tell import poly.
+   if isfield(namelists.(cur_sim_name),'C13AF')
+      namelists.(cur_sim_name).c13out = strcmp(namelists.(cur_sim_name).C13AF,'1');
+   else
+      namelists.(cur_sim_name).c13out = 0;
+   end
+
    %-------------------------------------------------------------------------------------------
    % Read all of the hdf5 output settings
    %-------------------------------------------------------------------------------------------

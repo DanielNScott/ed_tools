@@ -203,7 +203,7 @@ end
 %--------------------------------------------------------------------------% 
 %% Plot: Likelihoods, Analysis                New                   
 %--------------------------------------------------------------------------%
-if 1 %plot_likely
+if plot_likely && iter_best ~= 1
    figname = 'Likelihoods, Analysis';
    figure('Name',figname)
    set(gcf,'Color',[1,1,1])
