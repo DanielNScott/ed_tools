@@ -1,12 +1,12 @@
-function [ out ] = get_output( rundir, simres, dbug)
+function [ out ] = get_output( rundir, simres, verbose)
 %GET_OUTPUT Summary of this function goes here
 %   Detailed explanation goes here
 
    %--------------------------------------------------------------------------
    % Create a namelist 
    %--------------------------------------------------------------------------
-   if dbug; disp(' Reading namelist...'); end;
-   nl = read_namelist('ED2IN','ED_NL');
+   if verbose >= 0; disp(' Reading namelist...'); end;
+   nl = read_namelist([rundir 'ED2IN'],'ED_NL');
 
    %--------------------------------------------------------------------------
    % Set things to direct import_poly
@@ -37,7 +37,7 @@ function [ out ] = get_output( rundir, simres, dbug)
    
    if simres.daily;
       % Daily Read...
-      if dbug
+      if verbose >= 0
          disp(' ')
          disp(' Reading daily HDF5 files :')
          disp(['   ' ip_nl.dir ip_nl.f_type])
@@ -49,7 +49,7 @@ function [ out ] = get_output( rundir, simres, dbug)
 
    if simres.monthly;
       % Monthly Read...
-      if dbug
+      if verbose >= 0
          disp(' ')
          disp(' Reading monthly HDF5 files :')
          disp(['   ' ip_nl.dir ip_nl.f_type])
@@ -61,7 +61,7 @@ function [ out ] = get_output( rundir, simres, dbug)
 
    if simres.yearly;
       % Yearly Read...
-      if dbug
+      if verbose >= 0
          disp(' ')
          disp(' Reading yearly HDF5 files :')
          disp(['   ' ip_nl.dir ip_nl.f_type])
@@ -73,7 +73,7 @@ function [ out ] = get_output( rundir, simres, dbug)
    
    if simres.fast;
       % "Tower" Read...
-      if dbug
+      if verbose >= 0
          disp(' ')
          disp(' Reading Tower HDF5 files :')
          disp(['   ' ip_nl.dir ip_nl.f_type])

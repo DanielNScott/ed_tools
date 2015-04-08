@@ -4,7 +4,6 @@ function [ obs ] = get_obs(opt_data_dir, model, data_fnames, simres)
 %   Detailed explanation goes here
 
 % User Options:
-dbug   = 1;
 rcache = 1;
 
 %---------------------------------------------------------------%
@@ -94,12 +93,12 @@ for icol = 1:nflds
    time = matrix(:,1:time_cols);             % Extract the times
 
    % Create strings for data limits
-   beg_mo = 1; beg_d = 1; beg_hr = 0;        % Init defaults for beginning times
-   end_mo = 1; end_d = 1; end_hr = 0;        % Same for ending times.
-   if sum(strcmp(res,{'monthly','daily','hourly'}))
+   beg_mo = 0; beg_d = 0; beg_hr = 0;        % Init defaults for beginning times
+   end_mo = 0; end_d = 0; end_hr = 0;        % Same for ending times.
+   if any(strcmp(res,{'monthly','daily','hourly'}))
       beg_mo = time(1  ,2);                  % Get the start month
       end_mo = time(end,2);                  % Get the end month
-      if sum(strcmp(res,{'daily','hourly'}));
+      if any(strcmp(res,{'daily','hourly'}));
          beg_d = time(1  ,3);                % Get start day
          end_d = time(end,3);                % Get end day
          if strcmp(res,'hourly');

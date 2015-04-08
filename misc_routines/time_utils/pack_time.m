@@ -1,6 +1,7 @@
 function [ time_str ] = pack_time( y, mo, d, h, mi, s, ofmt)
-%PACK_TIME Summary of this function goes here
-%   Detailed explanation goes here
+%PACK_TIME( y, mo, d, h, mi, s, ofmt) Takes an input of numbers denoting year, month, day, hour,
+%min. and sec. with an output format specification of 'std' or 'ED' and returns a string in 
+%yyyy-mm-dd-mm-hh-ss or yyyy-mm-dd-mmhhss respectively.
 
 ystr  = num2str(y );
 mostr = num2str(mo);
@@ -30,9 +31,9 @@ if s < 10
 end
 
 if strcmp(ofmt,'std')
-   time_str = [ystr '-' mostr '-' dstr '-' mistr '-' hstr '-' sstr ];
+   time_str = [ystr '-' mostr '-' dstr '-' hstr '-' mistr '-' sstr ];
 elseif strcmp(ofmt,'ED')
-   time_str = [ystr '-' mostr '-' dstr '-' mistr hstr sstr ];
+   time_str = [ystr '-' mostr '-' dstr '-' hstr mistr sstr ];
 else
    error('Unrecognized output format! Should be std or ED.')
 end

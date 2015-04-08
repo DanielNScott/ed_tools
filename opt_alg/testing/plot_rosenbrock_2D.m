@@ -1,4 +1,4 @@
-function [ ] = plot_rosenbrock_2D(p1,p2,int1,int2,dx,dy,gridtype)
+function [ ] = plot_rosenbrock_2D(int1,int2,dx,dy,gridtype)
 %PLOT_ROSENBROCK_2D Summary of this function goes here
 %   p1: Parameter 1 of 2D Rosenbrock fn. denoted 'a', typically 1.
 %   p2: Parameter 2 of 2D Rosenbrock fn. denoted 'b', typically 100.
@@ -34,7 +34,7 @@ for i = 1:ndiv_x
    pt_x = x0 + i*dx;
    for j = 1:ndiv_y
       pt_y = y0 + j*dy;
-      h(i,j) = rosenbrock_2D(pt_x,pt_y,p1,p2);
+      h(i,j) = rosenbrock_fn([pt_x,pt_y]);
       
    %  Paraboloid, for testing purposes.
    %  p(i,j) = pt_x^2 + pt_y^2;

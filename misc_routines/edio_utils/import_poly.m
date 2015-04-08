@@ -9,15 +9,15 @@ function [ out ] = import_poly( varargin )
    if nargin == 1
       out.nl = varargin{1};
    else
-      out.nl.f_type   = 'HFF_Fast';
-      out.nl.out_type = 'Q';
-      out.nl.dir      = 'C:\Users\Dan\Moorcroft Lab\ED Output\r85-DS\HFF_Fast_1994_1997\analy\';
+      out.nl.f_type   = 'hf_caf1';
+      out.nl.out_type = 'T';
+      out.nl.dir      = 'C:\Users\Dan\Workspace - Matlab\Moorcroft Lab\hf_caf1\';
       out.nl.splflg   = 1;
-      out.nl.c13out   = 0;
+      out.nl.c13out   = 1;
 
       % Format        = 'hhmmss-dd-mm-yyyy'
-      out.nl.start    = '1994-06-01-000000';
-      out.nl.end      = '1997-01-01-000000';
+      out.nl.start    = '2010-06-01-000000';
+      out.nl.end      = '2013-01-01-000000';
       out.nl.inc      = '000000';
    end
    
@@ -177,27 +177,34 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             if dbug; disp([' - Processing Pa Var: ', varname]); end
 
             % Scale the patch var...
-            [tempVar,savname] = scale_patch_var(out,varname,fnum,plant_intensive);
+            [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive);
 
             % Sum the rescaled variables to get the total.
-            out.T.(savname)(fnum) = sum(tempVar);
+            out.T.(savname)(fnum) = sum(std_var);
 
             % PROCESS SPLIT -----------------------------------------------
             if splt_flg && splt_poss
                if dbug; disp('    - Processing Split'); end
-               out = process_split(out,savname,fnum,tempVar);
+               out = process_split(out,savname,fnum,std_var,'sum');
             end
             
             % DETERMINE R AND DELTA, but only if c13out == 1 -----------------%
             if read_c13 && anlg_exist
                [c13name, delname] = get_iso_name(varname);
-               [tempVar, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive);
+               [c13_var, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive);
                
-               var     = out.T.(varname)(fnum);
-               var_C13 = sum(tempVar);
+               del_var = get_d13C(c13_var,std_var);
 
-               out.T.(c13name)(fnum) = var_C13;
-               out.T.(delname)(fnum) = get_d13C(var_C13,var);
+               out.T.(c13name)(fnum) = sum(c13_var);
+               out.T.(delname)(fnum) = get_d13C(out.T.(c13name)(fnum),out.T.(varname)(fnum));
+               
+               % PROCESS SPLIT -----------------------------------------------
+               if splt_flg && splt_poss
+                  if dbug; disp('    - Processing Split'); end
+                  out = process_split(out,c13name,fnum,c13_var,'sum');
+                  out = process_split(out,delname,fnum,del_var,'avg');
+               end
+               
             end
             
          %Process Site Vars -----------------------------------------------
@@ -227,7 +234,17 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
                out.T.(savname)(fnum) = tempVar;
             else
                out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
-%               out.T.(savname)(fnum) = out.raw.(varname){fnum};
+               %out.T.(savname)(fnum) = out.raw.(varname){fnum};
+               
+               if read_c13 && anlg_exist
+                  [c13name, delname] = get_iso_name(varname);
+
+                  var     = out.raw.(varname){fnum};
+                  var_C13 = out.raw.(c13name){fnum};
+
+                  out.T.(c13name) = [out.T.(c13name), var_C13];
+                  out.T.(delname) = [out.T.(delname), get_d13C(var_C13,var)];
+               end
             end
             
          %Process Uncatagorized Vars -------------------------------------
@@ -282,11 +299,23 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             night_msk = [night_msk, repmat(night_hrs,1,mo_days(imo))];
          end
       end
-      out.X.FMEAN_NEE                     = -1*out.T.FMEAN_NEP_PY * KgperSqm2TperHa /365/24;
-      out.X.FMEAN_NEE_Night               = -1*out.T.FMEAN_NEP_PY * KgperSqm2TperHa /365/24;
-      out.X.FMEAN_NEE_Day                 = -1*out.T.FMEAN_NEP_PY * KgperSqm2TperHa /365/24;
+      nee_fact = KgperSqm2TperHa /365/24;
+      
+      out.X.FMEAN_NEE                     = -1*out.T.FMEAN_NEP_PY * nee_fact;
+      out.X.FMEAN_NEE_Night               = -1*out.T.FMEAN_NEP_PY * nee_fact;
+      out.X.FMEAN_NEE_Day                 = -1*out.T.FMEAN_NEP_PY * nee_fact;
+      
       out.X.FMEAN_NEE_Night(:,~night_msk) = NaN;
       out.X.FMEAN_NEE_Day(:,night_msk)    = NaN;
+      
+      if read_c13
+         out.X.FMEAN_NEE_ISOFLX       = out.X.FMEAN_NEE       .*out.T.FMEAN_NEP_d13C_PY;
+         out.X.FMEAN_NEE_ISOFLX_Night = out.X.FMEAN_NEE_Night .*out.T.FMEAN_NEP_d13C_PY;
+         out.X.FMEAN_NEE_ISOFLX_Day   = out.X.FMEAN_NEE_Day   .*out.T.FMEAN_NEP_d13C_PY;
+
+         out.X.FMEAN_NEE_ISOFLX_Night(:,~night_msk) = NaN;
+         out.X.FMEAN_NEE_ISOFLX_Day(:,night_msk)    = NaN;
+      end
       
       out.X.FMEAN_VAPOR_CA_PY           = -1*out.T.FMEAN_VAPOR_AC_PY * 1000 * 2.260;
    end
@@ -505,7 +534,11 @@ end
 
 
 %==============================================================================================%
-function [ out ] = process_split(out,savname,fnum,tempVar)
+function [ out ] = process_split(out,savname,fnum,tempVar,norm_cond)
+
+co_cnt = 0;
+hw_cnt = 0;
+gr_cnt = 0;
 
 out.C.(savname)(fnum) = 0.0;
 out.H.(savname)(fnum) = 0.0;
@@ -513,11 +546,20 @@ out.G.(savname)(fnum) = 0.0;
 for k=1:length(tempVar)
    if sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
       out.C.(savname)(fnum) = out.C.(savname)(fnum) + tempVar(k);
+      co_cnt = co_cnt + 1;
    elseif sum(out.raw.PFT{fnum}(k) == [9,10,11] > 0)
       out.H.(savname)(fnum) = out.H.(savname)(fnum) + tempVar(k);
+      hw_cnt = hw_cnt + 1;
    elseif out.raw.PFT{fnum}(k) == 5
       out.G.(savname)(fnum) = out.G.(savname)(fnum) + tempVar(k);
+      gr_cnt = gr_cnt + 1;
    end
+end
+
+if  strcmp(norm_cond,'avg')
+   out.C.(savname)(fnum) = out.C.(savname)(fnum)/co_cnt;
+   out.H.(savname)(fnum) = out.H.(savname)(fnum)/hw_cnt;
+   out.G.(savname)(fnum) = out.G.(savname)(fnum)/gr_cnt;
 end
 
 end

@@ -1,4 +1,5 @@
-function [ ] = util_format_plot( mytitle, mylegend, interpreter, xlen, ylab, start_year, panel, npanels )
+function [ ] = util_format_plot(mytitle, mylegend, interpreter, xlen, ylab, start_year, ...
+                                 start_month, panel, npanels )
 %FORMAT_PLOT Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,7 +25,11 @@ function [ ] = util_format_plot( mytitle, mylegend, interpreter, xlen, ylab, sta
         set(gca,'XTickLabel','');
         set(gca,'XGrid','on');
 
-        xlabel(['Years (June of)'])
+        if npanels == 9
+           if any(panel == [7,8,9])
+              xlabel('Years (June of)')
+           end
+        end
 
         yrlist = start_year:1:(start_year+xlen/12);
         yrlist = mod(yrlist,100);
@@ -35,29 +40,32 @@ function [ ] = util_format_plot( mytitle, mylegend, interpreter, xlen, ylab, sta
                 xticklabels{i} = num2str(yrlist(i));
             end
         end
+        set(gca,'XTickLabel',xticklabels);
     elseif xlen <= 60 %&& xlen > 24
+       set_monthly_labels(gca,start_month)
     % Format in 6 month intervals if less than 5 years
-        set(gca,'XTick',[1:6:xlen+1]);
-        set(gca,'XTickLabel','');
-        set(gca,'XGrid','on');
-         
-        if npanels <= 4;
-           %xlabel('Dates')
-        elseif npanels > 4 && panel > 4;
-           %xlabel('Dates')           
-        end
-           
-        yrlist = start_year:1:(start_year+xlen/12);
-        yrlist = mod(yrlist,100);
-        for i=1:length(yrlist)
-            if yrlist(i) < 10
-                xticklabels{2*i-1} = ['Jan 0' num2str(yrlist(i))];
-                xticklabels{2*i}   = ['Jul. 0' num2str(yrlist(i))];
-            else
-                xticklabels{2*i-1} = ['Jan ' num2str(yrlist(i))];
-                xticklabels{2*i}   = ['Jul. ' num2str(yrlist(i))];
-            end
-        end
+%         set(gca,'XTick',[1:6:xlen+1]);
+%         set(gca,'XTickLabel','');
+%         set(gca,'XGrid','on');
+%          
+%         if npanels <= 4;
+%            %xlabel('Dates')
+%         elseif npanels > 4 && panel > 4;
+%            %xlabel('Dates')           
+%         end
+%            
+%         yrlist = start_year:1:(start_year+xlen/12);
+%         yrlist = mod(yrlist,100);
+%         for i=1:length(yrlist)
+%             if yrlist(i) < 10
+%                 xticklabels{2*i-1} = ['Jan 0' num2str(yrlist(i))];
+%                 xticklabels{2*i}   = ['Jul. 0' num2str(yrlist(i))];
+%             else
+%                 xticklabels{2*i-1} = ['Jan ' num2str(yrlist(i))];
+%                 xticklabels{2*i}   = ['Jul. ' num2str(yrlist(i))];
+%             end
+%         end
+        
 %     elseif xlen > 24 && xlen < 60
 %     % Format as months if <= 2 years
 %         set(gca,'XTick',[1:6:xlen+1]);
@@ -78,7 +86,6 @@ function [ ] = util_format_plot( mytitle, mylegend, interpreter, xlen, ylab, sta
 %             end
 %         end    
     end
-    set(gca,'XTickLabel',xticklabels);
     ylabel(ylab)
     %saveas(gcf,['.\',filesep,[pavars{i}],'.jpeg'],'jpeg');
 

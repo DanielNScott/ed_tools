@@ -1,6 +1,7 @@
 function [ y, mo, d, h, mi, s ] = tokenize_time( time, ifmt, ofmt )
-%TOKENIZE_TIME Summary of this function goes here
-%   Detailed explanation goes here
+%TOKENIZE_TIME(TIME,IFMT,OFMT) takes a string time input along with input format ('ED' or
+%'std')and produces produces a year, month, day, hour, minute and second with output format as a
+%string or number ofmt = 'str' or ofmt = 'num'.
 
 
 if strcmp(ifmt,'ED')

@@ -18,10 +18,11 @@ function [] = util_panel_plot(fig_name,data,vars,aliases,units,prefix,years,save
     % npolys:       Number of polygons to graph on each panel
     % npanels:      Number of panels in the figure window    
     %----------------------------------------------------------------------
-    polyNames = fieldnames(data);
-    start_year  = str2double(data.(polyNames{1}).nl.start(end-3:end));
-    npanels = numel(vars);
-    npolys = numel(polyNames);
+    polyNames   = fieldnames(data);
+    [start_year, start_month, ~,~,~,~] = ...
+         tokenize_time(data.(polyNames{1}).nl.start,'ED','num');
+    npanels     = numel(vars);
+    npolys      = numel(polyNames);
     %----------------------------------------------------------------------
     
     
@@ -49,8 +50,10 @@ function [] = util_panel_plot(fig_name,data,vars,aliases,units,prefix,years,save
     for i=1:npanels
         
         % Figure out what panels to create and create + format them
-        if killpanel == i; continue; end;
-        if npanels == 6 || npanels == 5
+        if any(killpanel == i); continue; end;
+        if npanels == 9
+            subaxis(3,3,i, 'Spacing', 0.015, 'Padding', 0.02, 'Margin', 0.03)           
+        elseif npanels == 6 || npanels == 5
             subaxis(3,2,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
         elseif npanels == 4
             subaxis(2,2,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
@@ -87,16 +90,16 @@ function [] = util_panel_plot(fig_name,data,vars,aliases,units,prefix,years,save
 %             plot(1:datalength,NRG.data(2:end,4),'m')
             plot([12:12:length(yvals)*12],yvals)
             if numel(years)>0
-                util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, years(1), i, npanels)
+                util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, years(1), 1, i, npanels)
             else
-                util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, start_year, i, npanels)
+                util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, start_year, start_month, i, npanels)
             end
         else
             plot(1:datalength,yvals)
             if numel(years) > 0
-                util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, years(1), i, npanels)
+                util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, years(1), 1, i, npanels)
             else
-                util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, start_year, i, npanels)
+                util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, start_year, start_month, i, npanels)
             end
         end
     end
