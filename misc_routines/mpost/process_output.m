@@ -58,11 +58,12 @@ for sim_num = 1:n_sims
    simres.fast    = 0;
    namelists.(cur_sim_name).out_types = '';
    if str2double(namelists.(cur_sim_name).IFOUTPUT) == 3
-      simres.daily = 1;
+      simres.fast = 1;
+      namelists.(cur_sim_name).inc = '010000';
    end
-   %if str2double(namelists.(cur_sim_name).IDOUTPUT) == 3
-   %   simres.fast = 1;
-   %end
+   if str2double(namelists.(cur_sim_name).IDOUTPUT) == 3
+     simres.daily = 1;
+   end
    %if str2double(namelists.(cur_sim_name).IMOUTPUT) == 3
    %   simres.monthly = 1;
    %end
@@ -73,7 +74,7 @@ for sim_num = 1:n_sims
       simres.yearly = 1;
    end
    if str2double(namelists.(cur_sim_name).ITOUTPUT) == 3
-      simres.fast = 1;
+      simres.tower = 1;
    end
       
    %-------------------------------------------------------------------------------------------
@@ -103,7 +104,7 @@ for sim_num = 1:n_sims
    %-------------------------------------------------------------------------------------------
    % Merge the yearly and monthly cell structures.
    %-------------------------------------------------------------------------------------------
-   data.(cur_sim_name) = import_poly_multi(namelists.(cur_sim_name),simres,0);
+   data.(cur_sim_name) = import_poly_multi(namelists.(cur_sim_name),simres,1);
    %-------------------------------------------------------------------------------------------
 end
 

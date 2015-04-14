@@ -33,7 +33,7 @@ map.BSAPWOODB                 = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  };
 map.BALIVE                    = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
 map.BDEAD                     = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
 map.LAI_CO                    = {'pa', 0  , 1, 'YQED' ,  ''       , ''        };
-map.NPLANT                    = {'pa', 0  , 0, 'YQED' ,  ''       , ''        };
+map.NPLANT                    = {'pa', 0  , 0, 'YQEDI',  ''       , ''        };
 map.PFT                       = {'pa', 0  , 0, 'YQED' ,  ''       , ''        };
  ... %% DAILY: 
 map.DMEAN_FS_OPEN_CO          = {'pa', 0  , 1, 'D',   ''          , ''           };
@@ -107,11 +107,30 @@ map.TOTAL_BASAL_AREA_GROWTH   = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr' 
 map.TOTAL_BASAL_AREA_MORT     = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
 map.TOTAL_BASAL_AREA_RECRUIT  = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
  ... %% TOWER:
-map.FMEAN_NEP_PY              = {'ed', 1  , 0, 'T' ,  'kgC/m2/yr' , 'kgC/m2/yr'  };
-map.FMEAN_VAPOR_AC_PY         = {'ed', 0  , 0, 'T' };
-%map.FMEAN_RH_PA               = {'si', 1  , 0, 'T' };
-map.FMEAN_RH_PY               = {'ed', 1  , 0, 'T' };
-map.FMEAN_ROOT_RESP_PY        = {'ed', 1  , 0, 'T' };
+map.FMEAN_NEP_PY              = {'ed', 1  , 0, 'TI' ,  'kgC/m2/yr' , 'kgC/m2/yr'  };
+map.FMEAN_VAPOR_AC_PY         = {'ed', 0  , 0, 'TI' };
+%map.FMEAN_RH_PA              = {'si', 1  , 0, 'TI' };
+map.FMEAN_RH_PY               = {'ed', 1  , 0, 'TI' };
+map.FMEAN_ROOT_RESP_PY        = {'ed', 1  , 0, 'TI' };
+ ... %% Fast:
+map.FMEAN_LEAF_RESP_CO        = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+%map.FMEAN_LASSIM_RESP_CO     = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_ROOT_RESP_CO        = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_GROWTH_RESP_CO      = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_STORAGE_RESP_CO     = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_VLEAF_RESP_CO       = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_GPP_CO              = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_NPP_CO              = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.FMEAN_PLRESP_CO           = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2'     };
+...
+%map.FMEAN_RH_PA               = {'si', 1  , 0, 'TI',   ''          , ''           };
+%map.FMEAN_CWD_RH_PA           = {'si', 1  , 0, 'TI',   ''          , ''           };
+map.FMEAN_CSTAR_PA            = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CAN_CO2_PA          = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CARBON_AC_PA        = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CARBON_ST_PA        = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+...
+map.FMEAN_ATM_CO2_PY          = {'ed', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
 
 %**These are in yearly output, but don't want to overwrite them when reading everything
 end

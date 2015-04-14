@@ -3,12 +3,23 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
 %   Detailed explanation goes here
 
    out = struct;
+   % Fast Read...
+   if simres.fast;
+      if dbug
+         disp(' ')
+         disp(' Reading FAST HDF5 files :')
+         disp(['   ' namelist.dir namelist.f_type])
+      end
+      namelist.out_type = 'I';
+      fout = import_poly(namelist,1);
+      out  = merge_struct(fout ,out);
+   end
    
    % Daily Read...
    if simres.daily;
       if dbug
          disp(' ')
-         disp(' Reading daily HDF5 files :')
+         disp(' Reading DAILY HDF5 files :')
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'D';
@@ -20,7 +31,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
    if simres.monthly;
       if dbug
          disp(' ')
-         disp(' Reading monthly HDF5 files :')
+         disp(' Reading MONTHLY HDF5 files :')
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'Q';

@@ -5,9 +5,11 @@ function [ out ] = import_poly( varargin )
 %   Detailed explanation goes here
    
    dbug = 0;
-
-   if nargin == 1
+   if nargin >= 1
       out.nl = varargin{1};
+         if nargin == 2
+            dbug = varargin{2};
+         end
    else
       out.nl.f_type   = 'hf_caf1';
       out.nl.out_type = 'T';
@@ -87,7 +89,6 @@ for ifile = 1:nfiles
     
     % Copy Vars
     for ifld = 1:numel(flds)
-        if dbug; disp([' - Reading Var: ',flds{ifld}]); end
         if strcmp(flds{ifld},'SLZ'   ); continue            ; end
         if strcmp(flds{ifld},'nl'    ); continue            ; end
         if strcmp(flds{ifld},'map'   ); continue            ; end
@@ -97,6 +98,8 @@ for ifile = 1:nfiles
         if strcmp(flds{ifld},'Gr'    ); continue            ; end
         if strcmp(flds{ifld},'thick' ); continue            ; end
         if strcmp(flds{ifld},'raw'   ); continue            ; end
+        
+        if dbug > 1; disp([' - Reading Var: ',flds{ifld}])  ; end
         dset_id = H5D.open(f_id,flds{ifld});
         ofld.(flds{ifld}){ifile} = H5D.read(dset_id,mem_type_id,mem_space_id,file_space_id,dxpl);
         H5D.close(dset_id)
@@ -164,6 +167,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          if strcmp(varname,'raw'          ); continue; end
          if any(strfind(varname,'C13')    ); continue; end
          if any(strfind(varname,'13C')    ); continue; end
+         if any(strfind(varname,'ARBON13')); continue; end
          
          if strcmp(varname,'LAI_CO'       ); plant_intensive = 0  ; end
          if strcmp(varname,'MMEAN_LAI_CO' ); plant_intensive = 0  ; end
@@ -174,7 +178,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          
          %Process Patch Vars -----------------------------------------------
          if strcmp(vartype,'pa')
-            if dbug; disp([' - Processing Pa Var: ', varname]); end
+            if dbug > 1; disp([' - Processing Pa Var: ', varname]); end
 
             % Scale the patch var...
             [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive);
@@ -184,7 +188,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
 
             % PROCESS SPLIT -----------------------------------------------
             if splt_flg && splt_poss
-               if dbug; disp('    - Processing Split'); end
+               if dbug > 2; disp('    - Processing Split'); end
                out = process_split(out,savname,fnum,std_var,'sum');
             end
             
@@ -200,7 +204,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
                
                % PROCESS SPLIT -----------------------------------------------
                if splt_flg && splt_poss
-                  if dbug; disp('    - Processing Split'); end
+                  if dbug > 2; disp('    - Processing Split'); end
                   out = process_split(out,c13name,fnum,c13_var,'sum');
                   out = process_split(out,delname,fnum,del_var,'avg');
                end
@@ -209,7 +213,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             
          %Process Site Vars -----------------------------------------------
          elseif strcmp(vartype,'si')
-            if dbug; disp([' - Processing Si Var: ',varname]); end
+            if dbug > 1; disp([' - Processing Si Var: ',varname]); end
             out.T.(varname)(fnum) = out.raw.AREA{fnum}'*out.raw.(varname){fnum};
             
             if read_c13 && anlg_exist
@@ -224,7 +228,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          
          %Process Ed Vars -----------------------------------------------
          elseif strcmp(vartype,'ed')
-            if dbug; disp([' - Processing Ed Var: ',varname]); end
+            if dbug > 1; disp([' - Processing Ed Var: ',varname]); end
             if any(strcmp(map.(varname){4},'Q'))
                savname = ['MMEAN' varname(6:end) '_Night'];
                tempMsk = logical(month_night_hrs{mod(fnum+4,12)+1}');
@@ -249,7 +253,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             
          %Process Uncatagorized Vars -------------------------------------
          elseif strcmp(vartype,'un')
-            if dbug; disp([' - Processing Uncat Var: ',varname]); end
+            if dbug > 1; disp([' - Processing Uncat Var: ',varname]); end
             if strcmp(varname,'BASAL_AREA_MORT')  || ...
                strcmp(varname,'BASAL_AREA_GROWTH')
                
