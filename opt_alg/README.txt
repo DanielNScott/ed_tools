@@ -13,7 +13,7 @@ To use the optimization framework:
 
 2) Open the files optimize_ed.sh and runopt.sh under opt_alg
    In optimize_ed.sh...
-   2.1) Edit the paths for the folders opt_alg and misc_routines.
+   2.1) Edit the paths to ed_tools
    2.2) Edit the call to matlab if it is not working properly, though it should.
    In runopt.sh...
    2.3) Edit the queue system wrapper commands as necessary. (This file is a queue system wrapper
@@ -31,7 +31,7 @@ To use the optimization framework:
 5) Edit the file settings.m as desired. You can run test optimizations on the rosenbrock 2D function
    to mess around with different settings and get a feel for how everything works if interested.
    
-6) To run an optimization on the machine you're logged into, call 'optimize_ed.sh'. To run an 
+6) To run an optimization on the machine you're logged into, call 'opt_ed.sh'. To run an 
    optimization via queue, cal 'runopt.sh'. If you append a filename, e.g. './myNewSettings' to the
    call, the optimization algorithm will try to load a file './myNewSettings.m' instead of the default
    'settings.m' in it's configuration.
