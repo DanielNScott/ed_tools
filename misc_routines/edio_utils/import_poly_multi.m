@@ -11,7 +11,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'I';
-      fout = import_poly(namelist,1);
+      fout = import_poly(namelist,dbug);
       out  = merge_struct(fout ,out);
    end
    
@@ -23,7 +23,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'D';
-      dout = import_poly(namelist);
+      dout = import_poly(namelist,dbug);
       out  = merge_struct(dout ,out);
    end
 
@@ -35,7 +35,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'Q';
-      mout = import_poly(namelist);
+      mout = import_poly(namelist,dbug);
       out  = merge_struct(mout ,out);
    end
 
@@ -47,7 +47,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'Y';
-      yrout = import_poly(namelist);
+      yrout = import_poly(namelist,dbug);
       out   = merge_struct(yrout,out);
    end
    
@@ -59,7 +59,7 @@ function [ out ] = import_poly_multi(namelist, simres, dbug )
          disp(['   ' namelist.dir namelist.f_type])
       end
       namelist.out_type = 'T';
-      tout = import_poly(namelist);
+      tout = import_poly(namelist,dbug);
       out   = merge_struct(tout,out);
    end
    

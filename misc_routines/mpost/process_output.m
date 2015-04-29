@@ -104,7 +104,7 @@ for sim_num = 1:n_sims
    %-------------------------------------------------------------------------------------------
    % Merge the yearly and monthly cell structures.
    %-------------------------------------------------------------------------------------------
-   data.(cur_sim_name) = import_poly_multi(namelists.(cur_sim_name),simres,1);
+   data.(cur_sim_name) = import_poly_multi(namelists.(cur_sim_name),simres,0);
    %-------------------------------------------------------------------------------------------
 end
 

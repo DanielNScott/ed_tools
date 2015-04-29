@@ -304,14 +304,16 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          end
       end
       nee_fact = KgperSqm2TperHa /365/24;
-      
+     
       out.X.FMEAN_NEE                     = -1*out.T.FMEAN_NEP_PY * nee_fact;
       out.X.FMEAN_NEE_Night               = -1*out.T.FMEAN_NEP_PY * nee_fact;
       out.X.FMEAN_NEE_Day                 = -1*out.T.FMEAN_NEP_PY * nee_fact;
       
+      out.X.FMEAN_Soil_Resp  = (out.T.FMEAN_RH_PY + out.T.FMEAN_ROOT_RESP_PY) * nee_fact;
+      
       out.X.FMEAN_NEE_Night(:,~night_msk) = NaN;
       out.X.FMEAN_NEE_Day(:,night_msk)    = NaN;
-      
+
       if read_c13
          out.X.FMEAN_NEE_ISOFLX       = out.X.FMEAN_NEE       .*out.T.FMEAN_NEP_d13C_PY;
          out.X.FMEAN_NEE_ISOFLX_Night = out.X.FMEAN_NEE_Night .*out.T.FMEAN_NEP_d13C_PY;
@@ -319,9 +321,22 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
 
          out.X.FMEAN_NEE_ISOFLX_Night(:,~night_msk) = NaN;
          out.X.FMEAN_NEE_ISOFLX_Day(:,night_msk)    = NaN;
+         
+         out.X.FMEAN_NEE_d13C       = out.T.FMEAN_NEP_d13C_PY;
+         out.X.FMEAN_NEE_d13C_Night = out.T.FMEAN_NEP_d13C_PY;
+         out.X.FMEAN_NEE_d13C_Day   = out.T.FMEAN_NEP_d13C_PY;
+
+         out.X.FMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         out.X.FMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         
+         out.X.FMEAN_Soil_Resp_C13  = (out.T.FMEAN_RH_C13_PY ...
+                                    +  out.T.FMEAN_ROOT_RESP_C13_PY) * nee_fact;
+         out.X.FMEAN_Soil_Resp_d13C = get_d13C(out.X.FMEAN_Soil_Resp_C13,...
+                                               out.X.FMEAN_Soil_Resp);
       end
       
       out.X.FMEAN_VAPOR_CA_PY           = -1*out.T.FMEAN_VAPOR_AC_PY * 1000 * 2.260;
+
    end
    %-------------------------------------------------------------------------------------%
    
@@ -330,7 +345,16 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
    % Process Some Daily Data
    %-------------------------------------------------------------------------------------%
    if strcmp(out.nl.out_type,'D')
-      out.X.DMEAN_NEE =  -1*out.T.DMEAN_NEP_PY * KgperSqm2TperHa /365;
+      nee_fact = KgperSqm2TperHa /365;
+      out.X.DMEAN_Soil_Resp  = (out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO) * nee_fact;
+      out.X.DMEAN_NEE =  -1*out.T.DMEAN_NEP_PY * nee_fact;
+      
+      if read_c13
+         out.X.DMEAN_Soil_Resp_C13  = (out.T.DMEAN_RH_C13_PA ...
+                                    +  out.T.DMEAN_ROOT_RESP_C13_CO) * nee_fact;
+         out.X.DMEAN_Soil_Resp_d13C = get_d13C(out.X.DMEAN_Soil_Resp_C13,...
+                                               out.X.DMEAN_Soil_Resp);
+      end
    end
    %-------------------------------------------------------------------------------------%
 

@@ -199,18 +199,19 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
          %-------------------------------------------------------------------------------------%
             save('pso.mat')
             disp('Assigning PSO Tasks...')
-            assign_pso_tasks(ui.nps);
+            assign_pso_tasks(ui.nps,ui.verbose);
             
             %----------------------------------------------------------------------------------%
             %                       Update States and Velocities                               %
             %----------------------------------------------------------------------------------%
-            [ ctrl, data, hist ]    = get_particle_data( ctrl, data, hist, ui.nps);
+            [ ctrl, data, hist ]    = get_particle_data( ctrl, data, hist, ui.nps, ui.verbose);
             
             [data.state, data.vels] = update_pso_state(data.state   , data.vels, ...
                                                        ctrl.vel_max , ctrl.chi , ...
                                                        ui.phi_1     , ui.phi_2 , ...
                                                        ctrl.pbs     , ctrl.pbo , ...
-                                                       ctrl.nbrhd   , nfo.nvar);
+                                                       ctrl.nbrhd   , nfo.nvar ); %, ...
+                                                       %ui.verbose);
             %----------------------------------------------------------------------------------%
          %-------------------------------------------------------------------------------------%
          end

@@ -56,6 +56,9 @@ ui.phi_2         = phi_2;
 
 nfo.init_dir = pwd;                                               % Save current directory:
 nfo.test     = ~sum(strcmp(model,{'ED2.1','out.mat'}));           % Is this a test?
+if exist('run_external','var')
+   ui.run_external = 'Dummy text. See init_optimizer.';
+end
 
 %----------------------------------------------------------------------------------------------%
 % Look for opt.mat, infer init/restart status, determine opt_years.

@@ -1,4 +1,4 @@
-function [ ] = assign_pso_tasks(nps)
+function [ ] = assign_pso_tasks(nps,verbose)
 %ASSIGN_PSO_TASKS Submits sbatch calls, each of which will run the model and then run the
 %subroutine 'do_pso_task()' to process it's output and report back.
 %   Detailed explanation goes here
@@ -13,17 +13,23 @@ for i = 1:nps
    cd(dir)
    if exist(obj_name,'file')
       delete(obj_name)                                            % Delete old particle data
-      disp(['file removed: ' obj_name])
+      vdisp(['file removed: ' obj_name],1,verbose)
    end
    if exist(out_name,'file')
       delete(out_name)                                            % Delete old particle data
-      disp(['file removed: ' out_name])
+      vdisp(['file removed: ' out_name],1,verbose)
    end
    setenv('PARTICLE_NUM',num2str(i))
-   !sbatch ./run_particle.sh $PARTICLE_NUM
+   
+   if verbose >= 1
+      !sbatch ./run_particle.sh $PARTICLE_NUM
+   else
+      !sbatch ./run_particle.sh $PARTICLE_NUM 1>/dev/null
+   end
+   
    cd('../')
 end
-disp(['Particles 1 through ' num2str(nps) ' submitted...'])
+vdisp(['Particles 1 through ' num2str(nps) ' submitted...'],0,verbose)
 
 %----------------------------------------------------------------------------------------------%
 % Run particle 1 on this node.

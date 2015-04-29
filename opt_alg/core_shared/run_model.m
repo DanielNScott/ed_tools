@@ -17,7 +17,13 @@ if strcmp(ui.model,'ED2.1');
    %if strcmp(ui.opt_type,'PSO')
    %   !./ed 1>out.txt 2>out.err
    %else
+   if isfield(ui,'run_external')
+      !sbatch runed.sh
+      wait_for('./run_started.txt',180,ui.verbose);
+      wait_for('./run_finished.txt',180,ui.verbose);
+   else
       !./ed
+   end
    %end
    %system('./ed 1>out.txt 2>out.err');
    setenv('HDF5_DISABLE_VERSION_CHECK','0')

@@ -54,19 +54,23 @@ function [ stats ] = get_likely(out, obs, opt_metadata)
 
          % Only keep going if output for comparison exists.
          if ~isempty(metadata_row)                          % It's empty if no metadata exists
+            type    = metadata_row{3};                      % Get the "type" of data.
             out_fld = metadata_row{4};                      % Get data's field name in output
             rework  = metadata_row{5};                      % See if the data was "re-worked";
-
+            
             if rework                                       % If so change the path in the out
                out_fld(2) = 'Y';                            % struct to reworked copy under "Y".
             end
             
             out_data = out.(out_fld(2)).(out_fld(4:end));   % Get output data
             obs_data = obs.proc.(res).(fld);                % Get the observational data
-            obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data            
-            obs_ave  = mean(obs_data);                      % Get the average of the data            
-            ns       = length(obs_data(~isnan(obs_data)));  % Get the number of samples
+            obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
             
+            % THIS IS A HACK TO MAKE FIA DATA WORK! %
+            if strcmp(type,'FIA')
+               obs_data = obs_data(2:end);
+               obs_unc  = obs_unc (2:end);
+            end
             % THIS IS A HACK TO MAKE ISOTOPE DATA WORK! %
             % Trim our reworked data.
             if strcmp(out_fld(2),'Y')
@@ -78,6 +82,9 @@ function [ stats ] = get_likely(out, obs, opt_metadata)
                   obs_unc  = obs_unc (215:end);             % 
                end
             end
+            
+            obs_ave  = mean(obs_data);                      % Get the average of the data
+            ns       = length(obs_data(~isnan(obs_data)));  % Get the number of samples
             
             % Update Statistics
             try
