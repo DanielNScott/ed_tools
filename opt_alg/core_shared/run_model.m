@@ -18,9 +18,10 @@ if strcmp(ui.model,'ED2.1');
    %   !./ed 1>out.txt 2>out.err
    %else
    if isfield(ui,'run_external')
+      !rm -f run_finished.txt
       !sbatch runed.sh
-      wait_for('./run_started.txt',180,ui.verbose);
       wait_for('./run_finished.txt',180,ui.verbose);
+      !rm -f run_finished.txt
    else
       !./ed
    end

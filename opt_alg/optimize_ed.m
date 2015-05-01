@@ -190,9 +190,15 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             end
             print_banner(ctrl,data,hist,ui,5);
             %----------------------------------------------------------------------------------%
+
+
+            %----------------------------------------------------------------------------------%
+            %                           Update Program History                                 %
+            %----------------------------------------------------------------------------------%
+            hist = update_hist(ui,ctrl,data,hist);
+            %----------------------------------------------------------------------------------%
          %-------------------------------------------------------------------------------------%
-            
-            
+
          elseif strcmp(ui.opt_type,'PSO')
          %-------------------------------------------------------------------------------------%
          %                             Main loop for PSO                                       %
@@ -202,10 +208,12 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             assign_pso_tasks(ui.nps,ui.verbose);
             
             %----------------------------------------------------------------------------------%
-            %                       Update States and Velocities                               %
+            %                    Update History, States, and Velocities                        %
             %----------------------------------------------------------------------------------%
             [ ctrl, data, hist ]    = get_particle_data( ctrl, data, hist, ui.nps, ui.verbose);
             
+            hist                    = update_hist(ui,ctrl,data,hist);
+
             [data.state, data.vels] = update_pso_state(data.state   , data.vels, ...
                                                        ctrl.vel_max , ctrl.chi , ...
                                                        ui.phi_1     , ui.phi_2 , ...
@@ -216,17 +224,6 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
          %-------------------------------------------------------------------------------------%
          end
 
-         
-         
-         %-------------------------------------------------------------------------------------%
-         %                             Update Program History                                  %
-         %-------------------------------------------------------------------------------------%
-         try
-            hist = update_hist(ui,ctrl,data,hist);
-         catch ME
-            ME.getReport()
-         end
-         %-------------------------------------------------------------------------------------%
 
          
          

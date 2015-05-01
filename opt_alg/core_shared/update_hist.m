@@ -6,6 +6,7 @@ function [ hist ] = update_hist(ui, ctrl, data, hist )
 if strcmp(ui.opt_type,'PSO')
    hist.obj       (:,ctrl.iter  ) = ctrl.obj';
    hist.state     (:,:,ctrl.iter) = data.state;
+   hist.vels      (:,:,ctrl.iter) = data.vels;
    hist.acc       (ctrl.iter  )   = 1;
 else
    hist.acc       (ctrl.iter  ) = ctrl.acc_step;

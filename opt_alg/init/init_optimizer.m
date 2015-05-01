@@ -144,7 +144,8 @@ if ~nfo.restart
    if strcmp(opt_type,'PSO')
       ctrl.idr        = 1;
       hist.obj = nan(nps,ui.niter);
-      hist.state      = zeros(nfo.nvar,ui.nps,ui.niter);    % List of accepted states
+      hist.state      = zeros(nfo.nvar,ui.nps,ui.niter);       % List of states.
+      hist.vels       = NaN(nfo.nvar,ui.nps,ui.niter);         % List of velocities.
    end
    
    % These do not exist in PSO.
