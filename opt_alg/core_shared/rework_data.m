@@ -47,7 +47,7 @@ for fld_num = 1:numel(fields)                            % Cycle through fields
          out_beg = [num2str(beg_yr), '-01-01-00-00-00']; % And pretend we started on the 1st.
          
          % Aggregate the modified data
-         [agg_dat] = aggregate_data(out_data,out_beg,out_end);
+         agg_dat = aggregate_data(out_data,out_beg,out_end,'ave');
          
          % Xfer the aggregates to new fields.
          out.Y.(out_fld_dmean) = agg_dat.dmeans';

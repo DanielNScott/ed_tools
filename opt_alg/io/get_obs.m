@@ -70,6 +70,9 @@ end
 %=========================================================================%
 function [ data ] = read_obs(data, fpath, fname, res )
 
+if strcmp(fname,'')
+   return
+end
 fname = [ fpath fname ];      % Concatenate the file path & file name
 raw   = readtext(fname,',');  % Read the data from the file
 

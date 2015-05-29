@@ -91,6 +91,7 @@ map.MMEAN_SENSIBLE_AC_PY      = {'un', 0  , 1, 'QE',  'W/m2'      , 'W/m2'      
 map.MMEAN_VAPOR_AC_PY         = {'un', 0  , 1, 'QE',  'kgH2O/m2/s', 'kgH2O/m2/s' };
 %map.MMEAN_MORT_RATE_CO       = {'un', 0  , 1, 'QE'};
 %map.BASAL_AREA_PY            = {'ed', 0  , 0, 'QE'};
+...
 map.QMEAN_NPP_CO              = {'pa', 0  , 1, 'Q' ,  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.QMEAN_NEP_PY              = {'ed', 0  , 1, 'Q' ,  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.QMEAN_PLRESP_CO           = {'pa', 0  , 1, 'Q' ,  'kgC/pl/yr' , 'kgC/m2/yr'  };
@@ -106,9 +107,10 @@ map.TOTAL_BASAL_AREA          = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr' 
 map.TOTAL_BASAL_AREA_GROWTH   = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
 map.TOTAL_BASAL_AREA_MORT     = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
 map.TOTAL_BASAL_AREA_RECRUIT  = {'ed', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
- ... %% TOWER:
+... %% TOWER:
 map.FMEAN_NEP_PY              = {'ed', 1  , 0, 'TI' ,  'kgC/m2/yr' , 'kgC/m2/yr'  };
 map.FMEAN_VAPOR_AC_PY         = {'ed', 0  , 0, 'TI' };
+map.FMEAN_SENSIBLE_AC_PY      = {'ed', 0  , 0, 'TI' };
 %map.FMEAN_RH_PA              = {'si', 1  , 0, 'TI' };
 map.FMEAN_RH_PY               = {'ed', 1  , 0, 'TI' };
 map.FMEAN_ROOT_RESP_PY        = {'ed', 1  , 0, 'TI' };

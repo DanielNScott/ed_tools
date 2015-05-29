@@ -47,7 +47,7 @@ function [ out ] = get_output( rundir, simres, verbose)
       out  = merge_struct(dout ,out);
    end
 
-   if simres.monthly;
+   if simres.monthly || simres.yearly;
       % Monthly Read...
       if verbose >= 0
          disp(' ')
