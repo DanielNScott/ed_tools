@@ -5,18 +5,19 @@ function [ ctrl, data, hist ] = get_particle_data( ctrl, data, hist, nps, verbos
 %----------------------------------------------------------------------------------------------%
 %     Check up on particles. 
 %----------------------------------------------------------------------------------------------%
-file_list = cell(1,nps);
-for i = 1:nps
-   file_list{i} = ['./particle_' num2str(i) '/particle_obj.mat'];     % Particle Data Filename
-end
-
-wait_for(file_list,180,verbose)
+% file_list = cell(1,nps);
+% for i = 1:nps
+%    file_list{i} = ['./particle_' num2str(i) '/particle_obj.mat'];     % Particle Data Filename
+% end
+% 
+% wait_for(file_list,180,verbose)
 
 %----------------------------------------------------------------------------------------------%
 %     If they all exist, load the objectives.
 %----------------------------------------------------------------------------------------------%
 for i = 1:nps
    obj_name  = ['./particle_' num2str(i) '/particle_obj.mat']; % Particle Data Filename
+   wait_for(obj_name,180,verbose)
    load(obj_name);                                             % Load each particle's data
    ctrl.obj(i) = obj;
    vdisp(['particle_' num2str(i) ' objective loaded.'],1,verbose)

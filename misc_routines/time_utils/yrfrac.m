@@ -37,11 +37,10 @@ yrfrac      = yrfrac(:,month);
 
 % Only calculate ratios if the user didn't request days.
 if ~output_days
-   yrfrac = yrfrac ./ repmat((ly + 365),1,12);
+   yrfrac = yrfrac ./ repmat((ly + 365),1,nmo);
 end
 
 % Trim output to just those months requested.
-yrfrac = yrfrac(:,month);
 
 % Unvectorized code:
 % Set number of days in each month, and number of days in year

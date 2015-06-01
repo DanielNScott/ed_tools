@@ -61,69 +61,20 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
       %                          Implement Algorithm if State Conforms                         %
       %----------------------------------------------------------------------------------------%
       if ctrl.state_conforms
-         print_banner(ctrl,data,hist,ui,1);
+         print_banner(ctrl,data,hist,ui,'iter/idr/dr_fact');
 
          %-------------------------------------------------------------------------------------%
          %                           Main loop for DRAM and SA                                 %
          %-------------------------------------------------------------------------------------%
-         if any(strcmp(ui.opt_type,{'DRAM','SA'}))
+         switch lower(ui.opt_type)
+         case {'dram','sa'}
             
             %----------------------------------------------------------------------------------%
             %                                   Run Model                                      %
             %----------------------------------------------------------------------------------%
-            if ui.verbose >= 0; disp('Running the model... '); end
-            data.out = run_model(data.state_prop,ui,nfo);
-            %----------------------------------------------------------------------------------%
-
+            [ctrl, data, nfo, ui] = run_model(ctrl, data, nfo, ui);
             
-            %----------------------------------------------------------------------------------%
-            %                       Preprocess Observations (if necessary)                     %
-            %----------------------------------------------------------------------------------%
-            if ctrl.iter == 1 && (~ nfo.test || strcmp(ui.model,'read_dir'));
-               if ui.verbose >= 0; disp('Preprocessing the observational data... '); end
-               data.obs = preproc_obs(data.obs, data.out, ui.opt_metadata);
-            end
-            %----------------------------------------------------------------------------------%
-
             
-            %----------------------------------------------------------------------------------%
-            %                                   Rework Data                                    %
-            % For some model output (things with prefix .Y. in their data structure paths)     %
-            % we want to deal with partial sums of e.g. days/months, depending on what         %
-            % observations are available. We process these here.                               %
-            %----------------------------------------------------------------------------------%
-            if ~ nfo.test || strcmp(ui.model,'read_dir')
-               data.out = rework_data(data.obs, data.out, ui.opt_metadata);
-            end
-            %----------------------------------------------------------------------------------%
-
-            
-
-            %----------------------------------------------------------------------------------%
-            %                             Calculate the Objective                              %
-            % Evaluate the objective function. This is where the algorithm is mostly likely to %
-            % fail due to source-code errors, so catch any faults and dump state to a .mat.    %
-            %----------------------------------------------------------------------------------%
-            if ui.verbose >= 0; disp('Calculating the objective function... '); end
-            try
-               data.stats = get_objective(data.out, data.obs, ui.opt_metadata, ui.model);
-            catch ME
-               ME.getReport()
-               disp('Saving dump.mat')
-               save('dump.mat')
-               error('See Previous Messages.')
-            end
-
-            % For the ED model, we want to minimize the quantity (-1* log total likelihood)
-            if ~ nfo.test || strcmp(ui.model,'read_dir');
-               ctrl.obj_prop = data.stats.total_likely * (-1);
-            else
-               ctrl.obj_prop = data.out;
-            end
-            %----------------------------------------------------------------------------------%
-
-
-
             %----------------------------------------------------------------------------------%
             %                                Book Keeping                                      %
             %----------------------------------------------------------------------------------%
@@ -134,7 +85,7 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             end
             
             if ctrl.obj_prop <= min(hist.obj)
-               print_banner(ctrl,data,hist,ui,2);
+               print_banner(ctrl,data,hist,ui,'new best');
                hist.out_best  = data.out;
                hist.iter_best = ctrl.iter;
             end
@@ -146,7 +97,7 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             %                          Calculate Weights of Priors                             %
             %----------------------------------------------------------------------------------%
             if strcmp(ui.opt_type,'DRAM')
-               if ui.verbose >= 0; disp('Calculating the weights of the priors... '); end
+               vdisp('Calculating the weights of the priors... ',0,ui.verbose);
                ctrl.prop_prior_wgt = get_prior_wgt(data.state_prop  , ...
                                                    ui.means         , ...
                                                    ui.sdevs         , ...
@@ -162,9 +113,9 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             %----------------------------------------------------------------------------------%
             %                                Calculate Alpha                                   %
             %----------------------------------------------------------------------------------%
-            if ui.verbose >= 0; disp('Calculating the rejection factor... '); end
+            vdisp('Calculating the rejection factor... ',0,ui.verbose);
             ctrl.alpha = get_alpha(ctrl,ui);
-            print_banner(ctrl,data,hist,ui,ctrl.idr + 2);
+            print_banner(ctrl,data,hist,ui,'a/r criteria');
             %----------------------------------------------------------------------------------%
 
 
@@ -188,7 +139,7 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
                   curr_prior_wgt    = ctrl.prop_prior_wgt(ctrl.idr);
                end
             end
-            print_banner(ctrl,data,hist,ui,5);
+            print_banner(ctrl,data,hist,ui,'acceptance/rejection');
             %----------------------------------------------------------------------------------%
 
 
@@ -199,7 +150,7 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             %----------------------------------------------------------------------------------%
          %-------------------------------------------------------------------------------------%
 
-         elseif strcmp(ui.opt_type,'PSO')
+         case {'pso','dream'}
          %-------------------------------------------------------------------------------------%
          %                             Main loop for PSO                                       %
          %-------------------------------------------------------------------------------------%
@@ -243,14 +194,12 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
          ctrl.idr  = ctrl.idr  + 1;
          ctrl.iter = ctrl.iter + 1;
          
-         if sum(strcmp(ui.model,{'ED2.1','out.mat','read_dir'}))
-            disp('Saving current program state to opt.mat...');
-            save('opt.mat')
-         end
+         vdisp('Saving current program state to opt.mat...',0,ui.verbose);
+         save('opt.mat')
          %-------------------------------------------------------------------------------------%
       
       else
-         if ui.verbose >= 0; disp('Proposal does not conform to prior... '); end
+         vdisp('Proposal does not conform to prior... ',0,ui.verbose);
       end % Conformity Check
    end    % Delayed Rejection Loop
 end       % Primary While Loop
@@ -304,7 +253,7 @@ end
 %
 %
 %--------------------------------------------------------------------------------------------%
-% The DRAM (Delayed Rejection Adaptive Metropolis Hastings) Algorithm in pseudocode          %                                                       %
+% The DRAM (Delayed Rejection Adaptive Metropolis Hastings) Algorithm in pseudocode          %
 %--------------------------------------------------------------------------------------------%
 %
 %

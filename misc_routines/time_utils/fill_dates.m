@@ -7,11 +7,23 @@ function [ times ] = fill_dates(res,start,fin,inc,varargin)
 %   fin      -- finish date, as start.
 %   inc      -- increment for 'I' files. Use 'hhmmss' if res is 'I'
 %               otherwise use '000000' (6 zeros). 
-%   ['-mat'] -- produce matrix instead of cell of filenames. 
+%   ['-mat'] -- produce matrix instead of cell of filenames.
+
+
+% Translate resolution
+if strcmp(res,'hourly')
+   res = 'I';
+elseif strcmp(res,'daily')
+   res = 'D';
+elseif strcmp(res,'monthly')
+   res = 'Q';
+elseif strcmp(res,'yearly')
+   res = 'Y';
+end
 
 % Check the consistency of the user's input
-if strcmp(inc,'000000')
-    if strcmp(res,'I')
+if strcmp(inc,'000000') || length(inc) ~= 6
+    if any(strcmp(res,{'I','fast','hourly'}))
         error('The increment cannot be 000000 if res is I')
     end
 end

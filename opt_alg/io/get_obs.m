@@ -1,67 +1,52 @@
 %=========================================================================%
-function [ obs ] = get_obs(opt_data_dir, model, data_fnames, simres)
+function [ obs ] = get_obs(opt_data_dir, data_fnames, simres)
 %GET_OBS This function reads flux and demographic observation files for constraining ED.
 %   Detailed explanation goes here
 
-% User Options:
-rcache = 1;
-
-%---------------------------------------------------------------%
-% If we're not testing, or are testing with ED, get actual obs. %
-%---------------------------------------------------------------%
-if sum(strcmp(model,{'ED2.1','out.mat','read_dir'}))
-   % Assume no cache, get number of years of obs.
-   cache_exists = 0;
-
-   %------------------------------------------------------------------------%
-   % Load cache if it exists...                                             %
-   %------------------------------------------------------------------------%
-   if rcache && exist('./obs.mat','file')
-      disp('Found observation cache "obs.mat", loading...')
-      cache_exists = 1;
-      tmp = load('obs.mat');
-      obs = tmp.obs;
-      clear tmp
-   else
-      if rcache && ~exist('obs.mat','file')
-         disp('No cache detected, rcache is on, will be created.')
-      else
-         disp('No cache detected, rcache is off, will not create cache.')
-      end
-
-      %------------------------------------------------------------------------%
-      %                                                                        %
-      %------------------------------------------------------------------------%
-      obs = struct();
-
-      if simres.yearly
-         obs = read_obs(obs, opt_data_dir, data_fnames.yr_FIA ,'yearly');
-         obs = read_obs(obs, opt_data_dir, data_fnames.yr_flx ,'yearly');
-      end
-
-      if simres.monthly
-         obs = read_obs(obs, opt_data_dir, data_fnames.mo_flx ,'monthly');
-      end
-
-      if simres.daily
-         obs = read_obs(obs, opt_data_dir, data_fnames.day_flx,'daily');
-      end
-
-      if simres.fast
-         obs = read_obs(obs, opt_data_dir, data_fnames.hr_flx ,'hourly');
-      end
-
-      % Save cache:
-      if rcache
-         save('obs.mat','obs')
-         disp('Cache saved.')
-      end
-   end
+%------------------------------------------------------------------------%
+%                                                                        %
+%------------------------------------------------------------------------%
+if exist('./obs.mat','file')
+   disp('Found observation cache "obs.mat", loading...')
+   cache_exists = 1;
+   tmp = load('obs.mat');
+   obs = tmp.obs;
+   clear tmp
 else
-   obs = 0;
+   if rcache && ~exist('obs.mat','file')
+      disp('No cache detected, rcache is on, will be created.')
+   else
+      disp('No cache detected, rcache is off, will not create cache.')
+   end
+
+   %------------------------------------------------------------------------%
+   %                                                                        %
+   %------------------------------------------------------------------------%
+   obs = struct();
+
+   if simres.yearly
+      obs = read_obs(obs, opt_data_dir, data_fnames.yr_FIA ,'yearly');
+      obs = read_obs(obs, opt_data_dir, data_fnames.yr_flx ,'yearly');
+   end
+
+   if simres.monthly
+      obs = read_obs(obs, opt_data_dir, data_fnames.mo_flx ,'monthly');
+   end
+
+   if simres.daily
+      obs = read_obs(obs, opt_data_dir, data_fnames.day_flx,'daily');
+   end
+
+   if simres.fast
+      obs = read_obs(obs, opt_data_dir, data_fnames.hr_flx ,'hourly');
+   end
+
+   % Save cache:
+   if rcache
+      save('obs.mat','obs')
+      disp('Cache saved.')
+   end
 end
-
-
 
 end
 %=========================================================================%

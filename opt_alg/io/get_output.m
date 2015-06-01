@@ -13,7 +13,12 @@ function [ out ] = get_output( rundir, simres, verbose)
    %--------------------------------------------------------------------------
    stime  = [nl.IYEARA '-' nl.IMONTHA '-' nl.IDATEA '-' nl.ITIMEA];
    ftime  = [nl.IYEARZ '-' nl.IMONTHZ '-' nl.IDATEZ '-' nl.ITIMEZ];
-   c13out = str2double(nl.C13AF);
+   
+   if isfield('nl','C13AF')
+      c13out = str2double(nl.C13AF);
+   else
+      c13out = 0;
+   end
    if c13out > 0;
       c13out = 1;
    end

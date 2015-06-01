@@ -8,28 +8,34 @@ function [ ] = assign_pso_tasks(nps,verbose)
 %----------------------------------------------------------------------------------------------%
 for i = 1:nps
    dir    = ['particle_' num2str(i)];                             % Set particle directory
-   obj_name = './particle_obj.mat';
-   out_name = './particle_out.mat';
+   obj_name = './particle_obj.mat';                               % Name file w/ objective
+   out_name = './particle_out.mat';                               % Name file w/ model output
    cd(dir)
-   if exist(obj_name,'file')
-      delete(obj_name)                                            % Delete old particle data
-      vdisp(['file removed: ' obj_name],1,verbose)
-   end
-   if exist(out_name,'file')
-      delete(out_name)                                            % Delete old particle data
-      vdisp(['file removed: ' out_name],1,verbose)
-   end
-   setenv('PARTICLE_NUM',num2str(i))
    
+   if exist(obj_name,'file')                                      % If old data exists...
+      delete(obj_name)                                            % Delete it ...
+      vdisp(['file removed: ' obj_name],1,verbose)                % ... and notify!
+   end
+   
+   if exist(out_name,'file')                                      % If old data exists...
+      delete(out_name)                                            % Delete it ...
+      vdisp(['file removed: ' out_name],1,verbose)                % ... and notify!
+   end
+   
+   setenv('PARTICLE_NUM',num2str(i))                              % This is how the particle
+                                                                  % knows which particle it is.
+   % Run the particle!
    if verbose >= 1
       !sbatch ./run_particle.sh $PARTICLE_NUM
    else
       !sbatch ./run_particle.sh $PARTICLE_NUM 1>/dev/null
    end
-   
-   cd('../')
+   cd('../')                                                      % Up one so we can repeat.
+
 end
 vdisp(['Particles 1 through ' num2str(nps) ' submitted...'],0,verbose)
+%----------------------------------------------------------------------------------------------%
+
 
 %----------------------------------------------------------------------------------------------%
 % Run particle 1 on this node.

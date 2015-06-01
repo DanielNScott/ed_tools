@@ -6,13 +6,17 @@ if ischar(file_list)
    file_list = {file_list};
 end
 
-vdisp('Waiting for file list: ',0,verb)
-vdisp(file_list',0,verb)
+nobjects = length(file_list);
 
+if nobjects > 1
+   vdisp('Waiting for file list: ',0,verb)
+   vdisp(file_list',0,verb)
+else
+   vdisp(['Waiting for: ', file_list{1}],0,verb)
+end
+   
 waiting   = 1;
 sum_exist = 0;
-
-nobjects = length(file_list);
 while waiting;
    for i = 1:nobjects
       obj_name  = file_list{i};                             % Particle Data Filename
@@ -26,7 +30,8 @@ while waiting;
       pause(wait_time) 
    end
 end
-vdisp('Waiting complete, program execution proceeds.',0,verb)
+
+%vdisp('Waiting complete, program execution proceeds.',0,verb)
 
 end
 
