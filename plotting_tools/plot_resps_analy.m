@@ -33,6 +33,18 @@ HW_cents = HW ./ repmat(data.H.MMEAN_PLRESP_CO',1,6);
 Co_cents = Co ./ repmat(data.C.MMEAN_PLRESP_CO',1,6);
 Re_cents = Re ./ repmat(Re(:,4),1,4);
 
+SR(:,1) = data.T.MMEAN_RH_PA';
+SR(:,2) = data.T.MMEAN_ROOT_RESP_CO';
+SR(:,3) = data.H.MMEAN_ROOT_RESP_CO';
+SR(:,4) = data.C.MMEAN_ROOT_RESP_CO';
+SR(:,5) = data.T.MMEAN_RH_PA' + data.T.MMEAN_ROOT_RESP_CO';
+
+SR_cents = SR(:,1:4) ./ repmat(SR(:,5),1,4); 
+
+
+%----------------------------------------------------------------------------------------------%
+% Plot figure 1: Reco and Hw-Co Breakdowns
+%----------------------------------------------------------------------------------------------%
 % Plot percentages over time.
 gen_new_fig('Ecosystem Respiration Breakdown')
 subaxis(3,3,1, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.03)
@@ -115,6 +127,15 @@ subaxis(3,3,8, 'Spacing', 0.015, 'Padding', 0.015, 'Margin', 0.03)
    pieplot(Co_off_ave_cent(1:5),labels)
    title('Off-Season R_c_o')
 
+   
+%----------------------------------------------------------------------------------------------%
+% Plot figure 2: Soil Breakdown
+%----------------------------------------------------------------------------------------------%
+figure()
+plot(1:nmonths,SR_cents(:,1:4)')
+legend('Heterotrophic','Autotrophic','Hardwood Root','Conifer Root');
+title('R_s_o_i_l Fractions by Month')
+set(gca,'XLim',[1,nmonths])
 
 
 

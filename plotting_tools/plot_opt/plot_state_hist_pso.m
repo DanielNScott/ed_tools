@@ -31,7 +31,12 @@ for iplt = 1:nlabs
       pvals = reshape(pvals,nps,iter-1)';
 
       hold on
-      plot(1:(iter-1),pvals','o','MarkerSize',4)
+      if nps > 60;
+         marker = '.';
+      else
+         marker = 'o';
+      end
+      plot(1:(iter-1),pvals',marker)%,'MarkerSize',4)
       
       set(gca,'XLim',[0,iter]);
 %     legend(names,'Interpreter','None','Location','NorthWest')

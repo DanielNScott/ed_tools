@@ -53,16 +53,21 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
 
          % THIS IS A HACK TO MAKE FIA DATA WORK! %
          if strcmp(type,'FIA')
-            obs_data = obs_data(2:end);
-            obs_unc  = obs_unc (2:end);
+           %obs_data = obs_data(2:end);
+           %obs_unc  = obs_unc (2:end);
          end
-         % THIS IS A HACK TO MAKE ISOTOPE DATA WORK! %
          % Trim our reworked data.
          if strcmp(out_fld(2),'Y')
-            if strcmp(res,'monthly')
+            switch lower(res)
+            case('yearly')
+               %if strcmp(fld(1:3),'BAG') || strcmp(fld(1:3),'BAM')
+               %   obs_data = obs_data(2:end);
+               %   obs_unc  = obs_unc (2:end);
+               %end
+            case('monthly')
                obs_data = obs_data(8:end);               % Ignore partial first year.
                obs_unc  = obs_unc (8:end);               % 
-            elseif strcmp(res,'daily')
+            case('daily')
                obs_data = obs_data(215:end);             % Ignore partial first year.
                obs_unc  = obs_unc (215:end);             % 
             end
@@ -74,8 +79,8 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          %---------------------------------------------%
          datalen = numel(obs_data);
          data_name = {[res ' ' fld]};
-         data_name = str_to_space(data_name,'_');
-         data_name = str_to_space(data_name,'.');
+         data_name = char_sub(data_name,'_',' ');
+         data_name = char_sub(data_name,'.',' ');
          data_name = data_name{1};
          %---------------------------------------------%
 
@@ -106,54 +111,70 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          end
          %---------------------------------------------%
          
+         zero_pad   = zeros(size(obs_unc'));
+         bar_unc    = [zero_pad; obs_unc'];
+         pdata      = [out_data; obs_data'];
+         likely     = hist.stats.likely.(res).(fld)(:,iter_best);
          
+         ref_exists = isfield(hist,'out_ref');
+         if ref_exists
+            ref_data = hist.out_ref.(out_fld(2)).(out_fld(4:end));
+            ref_like = hist.stats.ref.likely.(res).(fld);
+            
+            pdata   = [ref_data; pdata];
+            likely  = [ref_like, likely];
+            bar_unc = [zero_pad; bar_unc];
+         end
+         
+
          %---------------------------------------------%
-         % Plot predictions and observations.          %
+         % Plot predictions, observations, likelihoods %
          %---------------------------------------------%
+         if datalen > 200
+            marker = '.';
+         else
+            marker = '-o';
+         end
+            
          if datalen < 4
             subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            barwitherr([0,0;obs_unc']',[out_data;obs_data']')
+            barwitherr(bar_unc',pdata')               
             colormap(cool)
-            
-         elseif datalen < 365*3
-            subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            plot(1:datalen,[out_data; obs_data'],'o');
          else
             subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            plot(1:datalen,[out_data; obs_data'],'.');
+            plot(1:datalen,pdata,marker);
          end
          
          title(['\bf{' data_name '}'])
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
-         legend({'Pred','Obs'})
+         
+         if ref_exists
+            legend({'Ref','Best','Obs'})
+         else
+            legend({'Best','Obs'})
+         end
          ylabel(' ')
          xlabel(xlab)
-         %---------------------------------------------%
-
             
          
-         %---------------------------------------------%
          % Plot associated (detailed) likelihoods.     %
-         %---------------------------------------------%
          if datalen < 4
             subaxis(1,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            likely = hist.stats.likely.(res).(fld)(:,iter_best);
             bar(likely)
-         elseif datalen < 365*3
-            subaxis(1,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            likely = hist.stats.likely.(res).(fld)(:,iter_best);
-            plot(1:datalen,likely,'o')
          else
             subaxis(1,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-            likely = hist.stats.likely.(res).(fld)(:,iter_best);
-            plot(1:datalen,likely,'.')
+            plot(1:datalen,likely,marker)
          end
          
+         if ref_exists
+            legend({'Ref', 'Best'})
+         else
+            legend({'Likelihood'})
+         end
          title(['\bf{' data_name ' Likelihood}'])
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
-         legend({'Likelihood'})
          ylabel('-1 * Log Likelihood')
          xlabel(xlab)
          %---------------------------------------------%

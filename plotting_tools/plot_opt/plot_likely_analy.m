@@ -16,8 +16,8 @@ end
 if strcmp(ui.opt_type,'PSO') || iter_best ~= 1
    figname = 'Likelihoods Analysis';
    figure('Name',figname)
-   %gen_new_fig(figname)
    set(gcf,'Color',[1,1,1])
+   %gen_new_fig(figname)
 
    diffs     = []; % 'Best - Init' for each dataset
    keptnames = {}; % Fieldnames includes e.g. RMSE. Weed it out below.
@@ -97,8 +97,13 @@ if strcmp(ui.opt_type,'PSO') || iter_best ~= 1
       better = better * 1/sbetter;
    end
    
-   bnames = str_to_space(bnames,'_');
-   wnames = str_to_space(wnames,'_');
+   bnames = char_sub(bnames,'_',' ');
+   wnames = char_sub(wnames,'_',' ');
+   
+   if isempty(worse)
+      worse = -1;
+      wnames = {'None!'};
+   end
    
    % All log likelihoods are actually negative, and we want to maximize their sum, i.e.
    % to minimize the sum of their opposite. So improvement would be indicated by 'best'
@@ -137,20 +142,34 @@ if strcmp(ui.opt_type,'PSO') || iter_best ~= 1
          init_likely(row_ind) = -1*nansum(hist.stats.likely.(res).(obs)(:,1));
          init_names{row_ind} = [res '.' obs];
          end_likely(row_ind) = -1*nansum(hist.stats.likely.(res).(obs)(:,iter_best));
+         
+         if isfield(hist.stats,'ref')
+            ref_likely(row_ind) = -1*nansum(hist.stats.ref.likely.(res).(obs));
+         end
+         
       end
    end
 
-   init_names = str_to_space(init_names,'_');
-   init_names = str_to_space(init_names,'.');
+   init_names = char_sub(init_names,'_',' ');
+   init_names = char_sub(init_names,'.',' ');
    
-   bar([init_likely; end_likely]')
+   n_names = numel(init_names);
+   if isfield(hist.stats,'ref')
+      bar([ref_likely; init_likely; end_likely]')      
+      legend({'Ref','Init','Best'})
+   else
+      bar([init_likely; end_likely]')
+      legend({'Init','Best'})
+   end
+   
    %set(gca,'YScale','log')
+   set(gca,'xtick',1:n_names)
+   set(gca,'xlim',[0,n_names+1])
    set(gca,'XTickLabel',init_names)
    rotateXLabels(gca,rdegs)
    set(gca,'YGrid','on')
    set(gca,'YMinorGrid','off')
    ylabel('-1 * Log Likelihood')
-   legend({'Ref','Best'})
    title('\bf{Data Likelihoods}')
    
    if save; export_fig( gcf, figname, '-jpg', '-r150' ); end

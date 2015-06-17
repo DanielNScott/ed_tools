@@ -15,12 +15,17 @@ if any(q_msk) > 0
    labels(q_msk) = q_flds;
 end
 
-labels = str_to_space(labels,'_');
+labels = char_sub(labels,'_',' ');
 
 init_best_ind   = hist.obj == min(hist.obj(:,1));
 global_best_ind = hist.obj == min(hist.obj(:));
 best_inds       = or(init_best_ind,global_best_ind);
 best_params     = hist.state(:,best_inds);
+
+if isfield(hist,'state_ref')
+   best_params = [hist.state_ref, best_params(:,2)];
+   %labels = {'Ref', labels{:}};
+end
 
 % co_param_names = ...
 % {'vmfact','q','R_growth fact'}';

@@ -15,6 +15,14 @@ yvals{3} = hist.stats.CoefDeter(1:iter-1);
 if strcmp(ui.opt_type,'PSO')
    best_objs = min(hist.obj);
    yvals{4}  = best_objs(1:iter-1);
+   
+   if isfield(hist.stats,'ref')
+      yvals{1} = [yvals{1}; repmat(hist.stats.ref.RMSE,1,iter-1);];
+      yvals{2} = [yvals{2}; repmat(hist.stats.ref.R2,1,iter-1);];
+      yvals{3} = [yvals{3}; repmat(hist.stats.ref.CoefDeter,1,iter-1);];
+      yvals{4} = [yvals{4}; repmat(hist.stats.ref.total_likely*-1,1,iter-1);];
+   end
+   
 else
    yvals{4} = hist.obj_prop(1:iter-1);
 end
@@ -27,6 +35,10 @@ for i = 1:4
    ylabel('Score')
    xlabel('Iterations')
    set(gca,'XLim',[1,iter]);
+
+   if isfield(hist.stats,'ref')
+      legend('Ensemble Bests','Reference')
+   end
 end
 
 if save; export_fig( gcf, figname, '-jpg', '-r150' ); end

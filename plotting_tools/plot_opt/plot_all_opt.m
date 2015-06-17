@@ -1,4 +1,4 @@
-function [ ] = plot_all_opt( opt_mat_name, save)
+function [ ] = plot_all_opt( opt_mat_name, obs_mat_name, save)
 %PLOT_OPT_FIGS Plots items from output of optimization.
 %   plot_type: 'all' graphs everything. See file for more options.
 %   opt_mat_name: A string containing the filename of the optimization output.
@@ -8,7 +8,7 @@ function [ ] = plot_all_opt( opt_mat_name, save)
 close all;                       % Close previously open graphs
 load(opt_mat_name)               % Load the data
 niter = size(hist.state,2);      % Get the number of iterations completed
-load('obs_proc.mat')
+load(obs_mat_name)
 
 %----------------------------------------------------------------------------------------------%
 % Get run info such as start and end indices of simulation
