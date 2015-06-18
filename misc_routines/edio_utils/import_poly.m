@@ -281,8 +281,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    % Here a bunch of derivative variables get created...
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   % Everywhere below a 365 is featured, a leap year is being ignored.
-   % This is obvious maybe, but good to keep track of.
+   day_o_yr = 365.242;
    
    %-------------------------------------------------------------------------------------%
    % Process 'Tower' File Data.                                                          %

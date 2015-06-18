@@ -3,12 +3,14 @@ function [ trees ] = read_treedata()
 %   That file read should be 'hf069-11-trees.csv'. The output is a structure, to be saved.
 
 % Data, uncomment truncated or severe for testing:
-%filename = 'C:\Users\Dan\Moorcroft Lab\Data\Harvard Forest Archive\hf069-11-trees.csv';
+hfa_path = 'C:\Users\Dan\Moorcroft_Lab\data\harvard forest archive\';
+filename = [hfa_path 'hf-069-trees, Evan Goldman\hf069-11-trees.csv'];
+%filename = 'C:\Users\Dan\Moorcroft Lab\data\harvard forest archive\hf069-11-trees.csv';
 %filename = '.\Altered HF DSets\hf069-11-trees-truncated.csv';
 %filename = '.\Altered HF DSets\hf069-11-trees-severe.csv';
 %filename = '.\Altered HF DSets\hf069-11-trees-fake.csv';
 %filename = '.\Altered HF DSets\hf069-11-trees-2009-2011.csv';
-filename = '.\Altered HF DSets\hf069-11-trees-ems-2002-2013.csv';
+%filename = '.\Altered HF DSets\hf069-11-trees-ems-2002-2013.csv';
 
 trees.all = readtext(filename); % Tree data from file
 nrows = size(trees.all,1) - 1;  % Number of rows of actual data in file (first is headers)
