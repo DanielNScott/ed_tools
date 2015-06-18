@@ -35,6 +35,7 @@ ui.acc_crit      = acc_crit;
 ui.adapt_freq    = adapt_freq;
 ui.cool_sched    = cool_sched;
 ui.data_fnames   = data_fnames;
+ui.obs_prefixes  = obs_prefixes;
 ui.exp_mult      = exp_mult;
 ui.mantissa      = mantissa;
 ui.model         = model;
@@ -54,6 +55,7 @@ ui.nps           = nps;
 ui.top           = top;
 ui.phi_1         = phi_1;
 ui.phi_2         = phi_2;
+ui.obs_years    = obs_years;
 %-----------------------------------------------------------------------------------------------
 
 nfo.init_dir = pwd;                                   % Save current directory:
@@ -114,7 +116,8 @@ if ~ nfo.restart
    % Get observations against which to compare the model.
    if ~ nfo.is_test
       disp('Retrieving observational data...')
-      data.obs = get_obs( ui.opt_data_dir, ui.data_fnames , nfo.simres);
+      %data.obs = get_obs( ui.opt_data_dir, ui.data_fnames , nfo.simres);
+      data.obs = get_obs_new( ui.opt_data_dir, ui.obs_prefixes, nfo.simres, ui.obs_years);
    else
       data.obs = 0;
    end

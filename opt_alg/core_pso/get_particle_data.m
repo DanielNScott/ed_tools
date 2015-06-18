@@ -12,11 +12,13 @@ function [ ctrl, data, hist ] = get_particle_data( ctrl, data, hist, nps, verbos
 % 
 % wait_for(file_list,180,verbose)
 
+prfx = '/particle_';
+
 %----------------------------------------------------------------------------------------------%
 %     If they all exist, load the objectives.
 %----------------------------------------------------------------------------------------------%
 for i = 1:nps
-   obj_name  = ['./particle_' num2str(i) '/particle_obj.mat']; % Particle Data Filename
+   obj_name  = ['.' prfx num2str(i) prfx 'obj.mat']; % Particle Data Filename
    wait_for(obj_name,180,verbose)
    load(obj_name);                                             % Load each particle's data
    ctrl.obj(i) = obj;
@@ -35,12 +37,17 @@ min_msk = ctrl.pbo == min(ctrl.pbo);
 data.best_state = ctrl.pbs(:,min_msk);
 
 % Save that state's output.
-num_best   = find(min_msk);
-out_name   = ['./particle_' num2str(num_best) '/particle_out.mat'];    % Particle Data Filename
-stats_name = ['./particle_' num2str(num_best) '/particle_stats.mat'];  % Particle Data Filename
-hist.out_best = load(out_name);                                        % Load data
-data.stats    = load(stats_name);                                      % Load data
-vdisp(['particle_' num2str(num_best) ' (best) out, stats loaded.'],1,verbose)
+num_best   = num2str(find(min_msk));
+out_name   = ['.' prfx num_best prfx 'out.mat'];    % Particle Data Filename
+stats_name = ['.' prfx num_best prfx 'stats.mat'];  % Particle Data Filename
+
+load(out_name);
+load(stats_name);
+
+hist.out_best = out;	
+data.stats    = stats;
+
+vdisp(['particle_' num_best ' (best) out, stats loaded.'],1,verbose)
 
 end
 

@@ -1,5 +1,9 @@
 function [ out ] = rework_data( obs, out, opt_metadata )
-%REWORK_DATA Summary of this function goes here
+%REWORK_DATA Does two things: If an hourly data set has 'rework' flag set to 1, this routine
+%masks the model output to correspond point-wise with the available data (i.e. an NaN/-9999 in
+%the data implies the corresponding value in the output should be NaN) and then creates daily,
+%monthly, and yearly means of the output for comparison with corresponding means in obs. These
+%are saved in out.Y.(fld) fields.
 %   Detailed explanation goes here
 
 fields = fieldnames(obs.hourly);                         % What types of hourly data are there?
@@ -30,7 +34,19 @@ for fld_num = 1:numel(fields)                            % Cycle through fields
          nan_vec(nan_vec == 0) = NaN;                    % Turn nan_vec 1=>NaN
          
          out_data = out.(prefix).(out_fld)';             % Get output data
-         out_data = out_data .*nan_vec;                  % Apply the NaN mask
+         
+         try
+            out_data = out_data .*nan_vec;               % Apply the NaN mask
+         catch ME
+            out_size = num2str(length(out_data));
+            obs_size = num2str(length(obs_data));
+            msg = {'Output & obs have diff. length!';...
+                  ['length of output: ' out_size];   ...
+                  ['length of obs.  : ' obs_size]};
+            disp(msg)
+            disp(' ')
+            error(ME)
+         end
          
          out.Y.(out_fld) = out_data';                    % Save the modified data.
          
