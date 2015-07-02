@@ -1,6 +1,6 @@
 function [ ] = set_monthly_labels( gca, beg )
-%SET_MONTHLY_LABELS Summary of this function goes here
-%   Detailed explanation goes here
+%SET_MONTHLY_LABELS(GCA,BEG) Takes the current axis and the number of the first month which has
+%an x-tick and labels the axis.
 
    months = {'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', ...
              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'};

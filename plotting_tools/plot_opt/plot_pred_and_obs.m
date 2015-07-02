@@ -51,27 +51,31 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          obs_data = obs.proc.(res).(fld);                % Get the observational data
          obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
 
-         % THIS IS A HACK TO MAKE FIA DATA WORK! %
-         if strcmp(type,'FIA')
-           %obs_data = obs_data(2:end);
-           %obs_unc  = obs_unc (2:end);
-         end
-         % Trim our reworked data.
-         if strcmp(out_fld(2),'Y')
-            switch lower(res)
-            case('yearly')
-               %if strcmp(fld(1:3),'BAG') || strcmp(fld(1:3),'BAM')
-               %   obs_data = obs_data(2:end);
-               %   obs_unc  = obs_unc (2:end);
-               %end
-            case('monthly')
-               obs_data = obs_data(8:end);               % Ignore partial first year.
-               obs_unc  = obs_unc (8:end);               % 
-            case('daily')
-               obs_data = obs_data(215:end);             % Ignore partial first year.
-               obs_unc  = obs_unc (215:end);             % 
-            end
-         end
+         
+         [obs_data, obs_unc] ...                         % Make sure sizes are conformant.
+            = check_sizes(obs_data,obs_unc,out_data,fld);% If not, leading data trimmed.
+         
+%          % THIS IS A HACK TO MAKE FIA DATA WORK! %
+%          if strcmp(type,'FIA')
+%            %obs_data = obs_data(2:end);
+%            %obs_unc  = obs_unc (2:end);
+%          end
+%          % Trim our reworked data.
+%          if strcmp(out_fld(2),'Y')
+%             switch lower(res)
+%             case('yearly')
+%                %if strcmp(fld(1:3),'BAG') || strcmp(fld(1:3),'BAM')
+%                %   obs_data = obs_data(2:end);
+%                %   obs_unc  = obs_unc (2:end);
+%                %end
+%             case('monthly')
+%                obs_data = obs_data(8:end);               % Ignore partial first year.
+%                obs_unc  = obs_unc (8:end);               % 
+%             case('daily')
+%                obs_data = obs_data(215:end);             % Ignore partial first year.
+%                obs_unc  = obs_unc (215:end);             % 
+%             end
+%          end
          
          
          %---------------------------------------------%
@@ -99,9 +103,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          ma = 0.03;  mt = 0.03;
          mb = 0.03;
          
+         [yrs, mos, ds] = tokenize_time(hist.out_best.nl.start,'ED','num');
+         [yrf, mof, df] = tokenize_time(hist.out_best.nl.end  ,'ED','num');
          switch (res)
             case('yearly')
                xlab = 'year';
+               xtck = yrs:yrf;
+               xtck = xtck(2:end-1);
             case('monthly')
                xlab = 'month';
             case('daily')
@@ -126,6 +134,8 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             bar_unc = [zero_pad; bar_unc];
          end
          
+         likely = -1 *likely;
+         
 
          %---------------------------------------------%
          % Plot predictions, observations, likelihoods %
@@ -136,12 +146,11 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             marker = '-o';
          end
             
+         subaxis(2,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if datalen < 4
-            subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
             barwitherr(bar_unc',pdata')               
             colormap(cool)
          else
-            subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
             plot(1:datalen,pdata,marker);
          end
          
@@ -159,11 +168,10 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             
          
          % Plot associated (detailed) likelihoods.     %
+         subaxis(2,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if datalen < 4
-            subaxis(1,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
             bar(likely)
          else
-            subaxis(1,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
             plot(1:datalen,likely,marker)
          end
          
@@ -179,6 +187,24 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          xlabel(xlab)
          %---------------------------------------------%
          
+         
+         if 1
+            ns         = numel(obs_data(~isnan(obs_data)));
+            likely     = ((obs_data' - out_data)./ obs_unc').^2 * -0.5/ns;
+            likely_ref = ((obs_data' - ref_data)./ obs_unc').^2 * -0.5/ns;
+            likely = [ -1* likely_ref; -1* likely]';
+            
+            % Plot associated (detailed) likelihoods.     %
+            subaxis(2,2,3,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+            if datalen < 4
+               bar(likely)
+            else
+               plot(1:datalen,likely,marker)
+            end
+            
+         end
+         
+         
          if save; export_fig( gcf, data_name, '-jpg', '-r150' ); end
       end
    end
@@ -188,4 +214,24 @@ end
 
 
 end
+
+
+
+function [obs, unc] = check_sizes(obs,unc,out,fld)
+   nobs = numel(obs);
+   nout = numel(out);
+   if nobs ~= nout
+      disp('--------- Warning! --------------')
+      disp('numel(obs) ~= numel(out)')
+      disp(['Field     : ', fld])
+      disp(['numel(obs): ', num2str(nobs)])
+      disp(['numel(out): ', num2str(nout)])
+      disp('Removing leading portion of nobs.')
+      
+      new_first_ind = nobs - nout + 1;
+      obs = obs(new_first_ind:end);
+      unc = unc(new_first_ind:end);
+   end
+end
+
 

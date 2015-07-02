@@ -66,22 +66,25 @@ function [ stats ] = get_likely(out, obs, opt_metadata)
             obs_data = obs.proc.(res).(fld);                % Get the observational data
             obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
             
-            % THIS IS A HACK TO MAKE FIA DATA WORK! %
-            if strcmp(type,'FIA')
-               obs_data = obs_data(2:end);
-               obs_unc  = obs_unc (2:end);
-            end
-            % THIS IS A HACK TO MAKE ISOTOPE DATA WORK! %
-            % Trim our reworked data.
-            if strcmp(out_fld(2),'Y')
-               if strcmp(res,'monthly')
-                  obs_data = obs_data(8:end);               % Ignore partial first year.
-                  obs_unc  = obs_unc (8:end);               % 
-               elseif strcmp(res,'daily')
-                  obs_data = obs_data(215:end);             % Ignore partial first year.
-                  obs_unc  = obs_unc (215:end);             % 
-               end
-            end
+            [obs_data, obs_unc] ...                         % Make sure sizes are conformant.
+               = check_sizes(obs_data,obs_unc,out_data,fld);% If not, leading data trimmed.
+            
+%             % THIS IS A HACK TO MAKE FIA DATA WORK! %
+%             if strcmp(type,'FIA')
+%                obs_data = obs_data(2:end);
+%                obs_unc  = obs_unc (2:end);
+%             end
+%             % THIS IS A HACK TO MAKE ISOTOPE DATA WORK! %
+%             % Trim our reworked data.
+%             if strcmp(out_fld(2),'Y')
+%                if strcmp(res,'monthly')
+%                   obs_data = obs_data(8:end);               % Ignore partial first year.
+%                   obs_unc  = obs_unc (8:end);               % 
+%                elseif strcmp(res,'daily')
+%                   obs_data = obs_data(215:end);             % Ignore partial first year.
+%                   obs_unc  = obs_unc (215:end);             % 
+%                end
+%             end
             
             obs_ave  = mean(obs_data);                      % Get the average of the data
             ns       = length(obs_data(~isnan(obs_data)));  % Get the number of samples
@@ -158,3 +161,22 @@ function [ out ] = ceiling(in)
 % Computes the mathematical ceiling, the 'opposite' of floor.
    out = -floor(-in);
 end
+
+
+function [obs, unc] = check_sizes(obs,unc,out,fld)
+   nobs = numel(obs);
+   nout = numel(out);
+   if nobs ~= nout
+      disp('--------- Warning! --------------')
+      disp('numel(obs) ~= numel(out)')
+      disp(['Field     : ', fld])
+      disp(['numel(obs): ', num2str(nobs)])
+      disp(['numel(out): ', num2str(nout)])
+      disp('Removing leading portion of nobs.')
+      
+      new_first_ind = nobs - nout + 1;
+      obs = obs(new_first_ind:end);
+      unc = unc(new_first_ind:end);
+   end
+end
+
