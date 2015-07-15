@@ -1,8 +1,8 @@
-function [ ] = fake_pso_task(particle_num, rundir_suffix)
+function [ ] = fake_pso_task(dir)
 %FAKE_PSO_TASK Enacts the same proceedure as do_pso_task (for ED), except without run_ed.
 %   Inputs:
-%     particle_num : Which particle state is this one pretending to have?
-%     rundir_suffix: What is this particle's folder's name?
+%     particle_num: Which particle state is this one pretending to have?
+%     dir         : What is this particle's directory name? 
 
 addpath(genpath('/n/moorcroftfs2/dscott/ed_tools'));
 load('../pso.mat')
@@ -19,8 +19,7 @@ if ~ nfo.is_test
 end
  
 if strcmp(ui.opt_type,'PSO')
-   ui.rundir = [ui.rundir rundir_suffix];
-   data.state_prop = data.state(:,particle_num);
+   ui.rundir = [ui.rundir dir];
 end 
 
 % Read output:
@@ -84,7 +83,7 @@ if nfo.is_test
    obj = out;
 end
  
-if particle_num == 1 && ctrl.iter == 1
+if ctrl.iter == 1
    save('particle_out.mat','out')
    save('particle_obj.mat','obj')
    save('particle_stats.mat','stats')
