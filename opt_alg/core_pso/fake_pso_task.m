@@ -24,7 +24,7 @@ end
 
 % Read output:
 if ui.verbose >= 1; disp('Copying model output... '); end
-data.out = get_output(ui.rundir, nfo.simres, ui.verbose);
+data.out = import_poly(ui.rundir, ui.verbose);
 
    %-------------------------------------------------------------------------------%
    %                       Preprocess Observations (if necessary)                  %

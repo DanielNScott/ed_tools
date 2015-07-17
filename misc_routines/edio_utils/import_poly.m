@@ -1,64 +1,78 @@
 %======================================================================================%
-function [ out ] = import_poly( varargin )
+function [ out ] = import_poly( rundir, dbug )
 %IMPORT_POLY reads HDF5 files, either with information given in the input in the form of a
 %directory plus timeframe info or with information set below as a default.
 %   Detailed explanation goes here
    
-   dbug = 0;
-   if nargin >= 1
-      out.nl = varargin{1};
-         if nargin == 2
-            dbug = varargin{2};
-         end
-   else
-      out.nl.f_type   = 'hf_caf1';
-      out.nl.out_type = 'T';
-      out.nl.dir      = 'C:\Users\Dan\Workspace - Matlab\Moorcroft Lab\hf_caf1\';
-      out.nl.splflg   = 1;
-      out.nl.c13out   = 1;
+   namelist_fname = [rundir,'/','ED2IN'];
+   namelist  = read_namelist(namelist_fname,'ED_NL');
+   analy_dir = [rundir,'/','analy/'];
 
-      % Format        = 'hhmmss-dd-mm-yyyy'
-      out.nl.start    = '2010-06-01-000000';
-      out.nl.end      = '2013-01-01-000000';
-      out.nl.inc      = '000000';
-   end
+   [sim_beg, sim_end] = get_sim_times(namelist);
    
-   actual_start = out.nl.start;
-   if sum(strcmp(out.nl.out_type,{'Y','T'}))
-      [yr,mo,d,hr,mi,s] = tokenize_time(out.nl.start,'ED','num');
-      if mo ~= 1;
-         yr = yr+1;
-         mo = 1;
-         out.nl.start = pack_time(yr,mo,d,hr,mi,s,'ED');
-      else
-      end
+   map = def_ed_varmap();   
+   out = struct;
+   
+   out.namelist = namelist;
+   out.rundir   = rundir;
+   out.sim_beg  = sim_beg;
+   out.sim_end  = sim_end;
+
+   io_types = {'IFOUTPUT','IDOUTPUT','IMOUTPUT','IQOUTPUT','IYOUTPUT','ITOUTPUT','ISOUTPUT'};
+   io_abbrv = {'I','D','E','Q','Y','T','S'};
+   
+   vdisp('Importing model output using import_poly.m...',0,dbug)
+   for io_num = 1:numel(io_types)
+      io_cur   = io_types{io_num};
+      out_type = io_abbrv{io_num};
+      out_cur  = struct();
       
-   end
-   
-   fnames   = gen_poly_fnames(out.nl.dir, out.nl.f_type, out.nl.out_type, out.nl.start,...
-                                 out.nl.end, out.nl.inc );
+      if strcmp(namelist.(io_cur),'3')
+         file_prfx = strsplit(namelist.FFILOUT,'/');
+         file_prfx = file_prfx{end};
+         file_prfx(file_prfx == '''') = '';
+         
+         if any(strcmp(out_type,{'Y','T'}))
+            [yr,mo,d,hr,mi,s] = tokenize_time(sim_beg,'ED','num');
+            if mo ~= 1;
+               yr = yr+1;
+               mo = 1;
+               sim_beg = pack_time(yr,mo,d,hr,mi,s,'ED');
+            end   
+         end
+         
+         fnames = gen_poly_fnames(analy_dir, file_prfx, out_type, sim_beg, sim_end, '010000');
 
-   out.nl.start = actual_start;
-   if isempty(fnames)
-      disp('Warning, import poly was asked to generate a 0 length list of filenames.')
-      disp('Check the simulation start and end times and the output type.')
-      return;
+         if isempty(fnames)
+            disp('Warning, import poly was asked to generate a 0 length list of filenames.')
+            disp('Check the simulation start and end times and the output type.')
+            return;
+         end
+         
+         if isfield(namelist,'C13AF')
+            read_c13 = str2double(namelist.C13AF);
+         else
+            read_c13 = 0;
+         end
+         
+         vdisp(['Beginning ',io_cur,' HDF5 file loop...'],0,dbug)
+         out_cur                  = init_out_struct (out_cur,map,read_c13,out_type);
+         [out_cur.raw, err_list]  = read_vars(out_cur.raw,fnames,out_type,dbug);
+         
+         out_cur = process_vars(out_cur,fnames,out_type,map,read_c13,sim_beg,out_type ...
+                              ,err_list,dbug);
+
+         out = merge_struct(out_cur ,out);
+      end
    end
    
-   map = def_ed_varmap();
-   
-   disp('Importing model output using import_poly.m...')
-   out      = init_out_struct (out,map);
-   out.raw  = read_vars       (out.raw,fnames,out.nl.out_type,dbug);
-   out      = process_vars    (out,fnames,out.nl.out_type,map,dbug);
-   out.desc = 'Created with import_poly using nl in (this).nl';
 
 end
 %======================================================================================%
 
 
 %======================================================================================%
-function [ ofld ] = read_vars(ofld,fnames,res,dbug)
+function [ ofld, err_list ] = read_vars(ofld,fnames,res,dbug)
 %
 
 % ------------------------------------------------------------------------
@@ -81,44 +95,72 @@ if res ~= 'T'
    ofld.SLZ = hdf5read(fnames{1},'SLZ');
 end
 
-disp('Reading Files...')
+err_list  = {};
+num_err_list = [];
+
+vdisp('Reading Files...',0,dbug)
 for ifile = 1:nfiles
-    if dbug; disp('----------------------------------------------------------')  ; end
-    if dbug; disp(['Reading File: ',fnames{ifile}])                              ; end
-    f_id = H5F.open(fnames{ifile},oflgs,plist);    
-    
-    % Copy Vars
-    for ifld = 1:numel(flds)
-        if strcmp(flds{ifld},'SLZ'   ); continue            ; end
-        if strcmp(flds{ifld},'nl'    ); continue            ; end
-        if strcmp(flds{ifld},'map'   ); continue            ; end
-        if strcmp(flds{ifld},'T'     ); continue            ; end
-        if strcmp(flds{ifld},'Co'    ); continue            ; end
-        if strcmp(flds{ifld},'Hw'    ); continue            ; end
-        if strcmp(flds{ifld},'Gr'    ); continue            ; end
-        if strcmp(flds{ifld},'thick' ); continue            ; end
-        if strcmp(flds{ifld},'raw'   ); continue            ; end
-        
-        if dbug > 1; disp([' - Reading Var: ',flds{ifld}])  ; end
-        dset_id = H5D.open(f_id,flds{ifld});
-        ofld.(flds{ifld}){ifile} = H5D.read(dset_id,mem_type_id,mem_space_id,file_space_id,dxpl);
-        H5D.close(dset_id)
-    end
+   abbrv_fname = strsplit(fnames{ifile},'/');
+   abbrv_fname = abbrv_fname{end};
+   vdisp(['Reading ',abbrv_fname],1,dbug)
+   f_id = H5F.open(fnames{ifile},oflgs,plist);
+   
+   % Copy Vars
+   for ifld = 1:numel(flds)
+      if strcmp(flds{ifld},'SLZ'   ); continue            ; end
+      if strcmp(flds{ifld},'nl'    ); continue            ; end
+      if strcmp(flds{ifld},'map'   ); continue            ; end
+      if strcmp(flds{ifld},'T'     ); continue            ; end
+      if strcmp(flds{ifld},'Co'    ); continue            ; end
+      if strcmp(flds{ifld},'Hw'    ); continue            ; end
+      if strcmp(flds{ifld},'Gr'    ); continue            ; end
+      if strcmp(flds{ifld},'thick' ); continue            ; end
+      if strcmp(flds{ifld},'raw'   ); continue            ; end
+      
+      vdisp([' - Reading Var: ',flds{ifld}],2,dbug)
+      
+      try
+         dset_id = H5D.open(f_id,flds{ifld});
+         ofld.(flds{ifld}){ifile} = H5D.read(dset_id,mem_type_id,mem_space_id,file_space_id,dxpl);
+         H5D.close(dset_id)
+      catch ME
+         err_ind = strcmp(flds{ifld},err_list);
+         if ~any(err_ind)
+            num_err_list(end+1) = 1;
+            err_list{end+1} = flds{ifld};
+         else
+            num_err_list(err_ind) = num_err_list(err_ind) + 1;
+         end
+      end
+   end
 end
+
+for err_num = 1:numel(err_list)
+   error  = err_list{err_num};
+   strlen = length(error);
+   if strlen < 30
+      error(strlen+1:30) = ' ';
+   end
+   disp(['Error reading ', error ,' from ', num2str(num_err_list(err_num)), ' files...'])
+end
+if err_num > 0;
+   disp('Processing for the above vars will be skipped.')
+end
+
 end
 %======================================================================================%
 
 
 %======================================================================================%
-function [ out ] = process_vars(out,fnames,res,map,dbug)
+function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
+                               ,err_list,dbug)
 
    %----------------------------------------------------------------------%
    % Some set up...                                                       %
    %----------------------------------------------------------------------%
    nfiles   = length(fnames);          %
    flds     = fieldnames(out.raw);     % 
-   read_c13 = out.nl.c13out;
-   splt_flg = out.nl.splflg;
+   splt_flg = 1;
    tables();                           % Import tables for QMEAN night time mask
 
    %Convert SLZ to layer thickness
@@ -133,12 +175,11 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
     
     
    %---- START POST PROCESSING VARIABLES ---------------------------------
-   disp('Processing Files...')
+   vdisp('Processing Files...',0,dbug)
    for fnum = 1:nfiles
-      
-      if dbug; disp(' ')                                                         ; end
-      if dbug; disp('----------------------------------------------------------'); end
-      if dbug; disp(['Processing vars from file: ',fnames{fnum}])                ; end
+      abbrv_fname = strsplit(fnames{fnum},'/');
+      abbrv_fname = abbrv_fname{end};
+      vdisp(['Processing vars from file: ',abbrv_fname],1,dbug)
       
       %--- Cycle through vars -----------------------------------------------
       for varnum = 1:numel(flds)
@@ -168,6 +209,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          if any(strfind(varname,'C13')    ); continue; end
          if any(strfind(varname,'13C')    ); continue; end
          if any(strfind(varname,'ARBON13')); continue; end
+         if any(strcmp (varname,err_list )); continue; end
          
          if strcmp(varname,'LAI_CO'       ); plant_intensive = 0  ; end
          if strcmp(varname,'MMEAN_LAI_CO' ); plant_intensive = 0  ; end
@@ -178,24 +220,25 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          
          %Process Patch Vars -----------------------------------------------
          if strcmp(vartype,'pa')
-            if dbug > 1; disp([' - Processing Pa Var: ', varname]); end
+            vdisp([' - Processing Pa Var: ', varname],2,dbug)
 
             % Scale the patch var...
-            [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive);
+            [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive,sim_beg);
 
             % Sum the rescaled variables to get the total.
             out.T.(savname)(fnum) = sum(std_var);
 
             % PROCESS SPLIT -----------------------------------------------
             if splt_flg && splt_poss
-               if dbug > 2; disp('    - Processing Split'); end
+               vdisp('    - Processing Split',2,dbug)
                out = process_split(out,savname,fnum,std_var,'sum');
             end
             
             % DETERMINE R AND DELTA, but only if c13out == 1 -----------------%
-            if read_c13 && anlg_exist
+            base_exist = isfield(out.T,varname);
+            if read_c13 && anlg_exist && base_exist
                [c13name, delname] = get_iso_name(varname);
-               [c13_var, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive);
+               [c13_var, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive,sim_beg);
                
                del_var = get_d13C(c13_var,std_var);
 
@@ -204,7 +247,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
                
                % PROCESS SPLIT -----------------------------------------------
                if splt_flg && splt_poss
-                  if dbug > 2; disp('    - Processing Split'); end
+                  vdisp('    - Processing Split',2,dbug);
                   out = process_split(out,c13name,fnum,c13_var,'sum');
                   out = process_split(out,delname,fnum,del_var,'avg');
                end
@@ -213,10 +256,11 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             
          %Process Site Vars -----------------------------------------------
          elseif strcmp(vartype,'si')
-            if dbug > 1; disp([' - Processing Si Var: ',varname]); end
+            vdisp([' - Processing Si Var: ',varname],2,dbug)
             out.T.(varname)(fnum) = out.raw.AREA{fnum}'*out.raw.(varname){fnum};
             
-            if read_c13 && anlg_exist
+            base_exist = isfield(out.T,varname);
+            if read_c13 && anlg_exist && base_exist
                [c13name, delname] = get_iso_name(varname);
                
                var     = out.T.(varname)(fnum);
@@ -228,7 +272,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
          
          %Process Ed Vars -----------------------------------------------
          elseif strcmp(vartype,'ed')
-            if dbug > 1; disp([' - Processing Ed Var: ',varname]); end
+            vdisp([' - Processing Ed Var: ',varname],2,dbug)
             if any(strcmp(map.(varname){4},'Q'))
                savname = ['MMEAN' varname(6:end) '_Night'];
                tempMsk = logical(month_night_hrs{mod(fnum+4,12)+1}');
@@ -240,7 +284,8 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
                out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
                %out.T.(savname)(fnum) = out.raw.(varname){fnum};
                
-               if read_c13 && anlg_exist
+               base_exist = isfield(out.raw,varname);
+               if read_c13 && anlg_exist && base_exist
                   [c13name, delname] = get_iso_name(varname);
 
                   var     = out.raw.(varname){fnum};
@@ -253,7 +298,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
             
          %Process Uncatagorized Vars -------------------------------------
          elseif strcmp(vartype,'un')
-            if dbug > 1; disp([' - Processing Uncat Var: ',varname]); end
+            vdisp([' - Processing Un Var: ',varname],2,dbug)
             if strcmp(varname,'BASAL_AREA_MORT')  || ...
                strcmp(varname,'BASAL_AREA_GROWTH')
                
@@ -286,16 +331,16 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
    %-------------------------------------------------------------------------------------%
    % Process 'Tower' File Data.                                                          %
    %-------------------------------------------------------------------------------------%
-   if strcmp(out.nl.out_type,'T')
+   if strcmp(out_type,'T')
       night_msk = logical([]);
-      [first_yr,~,~,~,~,~] = tokenize_time(out.nl.start,'ED','num');
+      [first_yr,~,~,~,~,~] = tokenize_time(sim_beg,'ED','num');
       for fnum = 1:nfiles
          %-------------------------------------------------------------------------------------%
          % Way up at the top of this routine we decided to ignore the first year if it wasn't  %
          % full, because it would be complicated to deal with and we only want to optimize     %
          % against full year data anyway. So the curr_yr is actually the first + 1.            %
          %-------------------------------------------------------------------------------------%
-         curr_yr = first_yr + fnum;                         % See comment above.
+         curr_yr = first_yr + fnum - 1;                     % See comment above.
          mo_days = yrfrac(1:12,curr_yr,'-days')';           % Get days in each month this year.
          for imo = 1:12
             night_hrs = get_night_hours(imo);
@@ -345,7 +390,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
    %-------------------------------------------------------------------------------------%
    % Process Some Daily Data
    %-------------------------------------------------------------------------------------%
-   if strcmp(out.nl.out_type,'D')
+   if strcmp(out_type,'D')
       %nee_fact = KgperSqm2TperHa /365;
       nee_fact = 1;
       out.X.DMEAN_Soil_Resp  = (out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO) * nee_fact;
@@ -365,7 +410,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
    %-------------------------------------------------------------------------------------%
    % Create some monthly and yearly variables.                                           %
    %-------------------------------------------------------------------------------------%
-   if sum(strcmp(out.nl.out_type,{'E','Q'}))
+   if sum(strcmp(out_type,{'E','Q'}))
       %----------------------------------------------------------------------%
       % Create Reco, Het_Frac, and Soil_Resp fields                          %
       %----------------------------------------------------------------------%
@@ -391,7 +436,7 @@ function [ out ] = process_vars(out,fnames,res,map,dbug)
       
       % Convert vapor and sensible heat fluxes, NEEs, and create 'YMEAN' vars
       yrInd = 1;
-      [first_yr,first_mo,~,~,~,~] = tokenize_time(out.nl.start,'ED','num');
+      [first_yr,first_mo,~,~,~,~] = tokenize_time(sim_beg,'ED','num');
       for fnum = 1:nfiles
          currMon = mod(first_mo + fnum - 2,12) + 1;
          currYr  = first_yr + floor((fnum + first_mo - 2)/12);
@@ -428,14 +473,12 @@ end
 
 
 %======================================================================================%
-function [ out ] = init_out_struct(out,map)
+function [ out ] = init_out_struct(out,map,read_c13,type)
 % Creates a structure 'out' with the fields we want it to have, based on 'map'
 
-read_c13  = out.nl.c13out;
-splt_flg  = out.nl.splflg;
+splt_flg  = 1;
 fields    = fieldnames(map);
 nfields   = numel(fields);
-type      = out.nl.out_type;
 out.thick = [ ];
 
 for i = 1:nfields
@@ -513,12 +556,17 @@ end
 
 
 %==============================================================================================%
-function [ tempVar, savname ] = scale_patch_var( out,varname,fnum,plant_intensive )
+function [ tempVar, savname ] = scale_patch_var( out,varname,fnum,plant_intensive,sim_beg)
 
 tables();
-tempVar = out.raw.(varname){fnum};
-currMon = mod(str2double(out.nl.start(11:12)) + fnum - 2,12) + 1;
 savname = varname;
+if isempty(out.raw.(varname))
+   tempVar = [];
+   return
+end
+
+tempVar = out.raw.(varname){fnum};
+currMon = mod(str2double(sim_beg(11:12)) + fnum - 2,12) + 1;
 
 % Generating a "Night" var from a QMEAN?
 if sum(strcmp(varname,{'QMEAN_NPP_CO','QMEAN_PLRESP_CO','QMEAN_RH_PY'}))

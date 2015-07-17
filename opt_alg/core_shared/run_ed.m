@@ -29,7 +29,6 @@ end
 setenv('HDF5_DISABLE_VERSION_CHECK','0')
 
 % Read output:
-if ui.verbose >= 1; disp('Copying model output... '); end
-output = get_output(ui.rundir, nfo.simres, ui.verbose);
+output = import_poly(ui.rundir, ui.verbose);
 
 end

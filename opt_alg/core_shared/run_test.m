@@ -8,7 +8,7 @@ switch lower(ui.model)
       
    case('read_dir')
       vdisp('Copying model output from directory, per test condition... ',1,ui.verbose);
-      out = get_output(ui.rundir, nfo.simres, ui.verbose);
+      out = import_poly(ui.rundir, ui.verbose);
       
    case('out.mat')
       vdisp(' Loading test_out.mat as model output, per test condition...',1,ui.verbose);

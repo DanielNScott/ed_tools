@@ -66,6 +66,10 @@ map.MMEAN_LEAF_RESP_CO        = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr' 
 %map.MMEAN_LASSIM_RESP_CO     = {'pa', 1  , 1, 'QE'};
 map.MMEAN_ROOT_RESP_CO        = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.MMEAN_GROWTH_RESP_CO      = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.MMEAN_LEAF_GROWTH_RESP_CO = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.MMEAN_ROOT_GROWTH_RESP_CO = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.MMEAN_SAPA_GROWTH_RESP_CO = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.MMEAN_SAPB_GROWTH_RESP_CO = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.MMEAN_STORAGE_RESP_CO     = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.MMEAN_VLEAF_RESP_CO       = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.MMEAN_GPP_CO              = {'pa', 1  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
@@ -127,10 +131,10 @@ map.FMEAN_PLRESP_CO           = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2'    
 ...
 %map.FMEAN_RH_PA               = {'si', 1  , 0, 'TI',   ''          , ''           };
 %map.FMEAN_CWD_RH_PA           = {'si', 1  , 0, 'TI',   ''          , ''           };
-map.FMEAN_CSTAR_PA            = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
-map.FMEAN_CAN_CO2_PA          = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
-map.FMEAN_CARBON_AC_PA        = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
-map.FMEAN_CARBON_ST_PA        = {'si', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CSTAR_PA            = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CAN_CO2_PA          = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CARBON_AC_PA        = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
+map.FMEAN_CARBON_ST_PA        = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 ...
 map.FMEAN_ATM_CO2_PY          = {'ed', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
 

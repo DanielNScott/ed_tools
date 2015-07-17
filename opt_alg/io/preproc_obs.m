@@ -35,11 +35,14 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          % Get the index of the start date relative to data
          obs_beg = obs.(res).([fld '_lims']){1};            % Extract the time of 1st obs
          obs_end = obs.(res).([fld '_lims']){2};            % Extract time of last obs
-         out_start = refmt_time(out.nl.start,'ED','std');   % Reformat ED style time string
-         out_end   = refmt_time(out.nl.end  ,'ED','std');   % Reformat ED style time string
+
+         [out_start,out_end] = get_sim_times(out.namelist); % Get run beginning and end.
+
+         out_start = refmt_time(out_start,'ED','std');   % Reformat ED style time string
+         out_end   = refmt_time(out_end  ,'ED','std');   % Reformat ED style time string
          
          if strcmp(res,'hourly')
-            [IYEARA,IMONTHA,IDATEA,~,~,~] = tokenize_time(out.nl.start,'ED','num');
+            [IYEARA,IMONTHA,IDATEA,~,~,~] = tokenize_time(out_start,'ED','num');
             if IMONTHA ~= 1
                IYEARA = IYEARA + 1;
                out_start = pack_time(IYEARA,1,1,0,0,0,'std');
@@ -51,7 +54,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          
          % If this is a yearly var, but we don't have a full year, manipulate indices.
          if strcmp(res,'yearly')
-            if str2double(out.nl.start(12:13)) ~= 1      % If start month indicates partial year
+            if str2double(out_start(6:7)) ~= 1           % If start month indicates partial year
                beg_ind = beg_ind + 1;                    % we 'say' the opt begins next year.
             end
          end

@@ -45,7 +45,7 @@ for fld_num = 1:numel(fields)                            % Cycle through fields
                   ['length of obs.  : ' obs_size]};
             disp(msg)
             disp(' ')
-            error(ME)
+            throw(ME)
          end
          
          out.Y.(out_fld) = out_data';                    % Save the modified data.
@@ -54,12 +54,17 @@ for fld_num = 1:numel(fields)                            % Cycle through fields
          out_fld_mmean = ['M' out_fld(2:end)];           % Create a MMEAN name
          out_fld_ymean = ['Y' out_fld(2:end)];           % Create a YMEAN name
          
-         out_beg = refmt_time(out.nl.start,'ED','std');  % Reformat ED style time string
-         out_end = refmt_time(out.nl.end  ,'ED','std');  % Reformat ED style time string
+         [out_beg,out_end] = get_sim_times(out.namelist);
+         
+         out_beg = refmt_time(out_beg,'ED','std');       % Reformat ED style time string
+         out_end = refmt_time(out_end,'ED','std');       % Reformat ED style time string
          
          % ASSUME RUN BEGINS JULY OF 1st YEAR! %
          % This has to be done since only complete year tower output gets read.
-         beg_yr = tokenize_time(out_beg,'std','num')+1;  % Increment year by 1
+         [beg_yr,beg_mo] = tokenize_time(out_beg,'std','num');
+         if beg_mo ~= 1
+            beg_yr = beg_yr + 1;
+         end
          out_beg = [num2str(beg_yr), '-01-01-00-00-00']; % And pretend we started on the 1st.
          
          % Aggregate the modified data
