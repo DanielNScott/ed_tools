@@ -17,8 +17,8 @@ function [ out ] = import_poly( rundir, dbug )
    out.sim_beg  = sim_beg;
    out.sim_end  = sim_end;
 
-   io_types = {'IFOUTPUT','IDOUTPUT','IMOUTPUT','IQOUTPUT','IYOUTPUT','ITOUTPUT','ISOUTPUT'};
-   io_abbrv = {'I','D','E','Q','Y','T','S'};
+   io_types = {'IFOUTPUT','IDOUTPUT','IMOUTPUT','IQOUTPUT','IYOUTPUT','ITOUTPUT'};%,'ISOUTPUT'};
+   io_abbrv = {'I','D','E','Q','Y','T'};%,'S'};
    
    vdisp('Importing model output using import_poly.m...',0,dbug)
    for io_num = 1:numel(io_types)
@@ -283,8 +283,8 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
                if strcmp(varname,'FMEAN_SOIL_WATER_PY')
                   % This variable has size [nzg,nsi,24*365] (366 for ly)
                   % We want to turn it into a matrix from an array.
-                  swsize = size(out.raw.FMEAN_SOIL_WATER_PY);
-                  tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3))
+                  swsize = size(out.raw.FMEAN_SOIL_WATER_PY{fnum});
+                  tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3));
                   out.T.(savname) = [out.T.(savname),tempVar];
                else
                   out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
