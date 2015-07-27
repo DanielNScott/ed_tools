@@ -1,4 +1,3 @@
-%======================================================================================%
 function [ out ] = import_poly( rundir, dbug )
 %IMPORT_POLY reads HDF5 files, either with information given in the input in the form of a
 %directory plus timeframe info or with information set below as a default.
@@ -281,18 +280,26 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
                tempVar = sum(tempVar,1)'/tempDiv;
                out.T.(savname)(fnum) = tempVar;
             else
-               out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
-               %out.T.(savname)(fnum) = out.raw.(varname){fnum};
+               if strcmp(varname,'FMEAN_SOIL_WATER_PY')
+                  % This variable has size [nzg,nsi,24*365] (366 for ly)
+                  % We want to turn it into a matrix from an array.
+                  swsize = size(out.raw.FMEAN_SOIL_WATER_PY);
+                  tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3))
+                  out.T.(savname) = [out.T.(savname),tempVar];
+               else
+                  out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
+                  %out.T.(savname)(fnum) = out.raw.(varname){fnum};
                
-               base_exist = isfield(out.raw,varname);
-               if read_c13 && anlg_exist && base_exist
-                  [c13name, delname] = get_iso_name(varname);
+                  base_exist = isfield(out.raw,varname);
+                  if read_c13 && anlg_exist && base_exist
+                     [c13name, delname] = get_iso_name(varname);
 
-                  var     = out.raw.(varname){fnum};
-                  var_C13 = out.raw.(c13name){fnum};
+                     var     = out.raw.(varname){fnum};
+                     var_C13 = out.raw.(c13name){fnum};
 
-                  out.T.(c13name) = [out.T.(c13name), var_C13];
-                  out.T.(delname) = [out.T.(delname), get_d13C(var_C13,var)];
+                     out.T.(c13name) = [out.T.(c13name), var_C13];
+                     out.T.(delname) = [out.T.(delname), get_d13C(var_C13,var)];
+                  end
                end
             end
             
@@ -382,6 +389,13 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       
       out.X.FMEAN_VAPOR_CA_PY           = -1*out.T.FMEAN_VAPOR_AC_PY * 1000 * 2.260;
       out.X.FMEAN_SENSIBLE_CA_PY        = -1*out.T.FMEAN_SENSIBLE_AC_PY;
+      out.X.FMEAN_SOIL_WATER_PY1        =  1*out.T.FMEAN_SOIL_WATER_PY(1,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY2        =  1*out.T.FMEAN_SOIL_WATER_PY(2,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY3        =  1*out.T.FMEAN_SOIL_WATER_PY(3,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY4        =  1*out.T.FMEAN_SOIL_WATER_PY(4,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY5        =  1*out.T.FMEAN_SOIL_WATER_PY(5,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY6        =  1*out.T.FMEAN_SOIL_WATER_PY(6,1:2,:);
+      out.X.FMEAN_SOIL_WATER_PY7        =  1*out.T.FMEAN_SOIL_WATER_PY(7,1:2,:);
 
    end
    %-------------------------------------------------------------------------------------%

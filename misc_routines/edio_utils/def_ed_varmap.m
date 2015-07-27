@@ -137,6 +137,7 @@ map.FMEAN_CARBON_AC_PA        = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'  
 map.FMEAN_CARBON_ST_PA        = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 ...
 map.FMEAN_ATM_CO2_PY          = {'ed', 1  , 0, 'I',   'umol/mol'  , 'umol/mol'   };
+map.FMEAN_SOIL_WATER_PY       = {'ed', 0  , 0, 'TI',   'm3/m3'     , 'm3/m3'     };
 
 %**These are in yearly output, but don't want to overwrite them when reading everything
 end
