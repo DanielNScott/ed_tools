@@ -14,19 +14,15 @@ if ctrl.idr == 1
       if strcmp(ui.opt_type,'SA')
          % Functions for getting acceptance rates ('alphas') for SA
          if ctrl.obj_prop <= ctrl.obj_curr
-            alpha = 1;                                 % We always accept better states
+            alpha = 1;                                  % We always accept better states
             return
          end
 
-         if strcmp(ui.acc_crit,'Boltzmann')                   % Use the "Metropolis Acceptance Criteria"
-            alpha = exp(-(ctrl.obj_prop - ctrl.obj)/ctrl.temp);    % i.e. a Boltzmann Distribution.
-
-         elseif strcmp(ui.acc_crit,'Sq_Decay')          % Squared decay is a reasonable
-            alpha = (ctrl.temp/ctrl.temp_max)^2;                      % alternative
+         if strcmp(ui.acc_crit,'Boltzmann')             %
+            alpha = boltzmann(ctrl.temp,ctrl.obj,ctrl.obj_prop);
 
          elseif strcmp(ui.acc_crit,'Log_Decay')         % As is logarithmic decay
-            alpha = (2- log10(100*(ctrl.temp_max - ctrl.temp)/ctrl.temp_max))/2;
-
+            alpha = log_decay(ctrl.temp,ctrl.temp_max);
          end
       end
    end

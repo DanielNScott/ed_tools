@@ -195,6 +195,11 @@ if ~ nfo.restart && strcmp(ui.opt_type,'PSO')
    % square grid possible by using the highest multiplicative factor of the num of particles. 
    %-------------------------------------------------------------------------------------------%
    prime_fact   = sort(factor(nps),'descend');     % Get the prime factorization of nps.
+   if length(prime_fact) < 2;
+      msg = ['Sorry, nps must have at least 2' ...
+             'prime factors.'];
+      error(msg)
+   end
    [big_dim, ~] = get_grid_dims(prime_fact);       % Get biggest multiplicative factor of nps.
    for ip = 1:nps;                                 % Loop through particles
       b_ind = mod(ip + 1      , nps);              % Set index for particle "below" in grid
