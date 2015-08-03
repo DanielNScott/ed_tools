@@ -155,13 +155,33 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
          %                             Main loop for PSO                                       %
          %-------------------------------------------------------------------------------------%
             save('pso.mat')
-            disp('Assigning PSO Tasks...')
-            assign_pso_tasks(ui.nps,ui.verbose);
             
+            %----------------------------------------------------------------------------------%
+            %                          Assign PSO Tasks                                        %
+            %----------------------------------------------------------------------------------%
+            disp('Assigning PSO Tasks...')
+            if ui.use_dcs
+               if ctrl.iter == 1 || nfo.restart
+                  configCluster;
+                  disp('Creating cluster...')
+                  ctrl.clust = parcluster;
+                  ClusterInfo.setWallTime(ui.job_wtime);
+                  ClusterInfo.setQueueName(ui.job_queue);
+                  ClusterInfo.setMemUsagePerCpu(ui.job_mem);
+                  disp('Displaying cluster info...')
+                  ClusterInfo.state
+               end
+               [ctrl.jobs] = assign_pso_tasks(ui.nps,ctrl.clust,ui.use_dcs,ui.verbose);
+            else
+               ctrl.clust = 'This simulation does not use DCS.';
+               assign_pso_tasks(ui.nps,ctrl.clust,ui.use_dcs,ui.verbose);
+            end
+
             %----------------------------------------------------------------------------------%
             %                    Update History, States, and Velocities                        %
             %----------------------------------------------------------------------------------%
-            [ ctrl, data, hist ]    = get_particle_data( ctrl, data, hist, ui.nps, ui.verbose);
+            [ ctrl, data, hist ]    = get_particle_data( ctrl, data, hist, ui.nps ...
+                                                       , ui.use_dcs, ui.verbose);
             
             hist                    = update_hist(ui,ctrl,data,hist);
 

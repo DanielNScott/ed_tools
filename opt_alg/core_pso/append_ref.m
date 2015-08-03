@@ -1,4 +1,4 @@
-function [ ] = append_ref( refdir )
+function [ ] = append_ref( refdir, obs_dir, pso_mat_dir)
 %APPEND_REF Appends the necessary fields to the hist structure for reference plots to be made.
 %   Input: 
 %      refdir: The name of the directory in which a reference simulation has been run.
@@ -8,7 +8,7 @@ if ~strcmp(refdir(end),'/')
 end
 
 cd(refdir)
-fake_pso_task(refdir)
+fake_pso_task(refdir, obs_dir, pso_mat_dir)
 
 load('../opt.mat')
 

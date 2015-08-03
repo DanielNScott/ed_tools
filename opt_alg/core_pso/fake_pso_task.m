@@ -1,15 +1,14 @@
-function [ ] = fake_pso_task(dir)
+function [ ] = fake_pso_task(sim_dir, obs_dir, pso_mat_dir)
 %FAKE_PSO_TASK Enacts the same proceedure as do_pso_task (for ED), except without run_ed.
 %   Inputs:
-%     particle_num: Which particle state is this one pretending to have?
-%     dir         : What is this particle's directory name? 
+%     dir: What is this particle's directory name? 
 
 addpath(genpath('/n/moorcroftfs2/dscott/ed_tools'));
-load('../pso.mat')
+load([pso_mat_dir, '/pso.mat'])
  
 if ~ nfo.is_test
    if ctrl.iter == 1
-      load('../obs.mat')
+      load([obs_dir, '/obs.mat'])
       disp('obs.mat loaded')
    else
       load('../particle_1/obs_proc.mat')
@@ -17,14 +16,10 @@ if ~ nfo.is_test
       data.obs = obs;
    end
 end
- 
-if strcmp(ui.opt_type,'PSO')
-   ui.rundir = [ui.rundir dir];
-end 
 
 % Read output:
 if ui.verbose >= 1; disp('Copying model output... '); end
-data.out = import_poly(ui.rundir, ui.verbose);
+data.out = import_poly(sim_dir, ui.verbose);
 
    %-------------------------------------------------------------------------------%
    %                       Preprocess Observations (if necessary)                  %

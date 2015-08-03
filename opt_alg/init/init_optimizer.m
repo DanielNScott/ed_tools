@@ -55,7 +55,16 @@ ui.nps           = nps;
 ui.top           = top;
 ui.phi_1         = phi_1;
 ui.phi_2         = phi_2;
-ui.obs_years    = obs_years;
+ui.obs_years     = obs_years;
+
+if exist('use_dcs','var')
+   ui.use_dcs    = use_dcs;
+   ui.job_mem    = job_mem;
+   ui.job_queue  = job_queue;
+   ui.job_wtime  = job_wtime;
+else
+   ui.use_dcs    = 0;
+end
 %-----------------------------------------------------------------------------------------------
 
 nfo.init_dir = pwd;                                   % Save current directory:

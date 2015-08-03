@@ -1,8 +1,22 @@
-function [ ] = do_pso_task( particle_num )
+function [ varargout ] = do_pso_task( particle_num, use_dcs, nps )
 %DO_PSO_TASK Gets called in every particle 
 %   Detailed explanation goes here
 
-particle_num = str2double(particle_num);
+if isstr(particle_num); particle_num = str2double(particle_num); end
+if isstr(use_dcs)     ; use_dcs      = str2double(use_dcs)     ; end
+if isstr(nps)         ; nps          = str2double(nps)         ; end
+
+if use_dcs
+   fmt = '%i';
+   if nps >= 10
+      fmt = '%02i';
+      if nps >= 100
+         fmt = '%03i';
+      end
+   end
+   cd([pwd(),'/','particle_',num2str(particle_num,fmt)])
+end
+
 load('../pso.mat')
 
 if ~ nfo.is_test
@@ -40,17 +54,16 @@ if nfo.is_test
    obj = out;
 end
 
-if particle_num == 1 && ctrl.iter == 1
-   save('particle_out.mat','out')
-   save('particle_obj.mat','obj')
-   save('particle_stats.mat','stats')
-   if ~ nfo.is_test
-      save('obs_proc.mat','obs')
-   end
-else
-   save('particle_out.mat','out')
-   save('particle_obj.mat','obj')
-   save('particle_stats.mat','stats')
+if particle_num == 1 && ctrl.iter == 1 && ~nfo.is_test
+   save('obs_proc.mat','obs')
+end
+
+save('particle_out.mat','out')
+save('particle_obj.mat','obj')
+save('particle_stats.mat','stats')
+
+if use_dcs
+   varargout{1} = obj;
 end
 
 end

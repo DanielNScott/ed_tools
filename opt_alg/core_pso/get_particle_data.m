@@ -1,4 +1,4 @@
-function [ ctrl, data, hist ] = get_particle_data( ctrl, data, hist, nps, verbose )
+function [ ctrl, data, hist ] = get_particle_data( ctrl, data, hist, nps, use_dcs, verbose )
 %MERGE_PARTICLE_DATA Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,12 +17,28 @@ prfx = '/particle_';
 %----------------------------------------------------------------------------------------------%
 %     If they all exist, load the objectives.
 %----------------------------------------------------------------------------------------------%
-for i = 1:nps
-   obj_name  = ['.' prfx num2str(i) prfx 'obj.mat']; % Particle Data Filename
-   wait_for(obj_name,180,verbose)
-   load(obj_name);                                             % Load each particle's data
-   ctrl.obj(i) = obj;
-   vdisp(['particle_' num2str(i) ' objective loaded.'],1,verbose)
+if use_dcs
+   %diaries = cell(nps,1);
+   %fileID = fopen('diaries.txt','w');
+   for i = 1:nps
+      job = ctrl.jobs{i};
+      wait(job)
+      %diaries(i) = diary(job);
+      %fprintf(fileID,'%s',['particle_',num2str(i),':\n'])
+      %fprintf(fileID,'%s',diaries{i});
+      job_out = job.fetchOutputs();
+      ctrl.obj(i) = job_out{1};
+      delete(job)
+   end
+   %fclose(fileID);
+else
+   for i = 1:nps
+      obj_name  = ['.' prfx num2str(i) prfx 'obj.mat'];           % Particle Data Filename
+      wait_for(obj_name,180,verbose)
+      load(obj_name);                                             % Load each particle's data
+      ctrl.obj(i) = obj;
+      vdisp(['particle_' num2str(i) ' objective loaded.'],1,verbose)
+   end
 end
 
 % Create a mask for those objectives which are better than previous particle bests.
@@ -37,7 +53,18 @@ min_msk = ctrl.pbo == min(ctrl.pbo);
 data.best_state = ctrl.pbs(:,min_msk);
 
 % Save that state's output.
-num_best   = num2str(find(min_msk));
+if use_dcs
+   fmt = '%i';
+   if nps >= 10
+      fmt = '%02i';
+      if nps >= 100
+         fmt = '%03i';
+      end
+   end
+else
+   fmt = '%i';
+end
+num_best   = num2str(find(min_msk),fmt);
 out_name   = ['.' prfx num_best prfx 'out.mat'];    % Particle Data Filename
 stats_name = ['.' prfx num_best prfx 'stats.mat'];  % Particle Data Filename
 
