@@ -31,15 +31,6 @@ function [ out ] = import_poly( rundir, dbug )
          file_prfx = file_prfx{end};
          file_prfx(file_prfx == '''') = '';
          
-         if any(strcmp(out_type,{'Y','T'}))
-            [yr,mo,d,hr,mi,s] = tokenize_time(sim_beg,'ED','num');
-            if mo ~= 1;
-               yr = yr+1;
-               mo = 1;
-               sim_beg = pack_time(yr,mo,d,hr,mi,s,'ED');
-            end   
-         end
-         
          fnames = gen_poly_fnames(analy_dir, file_prfx, out_type, sim_beg, sim_end, '010000');
 
          if isempty(fnames)
@@ -363,6 +354,13 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       
       out.X.FMEAN_Soil_Resp  = (out.T.FMEAN_RH_PY + out.T.FMEAN_ROOT_RESP_PY) * nee_fact;
       
+      if ~isempty(out.T.FMEAN_ROOT_GROWTH_RESP_PY)
+         out.X.FMEAN_Soil_Resp = out.T.FMEAN_RH_PY               ...
+                               + out.T.FMEAN_ROOT_RESP_PY        ...
+                               + out.T.FMEAN_ROOT_GROWTH_RESP_PY ...
+                               + out.T.FMEAN_SAPB_GROWTH_RESP_PY;
+      end
+      
       out.X.FMEAN_NEE_Night(:,~night_msk) = NaN;
       out.X.FMEAN_NEE_Day(:,night_msk)    = NaN;
 
@@ -381,21 +379,30 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          out.X.FMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
          out.X.FMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
          
-         out.X.FMEAN_Soil_Resp_C13  = (out.T.FMEAN_RH_C13_PY ...
-                                    +  out.T.FMEAN_ROOT_RESP_C13_PY) * nee_fact;
+         out.X.FMEAN_Soil_Resp_C13  = out.T.FMEAN_RH_C13_PY + out.T.FMEAN_ROOT_RESP_C13_PY;
+      
+         if ~isempty(out.T.FMEAN_ROOT_GROWTH_RESP_C13_PY)
+            out.X.FMEAN_Soil_Resp_C13 = out.T.FMEAN_RH_C13_PY               ...
+                                      + out.T.FMEAN_ROOT_RESP_C13_PY        ...
+                                      + out.T.FMEAN_ROOT_GROWTH_RESP_C13_PY ...
+                                      + out.T.FMEAN_SAPB_GROWTH_RESP_C13_PY;
+         end
          out.X.FMEAN_Soil_Resp_d13C = get_d13C(out.X.FMEAN_Soil_Resp_C13,...
                                                out.X.FMEAN_Soil_Resp);
       end
       
       out.X.FMEAN_VAPOR_CA_PY           = -1*out.T.FMEAN_VAPOR_AC_PY * 1000 * 2.260;
       out.X.FMEAN_SENSIBLE_CA_PY        = -1*out.T.FMEAN_SENSIBLE_AC_PY;
-      out.X.FMEAN_SOIL_WATER_PY1        =  1*out.T.FMEAN_SOIL_WATER_PY(1,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY2        =  1*out.T.FMEAN_SOIL_WATER_PY(2,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY3        =  1*out.T.FMEAN_SOIL_WATER_PY(3,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY4        =  1*out.T.FMEAN_SOIL_WATER_PY(4,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY5        =  1*out.T.FMEAN_SOIL_WATER_PY(5,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY6        =  1*out.T.FMEAN_SOIL_WATER_PY(6,1:2,:);
-      out.X.FMEAN_SOIL_WATER_PY7        =  1*out.T.FMEAN_SOIL_WATER_PY(7,1:2,:);
+      
+      if ~isempty(out.T.FMEAN_SOIL_WATER_PY)
+         out.X.FMEAN_SOIL_WATER_PY1        =  1*out.T.FMEAN_SOIL_WATER_PY(1,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY2        =  1*out.T.FMEAN_SOIL_WATER_PY(2,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY3        =  1*out.T.FMEAN_SOIL_WATER_PY(3,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY4        =  1*out.T.FMEAN_SOIL_WATER_PY(4,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY5        =  1*out.T.FMEAN_SOIL_WATER_PY(5,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY6        =  1*out.T.FMEAN_SOIL_WATER_PY(6,1:2,:);
+         out.X.FMEAN_SOIL_WATER_PY7        =  1*out.T.FMEAN_SOIL_WATER_PY(7,1:2,:);
+      end
 
    end
    %-------------------------------------------------------------------------------------%
@@ -407,12 +414,27 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
    if strcmp(out_type,'D')
       %nee_fact = KgperSqm2TperHa /365;
       nee_fact = 1;
-      out.X.DMEAN_Soil_Resp  = (out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO) * nee_fact;
+      out.X.DMEAN_Soil_Resp  = out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO;
+      
+      if ~isempty(out.T.DMEAN_ROOT_GROWTH_RESP_CO)
+         out.X.DMEAN_Soil_Resp = out.T.DMEAN_RH_PA               ... 
+                               + out.T.DMEAN_ROOT_RESP_CO        ...
+                               + out.T.DMEAN_ROOT_GROWTH_RESP_CO ...
+                               + out.T.DMEAN_SAPB_GROWTH_RESP_CO;
+      end
+      
       out.X.DMEAN_NEE =  -1*out.T.DMEAN_NEP_PY * nee_fact;
       
       if read_c13
          out.X.DMEAN_Soil_Resp_C13  = (out.T.DMEAN_RH_C13_PA ...
                                     +  out.T.DMEAN_ROOT_RESP_C13_CO) * nee_fact;
+         
+         if ~isempty(out.T.MMEAN_ROOT_GROWTH_RESP_C13_CO)
+            out.X.DMEAN_Soil_Resp_C13 = out.X.DMEAN_Soil_Resp_C13           ...
+                                      + out.T.DMEAN_ROOT_GROWTH_RESP_C13_CO ...
+                                      + out.T.DMEAN_SAPB_GROWTH_RESP_C13_CO;
+         end
+         
          out.X.DMEAN_Soil_Resp_d13C = get_d13C(out.X.DMEAN_Soil_Resp_C13,...
                                                out.X.DMEAN_Soil_Resp);
       end
@@ -428,16 +450,28 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       %----------------------------------------------------------------------%
       % Create Reco, Het_Frac, and Soil_Resp fields                          %
       %----------------------------------------------------------------------%
-      out.X.Reco       = out.T.MMEAN_PLRESP_CO + out.T.MMEAN_RH_PY;
-      out.X.Het_Frac   = out.T.MMEAN_RH_PA    ./ out.X.Reco;
-      out.X.Soil_Resp  = out.T.MMEAN_RH_PA     + out.T.MMEAN_ROOT_RESP_CO;
+      out.X.Reco            = out.T.MMEAN_PLRESP_CO + out.T.MMEAN_RH_PY;
+      out.X.Het_Frac        = out.T.MMEAN_RH_PA    ./ out.X.Reco;
+      out.X.MMEAN_Soil_Resp = out.T.MMEAN_RH_PA     + out.T.MMEAN_ROOT_RESP_CO;
+
+      if ~isempty(out.T.MMEAN_ROOT_GROWTH_RESP_CO)
+         out.X.MMEAN_Soil_Resp = out.X.MMEAN_Soil_Resp           ...
+                               + out.T.MMEAN_ROOT_GROWTH_RESP_CO ...
+                               + out.T.MMEAN_SAPB_GROWTH_RESP_CO;
+      end
 
       if read_c13
-         out.X.Reco_C13      = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
-         out.X.Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
+         out.X.Reco_C13            = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
+         out.X.MMEAN_Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
+      
+         if ~isempty(out.T.MMEAN_ROOT_GROWTH_RESP_C13_CO)
+            out.X.MMEAN_Soil_Resp_C13 = out.X.MMEAN_Soil_Resp_C13           ...
+                                      + out.T.MMEAN_ROOT_GROWTH_RESP_C13_CO ...
+                                      + out.T.MMEAN_SAPB_GROWTH_RESP_C13_CO;
+         end
 
-         out.X.Reco_d13C      = get_d13C(out.X.Reco_C13, out.X.Reco);
-         out.X.Soil_Resp_d13C = get_d13C(out.X.Soil_Resp_C13,out.X.Soil_Resp);
+         out.X.Reco_d13C            = get_d13C(out.X.Reco_C13, out.X.Reco);
+         out.X.MMEAN_Soil_Resp_d13C = get_d13C(out.X.MMEAN_Soil_Resp_C13,out.X.MMEAN_Soil_Resp);
       end
       
       %----------------------------------------------------------------------%
@@ -464,7 +498,7 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          
          out.X.MMEAN_VAPOR_CA_PY   (fnum) = out.T.MMEAN_VAPOR_AC_PY   (fnum) *fact2;
          out.X.MMEAN_SENSIBLE_CA_PY(fnum) = out.T.MMEAN_SENSIBLE_AC_PY(fnum) *fact3;
-         
+        
          if currMon == 12 && fnum >= 12;
             out.X.YMEAN_BA            (yrInd) = sum(out.T.BA_CO(fnum-11:fnum))/12;
             out.X.YMEAN_BA_HW         (yrInd) = sum(out.H.BA_CO(fnum-11:fnum))/12;
@@ -477,6 +511,15 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             yrInd = yrInd + 1;
          end
       end
+   end
+   if strcmp(out_type,'Y')
+      out.T.BAG = out.T.BASAL_AREA_GROWTH(2:end)/12 - out.T.BASAL_AREA_GROWTH(1:end-1)/12;
+      out.H.BAG = out.H.BASAL_AREA_GROWTH(2:end)/12 - out.H.BASAL_AREA_GROWTH(1:end-1)/12;
+      out.C.BAG = out.C.BASAL_AREA_GROWTH(2:end)/12 - out.C.BASAL_AREA_GROWTH(1:end-1)/12;
+      
+      out.T.BAM = out.T.BASAL_AREA_MORT(2:end)/12 - out.T.BASAL_AREA_MORT(1:end-1)/12;
+      out.H.BAM = out.H.BASAL_AREA_MORT(2:end)/12 - out.H.BASAL_AREA_MORT(1:end-1)/12;
+      out.C.BAM = out.C.BASAL_AREA_MORT(2:end)/12 - out.C.BASAL_AREA_MORT(1:end-1)/12;
    end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
