@@ -36,13 +36,14 @@ else
       end
 
       setenv('PARTICLE_NUM',num2str(i))                              % This is how the particle
-      setenv('NPS'         ,num2str(nps))                            % knows which particle it is.
-
+      setenv('NPS',num2str(nps))                                     % This is how the particle
+      setenv('USE_DCS',num2str(0))                                   % This is how the particle
+                                                                     % knows which particle it is.
       % Run the particle!
       if verbose >= 1
-         !sbatch ./run_particle.sh $PARTICLE_NUM 0 $NPS
+         !sbatch ./run_particle.sh $PARTICLE_NUM $USE_DCS $NPS
       else
-         !sbatch ./run_particle.sh $PARTICLE_NUM 0 $NPS 1>/dev/null
+         !sbatch ./run_particle.sh $PARTICLE_NUM $USE_DCS $NPS 1>/dev/null
       end
       cd('../')                                                      % Up one so we can repeat.
    end

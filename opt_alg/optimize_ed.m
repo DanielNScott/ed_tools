@@ -150,7 +150,7 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
             %----------------------------------------------------------------------------------%
          %-------------------------------------------------------------------------------------%
 
-         case {'pso','dream'}
+         case {'pso','dream','nm'}
          %-------------------------------------------------------------------------------------%
          %                             Main loop for PSO                                       %
          %-------------------------------------------------------------------------------------%
@@ -172,6 +172,9 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
                   ClusterInfo.state
                end
                [ctrl.jobs] = assign_pso_tasks(ui.nps,ctrl.clust,ui.use_dcs,ui.verbose);
+            elseif ui.upfront_alloc
+               step_through_particles(ui.nps,ctrl.iter,ui.niter,nfo.restart,ui.time_per_sim ...
+                                     ,ui.mem_per_sim,ui.verbose)
             else
                ctrl.clust = 'This simulation does not use DCS.';
                assign_pso_tasks(ui.nps,ctrl.clust,ui.use_dcs,ui.verbose);
@@ -213,7 +216,8 @@ while (ctrl.iter <= ui.niter && ctrl.energy > ctrl.energy_max)
          %-------------------------------------------------------------------------------------%
          ctrl.idr  = ctrl.idr  + 1;
          ctrl.iter = ctrl.iter + 1;
-         
+         nfo.restart = 0;         
+
          vdisp('Saving current program state to opt.mat...',0,ui.verbose);
          save('opt.mat')
          %-------------------------------------------------------------------------------------%

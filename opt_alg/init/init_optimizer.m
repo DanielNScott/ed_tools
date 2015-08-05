@@ -57,6 +57,16 @@ ui.phi_1         = phi_1;
 ui.phi_2         = phi_2;
 ui.obs_years     = obs_years;
 
+ui.upfront_alloc = upfront_alloc;
+ui.mem_per_sim   = mem_per_sim;
+ui.time_per_sim  = time_per_sim;
+
+ui.nsimp         = nsimp
+ui.p_reflect     = p_reflect;
+ui.p_cntrct      = p_cntrct;
+ui.p_expand      = p_expand;
+ui.p_shrink      = p_shrink;
+
 if exist('use_dcs','var')
    ui.use_dcs    = use_dcs;
    ui.job_mem    = job_mem;
@@ -67,9 +77,9 @@ else
 end
 %-----------------------------------------------------------------------------------------------
 
-nfo.init_dir = pwd;                                   % Save current directory:
-test_fns     = {'Rosenbrock','Sphere'};               % Define which model options are tests
-nfo.is_test  = any(strcmp(model,test_fns));           % Is this a test?
+nfo.init_dir = pwd;
+test_fns     = {'Rosenbrock','Sphere','Eggholder','Styblinski-Tang'};
+nfo.is_test  = any(strcmp(model,test_fns));
 
 if exist('run_external','var')
    ui.run_external = 'Dummy text. See init_optimizer.';
@@ -113,6 +123,10 @@ if ~ nfo.restart
       hist.obj   = nan(nps,ui.niter);
       hist.state = zeros(nfo.nvar,ui.nps,ui.niter);       % List of states.
       hist.vels  = NaN(nfo.nvar,ui.nps,ui.niter);         % List of velocities.
+   elseif strcmp(opt_type,'NM')
+      ctrl.idr   = 1;
+      hist.obj   = nan(ui.nsimp*(nfo.nvar+1),ui.niter);
+      hist.state = zeros(nfo.nvar,ui.nsimp*(nfo.nvar+1),ui.niter);   % List of states.
    end
    
    % These do not exist in PSO.
@@ -212,20 +226,30 @@ if ~ nfo.restart && strcmp(ui.opt_type,'PSO')
       
       ctrl.nbrhd(ip,:) = nbrs;                     % Save the appropriate hbrhd topology
    end
-   
+end  
+
+if ~ nfo.restart && any(strcmp(ui.opt_type,{'NM','PSO'}))
    %-------------------------------------------------------------------------------------------%
    % Initialize positions and velocities
    %-------------------------------------------------------------------------------------------%
-   spread = repmat(ui.bounds(:,2) - ui.bounds(:,1),1,nps);     % Compute parameter spreads
-   cents  = repmat(ui.bounds(:,1) + spread(:,1)/2 ,1,nps);     % Compute centers of ranges
+   if strcmp(ui.opt_type,'PSO')
+      npoints = nps;
+   elseif strcmp(ui.opt_type,'NM')
+      npoints = ui.nsimp*(nfo.nvar+1)
+   end
+
+   spread = repmat(ui.bounds(:,2) - ui.bounds(:,1),1,npoints);     % Compute parameter spreads
+   cents  = repmat(ui.bounds(:,1) + spread(:,1)/2 ,1,npoints);     % Compute centers of ranges
    
-   data.state = (rand(nfo.nvar,nps) - 0.5) .*spread + cents;   % Recenter and expand rands.
-   data.vels  = (rand(nfo.nvar,nps) - 0.5) .*spread + cents;   % Recenter and expand rands.
- 
-   ctrl.vel_max = spread(:,1);                                 % Limit velocity to param spread
-   
-   ctrl.pbs = data.state;
-   ctrl.pbo = inf(1,nps);
+   data.state = (rand(nfo.nvar,npoints) - 0.5) .*spread + cents;   % Recenter and expand rands.
+
+   if strcmp(ui.opt_type,'PSO')
+      data.vels  = (rand(nfo.nvar,npoints) - 0.5) .*spread + cents;   % Recenter and expand rands.
+      ctrl.vel_max = spread(:,1);                                 % Limit velocity to param spread
+
+      ctrl.pbs = data.state;
+      ctrl.pbo = inf(1,npoints);
+   end
 end
 %----------------------------------------------------------------------------------------------%
 

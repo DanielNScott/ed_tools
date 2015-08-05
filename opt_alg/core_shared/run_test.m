@@ -4,7 +4,7 @@ function [ out ] = run_test( state_prop, ui, nfo )
    
 switch lower(ui.model)
    case('rosenbrock')
-      out = rosenbrock_fn(state_prop);
+      out = rosenbrock(state_prop');
       
    case('read_dir')
       vdisp('Copying model output from directory, per test condition... ',1,ui.verbose);

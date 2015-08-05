@@ -14,6 +14,15 @@ function [ ctrl, data, hist ] = get_particle_data( ctrl, data, hist, nps, use_dc
 
 prfx = '/particle_';
 
+% Save that state's output.
+fmt = '%i';
+if nps >= 10
+   fmt = '%02i';
+   if nps >= 100
+      fmt = '%03i';
+   end
+end
+
 %----------------------------------------------------------------------------------------------%
 %     If they all exist, load the objectives.
 %----------------------------------------------------------------------------------------------%
@@ -33,11 +42,11 @@ if use_dcs
    %fclose(fileID);
 else
    for i = 1:nps
-      obj_name  = ['.' prfx num2str(i) prfx 'obj.mat'];           % Particle Data Filename
+      obj_name  = ['.' prfx num2str(i,fmt) prfx 'obj.mat'];       % Particle Data Filename
       wait_for(obj_name,180,verbose)
       load(obj_name);                                             % Load each particle's data
       ctrl.obj(i) = obj;
-      vdisp(['particle_' num2str(i) ' objective loaded.'],1,verbose)
+      vdisp(['particle_' num2str(i,fmt) ' objective loaded.'],1,verbose)
    end
 end
 
@@ -52,18 +61,6 @@ ctrl.pbo(better_msk)   = ctrl.obj(better_msk);
 min_msk = ctrl.pbo == min(ctrl.pbo);
 data.best_state = ctrl.pbs(:,min_msk);
 
-% Save that state's output.
-if use_dcs
-   fmt = '%i';
-   if nps >= 10
-      fmt = '%02i';
-      if nps >= 100
-         fmt = '%03i';
-      end
-   end
-else
-   fmt = '%i';
-end
 num_best   = num2str(find(min_msk),fmt);
 out_name   = ['.' prfx num_best prfx 'out.mat'];    % Particle Data Filename
 stats_name = ['.' prfx num_best prfx 'stats.mat'];  % Particle Data Filename
