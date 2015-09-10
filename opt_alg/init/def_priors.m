@@ -7,10 +7,10 @@ ga_k  = NaN;
 prior_pdf_type = NaN;
 
 if strcmp(prior_pdf,'uniform')
-   % Nothing to do, p_means and p_sdevs contain all dist. info.
+   % Nothing to do, p_means and p_sdevs contain all dist. icfe.
 
 elseif strcmp(prior_pdf,'gaussian')
-   % Nothing to do, p_means and p_sdevs contain all dist. info.
+   % Nothing to do, p_means and p_sdevs contain all dist. icfe.
 
 elseif strcmp(prior_pdf,'gamma')
    [theta, ga_k, prior_pdf_type] = define_gamma_priors(nvar, p_means, p_sdevs);

@@ -1,4 +1,4 @@
-function [ ] = print_progress( iter, niter, acc_rate, accept)
+function [ ] = print_progress( iter, niter, accept)
 %PRINT_PROGRESS Summary of this function goes here
 %   Detailed explanation goes here
    
@@ -14,7 +14,7 @@ function [ ] = print_progress( iter, niter, acc_rate, accept)
 
       disp( '%---- Progress indication --------------------------------------------%')
       disp([' Iterations ', prev_str, ' through ', curr_str ,' have completed.'])
-      disp([' Acceptance rate over all runs: ', num2str(acc_rate)])
+      disp([' Acceptance rate over all runs: ', num2str(sum(accept)/iter)])
       disp([' Acceptance rate /prev 10 runs: ', acc_rate_10])
       disp( '%---------------------------------------------------------------------%')
       disp( ' ')

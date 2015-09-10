@@ -1,4 +1,4 @@
-function [ nfo, ui ] = parse_params( nfo, ui )
+function [ cfe ] = parse_params( cfe, ui )
 %PARSE_METADATA Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,9 +10,9 @@ function [ nfo, ui ] = parse_params( nfo, ui )
 %----------------------------------------------------------------------------------------------%
 
 
-nfo.simres = '';
+cfe.simres = '';
 % Extract some information from the parameter matrix.
-if nfo.is_test
+if cfe.is_test
    label_rng = 1;
    means_ind = 2;
    sdevs_ind = 3;
@@ -27,12 +27,12 @@ else
 end
 row_msk     = cell2mat(ui.params(:,mask_ind)) == 1;
 
-ui.means    = cell2mat(ui.params(row_msk, means_ind)) *ui.multiplier;
-ui.sdevs    = cell2mat(ui.params(row_msk, sdevs_ind)) *ui.multiplier;
-ui.bounds   = cell2mat(ui.params(row_msk,   bnd_ind)) *ui.multiplier;
-ui.labels   = ui.params(row_msk, label_rng);
+cfe.means    = cell2mat(ui.params(row_msk, means_ind)) *ui.multiplier;
+cfe.sdevs    = cell2mat(ui.params(row_msk, sdevs_ind)) *ui.multiplier;
+cfe.bounds   = cell2mat(ui.params(row_msk,   bnd_ind)) *ui.multiplier;
+cfe.labels   = ui.params(row_msk, label_rng);
 
-nfo.simres  = get_simres(ui.opt_metadata);
+cfe.simres  = get_simres(ui.opt_metadata);
 
 % Tell the user what's up
 if any(strcmp(ui.model,{'ED2.1','read_dir'}))

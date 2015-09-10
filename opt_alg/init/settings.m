@@ -1,6 +1,7 @@
 %==========================================================================================%
 % This file defines the variables needed to control 'optimize_ed'.                         %
-% There are two 'optimization' algorithms:                                                 %
+%                                                                                          %
+% Optimization algorithms available:                                                       %
 % 'DRAM': Adaptive Metropolis Hastings with Delayed Rejection                              %
 %   'SA': Simulated Annealing                                                              %
 %  'PSO': Canonical Particle Swarm Optimization                                            %
@@ -18,29 +19,27 @@
 %------------------------------------------------------------------------------------------%
 model          = 'Rosenbrock';   % See note above.
 prior_pdf      = 'uniform';      % Prior pdfs can be gaussian, uniform, or gammas.
-opt_type       = 'NM';           % Optimization type can be DRAM, SA, PSO, or NM
-niter          = 30;             % Number of iterations for outermost loop over simulations.
-verbose        = 0;              % Verbosity: -1=>Silent, 0=>Progress Ind, 1=>Debug
+opt_type       = 'PSO';          % Optimization type can be DRAM, SA, PSO, or NM
+niter          = 3;              % Number of iterations for outermost loop over simulations.
+verbose        = 1;              % Verbosity: -1=>Silent, 0=>Progress Ind, 1=>Debug
 multiplier     = 1.00;           % Multiplicative factor applied to initial parameters.
+opt_mat_check  = 0;              % Check for opt.mat at startup?
 %------------------------------------------------------------------------------------------%
 
 
 %------------------------------------------------------------------------------------------%
-%                     Up-Front Job Resource Allocation Settings                            %
+%                   Job Resource Allocation And Node-Binding Settings                      %
 %------------------------------------------------------------------------------------------%
-upfront_alloc = 1;             % Attempt to allocate all job resources at initialization?
-time_per_sim  = 0.05;          % In hours, this determines the scheduler time request.
-mem_per_sim   = 300;           % In MB, this determines the scheduler memory request.
-%------------------------------------------------------------------------------------------%
+sim_location  = 'external';    % Either 'local' or 'external'. Local iff sim_parallel = 1.
+sim_parallel  = 4;             % Simulation parallelization. How many simultaneous ed runs?
+sim_file_sys  = 'local';       % File system to write data to in jobs, 'local' or 'working'
+alloc_method  = 'upfront';     % 'sbsr', 'upfront', 'old', or 'local'
 
+job_queue = 'moorcroft_6100';  % The queue jobs will be submitted to if running externally.
+job_wtime = 2;                 % Expected wall completion time per job iteration, in min.
+job_mem   = 300;               % Expected per-cpu-per-job memory requirement in MB
 
-%------------------------------------------------------------------------------------------%
-%                    Matlab Distributed Computing Server Options                           %
-%------------------------------------------------------------------------------------------%
-use_dcs   = 0;                 % Use the matlab Distributed Computing Server?
-job_queue = 'moorcroft_6100';  % The queue jobs will be submitted to
-job_wtime = '0:01:30';         % Expected wall completion time per job
-job_mem   = '80';              % Expected per-cpu-per-job memory requirement in MB
+% NOTE: optimize_ed will not run properly if called from wrap_script.sh!
 %------------------------------------------------------------------------------------------%
 
 
@@ -49,10 +48,10 @@ job_mem   = '80';              % Expected per-cpu-per-job memory requirement in 
 % These all must be set, but won't do anything if the model is not running SA.             %
 % Note: For geometric cooling sched. temp = mantissa ^ (-iter/niter * exp_mult)            %
 %------------------------------------------------------------------------------------------%
-acc_crit   = 'Boltzmann';   % Acceptance Criteria: Boltzmann (Default), Sq_Decay, Log_Decay 
+acc_crit   = 'Boltzmann';   % Acceptance Criteria: Boltzmann or Log_Decay
 cool_sched = 'Geometric';   % Cooling Schedule: Geometric, Linear, or Logarithmic
 temp_start = 800;           % Starting Temperature of SA (1k max)
-mantissa   = 6;             % See note above. Default to 4.
+mantissa   = 4;             % See note above. Default to 4.
 exp_mult   = 2;             % See note above. Default to 2.
 %------------------------------------------------------------------------------------------%
 
@@ -70,8 +69,9 @@ adapt_freq = 100;             % Freq @ which to adapt covar. matrix
 %------------------------------------------------------------------------------------------%
 %                          PSO Specific Parameters                                         %
 % These all must be set, but won't do anything if the model is not running PSO.            %
+% Recall that sim_parallel determines the nubmer of simultaneous jobs, not NPS.            %
 %------------------------------------------------------------------------------------------%
-nps   = 220;                  % Number of particles, i.e. simultaneous ED runs.
+nps   = 4;                    % Number of particles, i.e. simultaneous ED runs.
 phi_1 = 4.1;                  % Governs strength of attractor at local best
 phi_2 = 4.1;                  % Governs strength of attractor at neighbors' best
 top   = 'Von Neumann';        % Topology. Currently only Von-Neumann supported.
@@ -82,14 +82,14 @@ top   = 'Von Neumann';        % Topology. Currently only Von-Neumann supported.
 %------------------------------------------------------------------------------------------%
 %                            Nelder-Mead Algorithm Settings                                %
 %------------------------------------------------------------------------------------------%
-nsimp = 3;                   % Number of simplexes to run simultaneously.
-                             % Every vertex will be run simultaneously at initialization
-                             % then the standard serial algorithm will be run on each
-                             % simplex.
-p_reflect = 1;
-p_expand  = 2;
-p_cntrct  = -1/2;
-p_shrink  = 1/2;
+% Note: sim_parallel will be overridden temporarily in the initialization of the simplexes
+% if it is > 1. 
+%------------------------------------------------------------------------------------------%
+nsimp     = 4;                   % Number of simplexes to run simultaneously.
+p_reflect = 1;                   % Reflection scale parameter
+p_expand  = 2;                   % Expansion scale parameter
+p_cntrct  = -1/2;                % Contraction scale parameter
+p_shrink  = 1/2;                 % Shrinking scale parameter
 %------------------------------------------------------------------------------------------%
 
 
@@ -100,9 +100,9 @@ p_shrink  = 1/2;
 %    titled 'analy' in which the model's output can be found.                              %
 %  - opt_data_dir is the directory holding data we want to optimize against. (ED2.1 only)  %
 %------------------------------------------------------------------------------------------%
-rundir = '/n/moorcroftfs2/dscott/runfiles/optim/pso_10/';
-
-opt_data_dir = '/n/moorcroftfs2/dscott/data/USHa_MC_BAG_Unc/';
+%rundir = '/n/moorcroftfs2/dscott/runfiles/optim/pso_10/';
+rundir  = 'C:\Users\Dan\Workspace - Matlab\moorcroft_lab\opt_alg\';
+opt_data_dir = '/n/moorcroftfs2/dscott/data/USHa_MC_BAG_Unc/';    % If applicable
 %------------------------------------------------------------------------------------------%
 
 
@@ -147,19 +147,10 @@ opt_metadata = ...
    'yearly' , 'BAM_Co'        , 'FIA' , '.C.BAM'                    ,     0,     1; ...
   };
 
-% Filenames for observational data
-% Note: Using an hourly data file trimmed to the appropriate years may save a lot of time.
-data_fnames.yr_FIA  = 'yearly_FIA_stats_DM.csv';
-data_fnames.yr_flx  = 'yearly_flux_11_12.csv';
-data_fnames.mo_flx  = 'monthly_flux_11_12.csv';
-data_fnames.day_flx = 'daily_flux_11_12.csv';
-data_fnames.hr_flx  = 'hourly_flux_11_12.csv';
-
 obs_years = 2010:2012;
 obs_prefixes = {'sr','obs_nee/nee','sens','fia'};
 
-
-% Set which pfts are found in params below, what to multiply all sdevs by.
+% Set which pfts are found in params below.
 pfts = [6,7,8,9,10,11];
 
 % Structure defining which params to optimized, their prior means and prior standard
@@ -179,8 +170,6 @@ params = { ...
    'mort0'                    , 'pft'             , [6:11]   , 0.0000, 0.2500, [-0.5,0.5], 1 ; ...
    'mort2'                    , 'pft'             , [6:11]   , 20.000, 7.2500, [5,35]    , 1 ;
 };
-
-% (*) decomp_scheme 0,1
 %------------------------------------------------------------------------------------------%
 
 
@@ -199,5 +188,4 @@ if strcmp(model,'Rosenbrock')
             };
 end
 %------------------------------------------------------------------------------------------%
-
 %==========================================================================================%
