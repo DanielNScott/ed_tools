@@ -77,8 +77,8 @@ switch ui.opt_type
       better_msk = obj < hist.pbo;
 
       % Set the particle best states to those resulting in such objectives, and save the objectives.
-      hist.pbs(:,better_msk) = hist.state(:,better_msk);
-      hist.pbo(better_msk)   = hist.obj(better_msk);
+      hist.pbs(:,better_msk) = hist.state(:,better_msk,cfe.iter);
+      hist.pbo(better_msk)   = hist.obj(better_msk,cfe.iter);
 
       % Save the best state yet encountered.
       min_msk = hist.pbo == min(hist.pbo);

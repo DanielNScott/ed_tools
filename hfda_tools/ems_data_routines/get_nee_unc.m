@@ -8,6 +8,6 @@ unc  = (data <  0).*(-0.35/3*data + 1.75) + ...
        (data >= 0).*(0.325  *data + 1.75);
 
 unc(msk_nans) = NaN;
-   
+
 end
 

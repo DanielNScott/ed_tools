@@ -5,9 +5,9 @@ function [] = optimize_ed(settings_fname)
 
 while keep_iterating(cfe,ui.niter,ui.opt_type)
    
-   vdisp('----------------------------------------',0,ui.verbose)
-   vdisp(['Beginning iteration ' num2str(cfe.iter)],0,ui.verbose)
-   vdisp('----------------------------------------',0,ui.verbose)
+   vdisp('------------------------------------------',0,ui.verbose)
+   vdisp(['Beginning iteration ' num2str(cfe.iter+1)],0,ui.verbose)
+   vdisp('------------------------------------------',0,ui.verbose)
    
    [cfe,hist]        = update_alg (cfe,hist,ui);
    [hist,state_prop] = prop_state (cfe,hist,ui);
@@ -16,17 +16,15 @@ while keep_iterating(cfe,ui.niter,ui.opt_type)
       save('pso.mat')
       set_jobs(cfe.iter,cfe.njobs,cfe.fmt,cfe.restart,state_prop,ui);
       
-      [hist.obj,pred_best,stats] = ...
-         get_jobs(cfe.fmt,cfe.iter,cfe.njobs,hist.obj,ui.sim_location,ui.verbose);
+      hist = get_jobs(cfe.fmt,cfe.iter,cfe.njobs,hist,ui.sim_location,ui.verbose);
       
-      if ~isempty(pred_best)
-         hist.pred_best = pred_best;
-         hist.stats = update_struct(stats,hist.stats);
-      end
+      %if ~isempty(pred_best)
+         %hist.pred_best = pred_best;
+         %hist.stats = update_struct(stats,hist.stats);
+      %end
       
    elseif cfe.run_local
       [hist.obj(:,cfe.iter)] = run_jobs   (cfe,obs,hist,ui);
-      
    end
    
    hist = proc_jobs  (cfe,hist,ui);

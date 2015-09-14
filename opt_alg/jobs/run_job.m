@@ -56,6 +56,7 @@ for iter = 1:niter
    load(pso_mat_fname)
    if cfe.run_xtrnl
       wait_for(run_flag_fname,10,1)
+      load(pso_mat_fname)
       %if iter > 1
          %vdisp(['Current dir: ' pwd],1,ui.verbose)
          %load('../pso.mat')

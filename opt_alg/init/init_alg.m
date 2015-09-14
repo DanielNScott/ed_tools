@@ -32,7 +32,11 @@ clearvars -except ui
 
 % Look for opt.mat, infer init/restart status, determine opt_years.
 cfe.restart = 0; % By default.
-%if ui.opt_mat_check
+if ui.opt_mat_check
+   if exist('./opt.mat','file')
+      load('./opt.mat')
+      cfe.restart = 1;
+   end
 %   [opt_check] = check_for_opt_mat(cfe,ui);
 %   if ~isempty(opt_check)
 %      cfe  = opt_check{1};
@@ -40,7 +44,7 @@ cfe.restart = 0; % By default.
 %      nfo  = opt_check{3};
 %      ui   = opt_check{4};
 %   end
-%end
+end
 disp(['Restart? (Boolean): ', num2str(cfe.restart)])
 
 if ~ cfe.restart
