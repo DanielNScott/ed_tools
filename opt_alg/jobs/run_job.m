@@ -16,6 +16,9 @@ disp(['Executing on host: ' job_host   ])
 disp('-------------------------------------------------------------')
 disp(' ')
 
+% This needs to happen on iter 1 for cfe.xtrnl to exist.
+load(pso_mat_fname)
+
 % When running locally, this loop has 1 iteration.
 % When running externally, this loop moves in step with the loop in optimize_ed.
 for iter = 1:niter
@@ -53,7 +56,6 @@ for iter = 1:niter
    disp(' ')
    
    % Now start actually doing things.
-   load(pso_mat_fname)
    if cfe.run_xtrnl
       wait_for(run_flag_fname,10,1)
       load(pso_mat_fname)
@@ -72,7 +74,6 @@ for iter = 1:niter
       
       vdisp('State: ',1,ui.verbose)
       vdisp(state,1,ui.verbose)
-      %state = hist.state(:,:,iter);
    end
 
    vdisp('Running the model... ',0,ui.verbose);

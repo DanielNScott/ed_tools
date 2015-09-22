@@ -13,7 +13,9 @@ while keep_iterating(cfe,ui.niter,ui.opt_type)
    [hist,state_prop] = prop_state (cfe,hist,ui);
   
    if cfe.run_xtrnl
-      save('pso.mat')
+      % We save a version of opt.mat with no 'hist' variable, because this variable takes up
+      % a huge amount of space.
+      save pso.mat -REGEXP ^((?!hist).)*$
       set_jobs(cfe.iter,cfe.njobs,cfe.fmt,cfe.restart,state_prop,ui);
       
       hist = get_jobs(cfe.fmt,cfe.iter,cfe.njobs,hist,ui.sim_location,ui.verbose);

@@ -15,7 +15,6 @@ not_restart   = ~restart;
 use_srun      = strcmp(ui.alloc_method,'sbsr');
 upfront_alloc = strcmp(ui.alloc_method,'upfront') || use_srun;
 
-
 for job_num = 1:njobs
    %--- This is some NM specific setup ---%
    if strcmp(ui.opt_type,'NM') && job_num > ui.nsimp

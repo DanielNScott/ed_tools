@@ -72,25 +72,25 @@ function [ hist ] = init_hist( cfe, ui )
         end
    end
    
-   
    if cfe.uses_proposals;
       hist.acc        = NaN(vs_dim,ui.niter);       % List of acceptance/rejections
    end
    
-   if cfe.is_test
-      hist.stats.total_likely = [];
-   else
-      hist.stats.ns    = [];        % Number of samples
-      hist.stats.SSTot = [];        % Sum of squares [total]            sum((obs - obs_ave)^2)
-      hist.stats.SSRes = [];        % Sum of squared residuals [errors] sum((obs - pred   )^2)
-      hist.stats.Sx    = [];        % Sum of observations               sum((obs          )  )
-      hist.stats.Sy    = [];        % Sum of predictions                sum((pred         )  )
-      hist.stats.Sx2   = [];        % Sum of square of obs.             sum((obs          )^2)
-      hist.stats.Sy2   = [];        % Sum of square of pred.            sum((pred         )^2)
-      hist.stats.SPxy  = [];        % Sum of product of obs. and pred.  sum((obs*pred     )  )
+   hist.stats = struct();
+   %if cfe.is_test
+   %   hist.stats.total_likely = [];
+   %else
+   %   hist.stats.ns    = [];        % Number of samples
+   %   hist.stats.SSTot = [];        % Sum of squares [total]            sum((obs - obs_ave)^2)
+   %   hist.stats.SSRes = [];        % Sum of squared residuals [errors] sum((obs - pred   )^2)
+   %   hist.stats.Sx    = [];        % Sum of observations               sum((obs          )  )
+   %   hist.stats.Sy    = [];        % Sum of predictions                sum((pred         )  )
+   %   hist.stats.Sx2   = [];        % Sum of square of obs.             sum((obs          )^2)
+   %   hist.stats.Sy2   = [];        % Sum of square of pred.            sum((pred         )^2)
+   %   hist.stats.SPxy  = [];        % Sum of product of obs. and pred.  sum((obs*pred     )  )
 
-      hist.stats.total_likely = []; % Weighted sum of all likelihoods, to be objective fn.
-   end
+   %   hist.stats.total_likely = []; % Weighted sum of all likelihoods, to be objective fn.
+   %end
 
 end
 
