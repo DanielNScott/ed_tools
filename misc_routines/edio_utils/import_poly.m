@@ -467,8 +467,8 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       %----------------------------------------------------------------------%
       % Create Reco, Het_Frac, and Soil_Resp fields                          %
       %----------------------------------------------------------------------%
-      out.X.Reco            = out.T.MMEAN_PLRESP_CO + out.T.MMEAN_RH_PY;
-      out.X.Het_Frac        = out.T.MMEAN_RH_PA    ./ out.X.Reco;
+      out.X.MMEAN_Reco      = out.T.MMEAN_PLRESP_CO + out.T.MMEAN_RH_PY;
+      out.X.MMEAN_Reco_HF   = out.T.MMEAN_RH_PA    ./ out.X.MMEAN_Reco;
       out.X.MMEAN_Soil_Resp = out.T.MMEAN_RH_PA     + out.T.MMEAN_ROOT_RESP_CO;
 
       if ~isempty(out.T.MMEAN_ROOT_GROWTH_RESP_CO)
@@ -481,9 +481,11 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
                                + out.T.MMEAN_ROOT_STORAGE_RESP_CO ...
                                + out.T.MMEAN_SAPB_STORAGE_RESP_CO;
       end
+      
+      out.X.MMEAN_Soil_Resp_HF = out.T.MMEAN_RH_PA    ./ out.X.MMEAN_Soil_Resp;
 
       if read_c13
-         out.X.Reco_C13            = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
+         out.X.MMEAN_Reco_C13      = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
          out.X.MMEAN_Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
       
          if ~isempty(out.T.MMEAN_ROOT_GROWTH_RESP_C13_CO)
@@ -497,7 +499,7 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
                                       + out.T.MMEAN_SAPB_STORAGE_RESP_C13_CO;
          end
 
-         out.X.Reco_d13C            = get_d13C(out.X.Reco_C13, out.X.Reco);
+         out.X.MMEAN_Reco_d13C      = get_d13C(out.X.MMEAN_Reco_C13     ,out.X.MMEAN_Reco);
          out.X.MMEAN_Soil_Resp_d13C = get_d13C(out.X.MMEAN_Soil_Resp_C13,out.X.MMEAN_Soil_Resp);
       end
       

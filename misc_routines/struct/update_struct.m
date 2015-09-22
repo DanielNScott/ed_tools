@@ -13,8 +13,14 @@ for fld_num = 1:numel(dflds)                    % Want to access all flds, so lo
    dfld = dflds{fld_num};                       % Get field name for easy access
    if isstruct(donor.(dfld))                    % Check to see if the field is a structure...
       % If it is, recurse!
+      if ~isfield(recvr,dfld)
+         recvr.(dfld) = struct();
+      end
       recvr.(dfld) = update_struct(donor.(dfld),recvr.(dfld));
    else
+      if ~isfield(recvr,dfld)
+         recvr.(dfld) = [];
+      end
       recvr.(dfld)(:,end+1) = donor.(dfld);    % Otherwise append fld from stats to history.
    end
 end

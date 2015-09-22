@@ -33,6 +33,10 @@ while keep_iterating(cfe,ui.niter,ui.opt_type)
    %hist       = gen_state   (cfe,hist,nfo,ui);
    %print_progress(cfe.iter, ui.niter, hist.acc)
    
+   % If this had been a restart, we need to turn cfe.restart off so it doesn't resubmit jobs
+   % every iteration.
+   cfe.restart = 0;
+   
    vdisp('Saving current program state to opt.mat...',0,ui.verbose);
    vdisp(' '                                         ,0,ui.verbose);
    save('opt.mat')
