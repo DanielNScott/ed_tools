@@ -272,11 +272,13 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
                out.T.(savname)(fnum) = tempVar;
             else
                if strcmp(varname,'FMEAN_SOIL_WATER_PY')
+                  % This appears not to work.
+               
                   % This variable has size [nzg,nsi,24*365] (366 for ly)
                   % We want to turn it into a matrix from an array.
-                  swsize = size(out.raw.FMEAN_SOIL_WATER_PY{fnum});
-                  tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3));
-                  out.T.(savname) = [out.T.(savname),tempVar];
+                  %swsize = size(out.raw.FMEAN_SOIL_WATER_PY{fnum});
+                  %tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3));
+                  %out.T.(savname) = [out.T.(savname),tempVar];
                else
                   out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
                   %out.T.(savname)(fnum) = out.raw.(varname){fnum};

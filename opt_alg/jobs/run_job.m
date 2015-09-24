@@ -16,6 +16,37 @@ disp(['Executing on host: ' job_host   ])
 disp('-------------------------------------------------------------')
 disp(' ')
 
+% Setup filenames used throughout this function
+job_dir         = [pso_loc '/job_' job_num_str '/'];
+
+% Inputs filenames (obs_proc may also be output)
+pso_mat_fname   = [pso_loc '/pso.mat' ];
+obs_mat_fname   = [pso_loc '/obs.mat' ];
+obs_proc_fname  = [pso_loc '/obs_proc.mat'];
+run_flag_fname  = [job_dir 'run_flag.txt' ];
+
+% Output filenames
+dump_fname      = [job_dir '/dump.mat'];
+job_obj_fname   = [job_dir 'job_obj.mat'  ];
+job_pred_fname  = [job_dir 'job_pred.mat' ];
+job_stats_fname = [job_dir 'job_stats.mat'];
+
+% Print the filenames in use.
+disp('--------------------------------------------------')
+disp('Filenames being used by this job:')
+disp('--------------------------------------------------')
+disp(['job_dir        : ' job_dir        ])
+disp(['pso_mat_fname  : ' pso_mat_fname  ])
+disp(['obs_mat_fname  : ' obs_mat_fname  ])
+disp(['obs_proc_fname : ' obs_proc_fname ])
+disp(['run_flag_fname : ' run_flag_fname ])
+disp(['dump_fname     : ' dump_fname     ])
+disp(['job_obj_fname  : ' job_obj_fname  ])
+disp(['job_pred_fname : ' job_pred_fname ])
+disp(['job_stats_fname: ' job_stats_fname])
+disp('--------------------------------------------------')
+disp(' ')
+
 % This needs to happen on iter 1 for cfe.xtrnl to exist.
 load(pso_mat_fname)
 
@@ -23,37 +54,6 @@ load(pso_mat_fname)
 % When running externally, this loop moves in step with the loop in optimize_ed.
 for iter = 1:niter
    disp(['Iteration: ' num2str(iter)])
-   
-   % Setup filenames used throughout this function
-   job_dir         = [pso_loc '/job_' job_num_str '/'];
-   
-   % Inputs filenames (obs_proc may also be output)
-   pso_mat_fname   = [pso_loc '/pso.mat' ];
-   obs_mat_fname   = [pso_loc '/obs.mat' ];
-   obs_proc_fname  = [pso_loc '/obs_proc.mat'];
-   run_flag_fname  = [job_dir 'run_flag.txt' ];
-   
-   % Output filenames
-   dump_fname      = [job_dir '/dump.mat'];
-   job_obj_fname   = [job_dir 'job_obj.mat'  ];
-   job_pred_fname  = [job_dir 'job_pred.mat' ];
-   job_stats_fname = [job_dir 'job_stats.mat'];
-
-   % Print the filenames in use.
-   disp('--------------------------------------------------')
-   disp('Filenames being used by this job:')
-   disp('--------------------------------------------------')
-   disp(['job_dir        : ' job_dir        ])
-   disp(['pso_mat_fname  : ' pso_mat_fname  ])
-   disp(['obs_mat_fname  : ' obs_mat_fname  ])
-   disp(['obs_proc_fname : ' obs_proc_fname ])
-   disp(['run_flag_fname : ' run_flag_fname ])
-   disp(['dump_fname     : ' dump_fname     ])
-   disp(['job_obj_fname  : ' job_obj_fname  ])
-   disp(['job_pred_fname : ' job_pred_fname ])
-   disp(['job_stats_fname: ' job_stats_fname])
-   disp('--------------------------------------------------')
-   disp(' ')
    
    % Now start actually doing things.
    if cfe.run_xtrnl
@@ -70,7 +70,12 @@ for iter = 1:niter
       if strcmp(ui.opt_type,'PSO')
          ui.rundir = job_dir;
       end
-      state = state_prop(:,job_num);
+      
+      if job_num == 0;
+         state = ui.state_ref;
+      else
+         state = state_prop(:,job_num);
+      end
       
       vdisp('State: ',1,ui.verbose)
       vdisp(state,1,ui.verbose)

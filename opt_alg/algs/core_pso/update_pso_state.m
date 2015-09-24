@@ -12,7 +12,15 @@ nbs = NaN(nvar,nps);
 
 for ip = 1:nps
    nbo       = min(pbo(nbrhd(ip,:)'));    % Get the neighborhood best objective found
-   nbs(:,ip) = state(:,pbo == nbo);       % Get the neighborhood best state found
+
+   msk  = pbo == nbo;
+   inds = find(msk);
+   if length(inds) > 1
+      ignore_ind = 1 + round(rand);
+      msk(inds(ignore_ind)) = 0;
+   end
+
+   nbs(:,ip) = state(:,msk);       % Get the neighborhood best state found
 end
 
 vels  = chi*(vels + U_1.*(pbs - state) + U_2.*(nbs - state));
