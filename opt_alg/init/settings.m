@@ -39,6 +39,7 @@ job_queue = 'moorcroft_6100';  % The queue jobs will be submitted to if running 
 job_wtime = 2;                 % Expected wall completion time per job iteration, in min.
 job_mem   = 300;               % Expected per-cpu-per-job memory requirement in MB
 
+persist = 0;                   % Which job-type should be used? Set =1 for persistent matlab 
 % NOTE: optimize_ed will not run properly if called from wrap_script.sh!
 %------------------------------------------------------------------------------------------%
 
@@ -170,6 +171,8 @@ params = { ...
    'mort0'                    , 'pft'             , [6:11]   , 0.0000, 0.2500, [-0.5,0.5], 1 ; ...
    'mort2'                    , 'pft'             , [6:11]   , 20.000, 7.2500, [5,35]    , 1 ;
 };
+
+state_ref = [1.0; 0.3463; 0.333; 1.0; 1.1274; 0.62; 5.1; 0.528; 0.0; 20.0];
 %------------------------------------------------------------------------------------------%
 
 

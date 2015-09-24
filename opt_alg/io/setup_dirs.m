@@ -1,4 +1,5 @@
-function [ ] = setup_dirs( job_num, niter, fmt, job_wtime, job_mem, partition, sim_file_sys, verbose )
+function [ ] = setup_dirs( job_num, niter, fmt, job_wtime, job_mem, partition, sim_file_sys ...
+                         , state_prop, labels, pfts, persist, verbose )
 %SET_DIRS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,17 +10,24 @@ vdisp(['Setting up dir: ' dir],1,verbose);
 cd(dir)
 vdisp(['niter being passed: ' num2str(niter)],1,verbose)
 
-file_list = { ... %'./job_config.mat'...
-             './job_obj.mat' ...
-            ,'./job_out.mat' ...
-            ,'./job_stats.mat'};
+file_list = {'./run_flag.mat'...                               % In case it's accidentally there
+             './job_obj.mat' ...                               % Avoid accidental re-read
+            ,'./job_out.mat' ...                               % Avoid accidental re-read
+            ,'./job_stats.mat'};                               % Avoid accidental re-read
 
 for fnum = 1:numel(file_list)
    ifile = file_list{fnum};
    if exist(ifile,'file')                                      % If old data exists...
       delete(ifile)                                            % Delete it ...
       vdisp(['file removed: ' ifile],1,verbose)                % ... and notify!
+   else
+      vdisp(['file did not exist: ' ifile],1,verbose)          %
    end
+end
+
+if ~persist
+   if verbose >= 1; disp('Writing config.xml...'); end
+   write_config_xml(state_prop, labels, pfts);
 end
 
 %vdisp('Writing job config: ',1,verbose);

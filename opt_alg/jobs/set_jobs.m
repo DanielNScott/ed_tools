@@ -1,4 +1,4 @@
-function [] = set_jobs(iter,njobs,fmt,restart,state_prop,ui)
+function [] = set_jobs(iter,njobs,fmt,restart,state_prop,labels,ui)
 %SET_JOBS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,7 +24,8 @@ for job_num = 1:njobs
    end
    
    %--- Set up directories ---%
-   setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys,ui.verbose);
+   setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
+             ,state_prop(:,job_num),labels,ui.pfts,ui.persist,ui.verbose);
 
    %--- Decide to skip submission or not ---%
    not_iter_one  = iter > 1;
@@ -54,7 +55,11 @@ for job_num = 1:njobs
       % Submit the current job.
       !srun -J job_${job_num} -t ${job_wtime} --mem=${job_mem} ./run_job.sh  ${job_num} ${niter} &
    else
-      !sbatch ./wrap_script.sh -p ${opt_name} './run_job.sh ${job_num} ${niter} ${proc_loc}' &
+      if ui.persist
+         !sbatch ./wrap_script.sh -p ${opt_name} './run_job.sh ${job_num} ${niter} ${proc_loc}' &
+      else
+         !sbatch ./wrap_script.sh -p ${opt_name} './run_job_xtrnl.sh ${job_num} ${niter} ${proc_loc}' &
+      end
    end
    cd('../')
    vdisp(' ',1,ui.verbose)
