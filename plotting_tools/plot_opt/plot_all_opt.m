@@ -13,8 +13,8 @@ load(obs_mat_name)
 %----------------------------------------------------------------------------------------------%
 % Get run info such as start and end indices of simulation
 %----------------------------------------------------------------------------------------------%
-[start_yr, start_mo, ~,~,~,~] = tokenize_time(hist.out_best.nl.start,'ED','num');
-[end_yr  , end_mo  , ~,~,~,~] = tokenize_time(hist.out_best.nl.end  ,'ED','num');
+[start_yr, start_mo, ~,~,~,~] = tokenize_time(hist.pred_best.sim_beg,'ED','num');
+[end_yr  , end_mo  , ~,~,~,~] = tokenize_time(hist.pred_best.sim_end,'ED','num');
 part_yrs  = start_yr:end_yr;
 whole_yrs = (start_yr + 1*(start_mo ~= 1)):(end_yr -1 - 1*(end_mo ~= 1));
 for i = 1:numel(whole_yrs)
@@ -26,18 +26,50 @@ end
 %----------------------------------------------------------------------------------------------%
 
 if strcmp(ui.opt_type,'PSO')
-   plot_state_hist_pso(ctrl,data,hist,nfo,ui,save);
+   plot_state_hist_pso( cfe.iter, hist.obj, hist.state, ui.nps, cfe.labels(:,1), save);
+   %plot_part_ids(cfe,data,hist,ui,save);
+elseif strcmp(ui.opt_type,'NM')
+   plot_state_hist_nm(cfe,hist,ui,save)
 else
-   plot_state_hist_seq(ctrl,data,hist,nfo,ui);
+   plot_state_hist_seq(cfe,data,hist,nfo,ui,save);
 end
 
-plot_fit_stats(ctrl,hist,ui,save);
+plot_fit_stats(cfe,hist,ui,save);
 
-plot_param_stars(hist,ui,save);
+plot_param_stars(hist,cfe,ui.opt_type,save);
 
-plot_likely_analy(ctrl,data,hist,nfo,ui,save);
+%init_best_ind   = hist.obj == min(hist.obj(:,1));
+%global_best_ind = hist.obj == min(hist.obj(:));
 
-plot_pred_and_obs(hist,obs,ui,save);
+if strcmp(ui.opt_type,'NM')
+   hist.iter_best = length(hist.stats.ns);
+end
+
+if strcmp(ui.opt_type,'PSO')
+   init_best_ind   = hist.obj == min(hist.obj(:,1));
+   global_best_ind = hist.obj == min(hist.obj(:));
+   best_inds       = or(init_best_ind,global_best_ind);
+   iter_best       = find(sum(global_best_ind));
+else
+  iter_best = iter_best;
+end
+
+%if init_best_ind ~= global_best_ind && isfield(hist.stats,'ref')
+plot_likely_analy(iter_best  , ...
+                  ui.opt_type, ...
+                  hist.stats , ... 
+                  save);
+%end
+
+plot_pred_and_obs(hist.obj       , ...
+                  iter_best      , ...
+                  hist.pred_best , ...
+                  hist.stats     , ...
+                  hist.pred_ref  , ...
+                  obs            , ...
+                  ui.opt_type    , ...
+                  ui.opt_metadata, ...
+                  save);
 
 
 

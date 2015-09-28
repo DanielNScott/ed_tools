@@ -1,6 +1,14 @@
 function [ varargout ] = run_job( job_num_str, niter, pso_loc )
 %RUN_JOB Gets called in every particle 
 %   Detailed explanation goes here
+%
+%   This function has subsumed run_job_fake's functionality.
+%   To run a reference job, follow these steps:
+%      1) Open matlab.
+%      2) Set the environment variables as they would be set in set_jobs.m, using job_num = 0.
+%      3) Submit the job, using the same command from set_jobs.m used to submit every job.
+%
+%   This function will load and use ui.state_ref when it sees job_num = 0.
 
 job_num   = str2double(job_num_str);
 niter_str = num2str(niter);
@@ -104,7 +112,11 @@ for iter = 1:niter
       % we want to deal with partial sums of e.g. days/months, depending on what      %
       % observations are available. We process these here.                            %
       %-------------------------------------------------------------------------------%
-      pred = run_ed(state, cfe.labels, ui.pfts, ui.verbose);
+      if ui.persist
+         pred = run_ed(state, cfe.labels, ui.pfts, ui.verbose);
+      else
+         pred = import_poly(pwd,ui.verbose);
+      end
       if iter == 1
          vdisp('Preprocessing the observational data... ',0,ui.verbose);
          obs = preproc_obs(obs, pred, ui.opt_metadata);
