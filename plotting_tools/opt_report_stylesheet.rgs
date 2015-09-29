@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<stylesheet_registry xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
+   <stylesheet id="opt_report_stylesheet" transformtype="fo"><!--Sep 23, 2015 10:00:44 AM-->
+      <name>Opt Report Stylesheet</name>
+      <description>Uses fancy page formatting options</description>
+      <filename>$matlabroot/sys/namespace/docbook/v4/xsl/fo/docbook_rptgen.xsl</filename>
+      <xsl_code>
+         <xsl:param name="title.margin.left">
+            <xsl:choose>
+    
+               <xsl:when test="$fop.extensions != 0">0pc</xsl:when>
+    
+               <xsl:when test="$passivetex.extensions != 0">0pt</xsl:when>
+    
+               <xsl:otherwise>0pt</xsl:otherwise>
+  
+            </xsl:choose>
+         </xsl:param>
+         <xsl:param name="draft.mode" select="'yes'"/>
+         <xsl:variable name="show.comments" select="0"/>
+         <xsl:variable name="header.rule" select="1"/>
+         <xsl:variable name="footer.rule" select="1"/>
+         <xsl:param name="marker.section.level" select="3"/>
+         <xsl:param name="generate.toc">
+book toc,title,figure,table,example,equation
+/chapter toc,title,figure,table
+/sect1 toc,title,figure,table
+/sect2 toc,title,figure,table
+/sect3 toc,title,figure,table
+/sect4 nop
+/sect5 nop
+/section nop
+</xsl:param>
+         <xsl:param name="toc.section.depth" select="3"/>
+         <xsl:param name="chapter.autolabel" select="1"/>
+         <xsl:param name="section.autolabel" select="1"/>
+         <xsl:param name="section.label.includes.component.label" select="1"/>
+         <xsl:param name="ulink.footnotes" select="1"/>
+         <xsl:param name="table.footnote.number.format" select="'1'"/>
+         <xsl:param name="shade.verbatim" select="1"/>
+         <xsl:param name="double.sided" select="0"/>
+         <xsl:param name="column.count.lot" select="2"/>
+         <xsl:param name="column.count.titlepage" select="1"/>
+         <xsl:param name="body.font.master" select="11"/>
+      </xsl_code>
+   </stylesheet>
+</stylesheet_registry>
