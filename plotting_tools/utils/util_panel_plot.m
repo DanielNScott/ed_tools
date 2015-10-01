@@ -74,22 +74,33 @@ for i=1:npanels
    yvals = [];
    num_nonex_pvars = 0;
    polyNames = polyNamesIn;
-   for j=1:npolys
-      if isfield(data.(polyNamesIn{j}).(prefix{i}),(vars{i}))
-         cur_var = data.(polyNamesIn{j}).(prefix{i}).(vars{i});
-         if j > 1 && length(cur_var) > length(yvals(j-1,:))
-            disp(['Field truncated: ',polyNamesIn{j},'.',prefix{i},'.',vars{i}])
-            yvals(j,:) = cur_var(1:length(yvals(j-1,:)));
+   
+   for pnum = 1:npolys
+      cur_poly = polyNamesIn{pnum};
+      cur_prfx = prefix{pnum};
+      cur_varn = vars{i};
+      
+      var_present = isfield(data.(cur_poly).(cur_prfx),cur_varn);
+      if var_present
+         cur_var = data.(cur_poly).(cur_prfx).(cur_varn);
+         
+         last_yval_ind = pnum - 1 + num_nonex_pvars;
+         if pnum > 1 && ~isempty(yvals) && length(cur_var) > length(yvals(last_yval_ind,:))
+            disp(['Field truncated: ',cur_poly,'.',cur_prfx,'.',cur_var])
+            yvals(pnum,:) = cur_var(1:length(yvals(pnum-1,:)));
+            
          elseif isempty(cur_var)
-            disp(['Skipping non-existent field: ',polyNamesIn{j},'.',prefix{i},'.',vars{i}])
-            polyNames = remove_cell_entry(polyNames',j - num_nonex_pvars)';
+            disp(['Skipping non-existent field: ',cur_poly,'.',cur_prfx,'.',cur_varn])
+            polyNames = remove_cell_entry(polyNames',pnum - num_nonex_pvars)';
             num_nonex_pvars = num_nonex_pvars + 1;
+  
          else
-            yvals(j,:) = data.(polyNamesIn{j}).(prefix{i}).(vars{i});
+            yvals(pnum,:) = data.(cur_poly).(cur_prfx).(cur_varn);
+            
          end
       else
-         disp(['Skipping non-existent field: ',polyNamesIn{j},'.',prefix{i},'.',vars{i}])
-         polyNames = remove_cell_entry(polyNames',j - num_nonex_pvars)';
+         disp(['Skipping non-existent field: ',cur_poly,'.',cur_prfx,'.',cur_varn])
+         polyNames = remove_cell_entry(polyNames',pnum - num_nonex_pvars)';
          num_nonex_pvars = num_nonex_pvars + 1;
       end
    end

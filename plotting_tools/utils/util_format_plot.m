@@ -24,6 +24,7 @@ function [ ] = util_format_plot(mytitle, mylegend, interpreter, xlen, ylab, star
         set(gca,'XTick',[1:12:xlen+1]);
         set(gca,'XTickLabel','');
         set(gca,'XGrid','on');
+        set(gca,'YGrid','on');
 
         if npanels == 9
            if any(panel == [7,8,9])
@@ -42,6 +43,9 @@ function [ ] = util_format_plot(mytitle, mylegend, interpreter, xlen, ylab, star
         end
         set(gca,'XTickLabel',xticklabels);
     elseif xlen <= 60 %&& xlen > 24
+       child = get(gca,'Children');
+       set(child,'LineStyle','--');
+       set(child,'Marker','o');
        set_monthly_labels(gca,start_month)
     % Format in 6 month intervals if less than 5 years
 %         set(gca,'XTick',[1:6:xlen+1]);
@@ -85,6 +89,9 @@ function [ ] = util_format_plot(mytitle, mylegend, interpreter, xlen, ylab, star
 %                 xticklabels{2*i}   = ['Dec. ' num2str(yrlist(i))];
 %             end
 %         end    
+
+        set(gca,'XGrid','on');
+        set(gca,'YGrid','on');
     end
     ylabel(ylab)
     %saveas(gcf,['.\',filesep,[pavars{i}],'.jpeg'],'jpeg');

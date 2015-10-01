@@ -91,7 +91,8 @@ for ifig = 1:6  %range(fnums)
    % Total Carbon, PFT-Split
    %--------------------------------------------------------------------------------------------
    if splt > 0
-
+      if any(ifig == [3,5]); continue; end
+      
       killpanel = [];
       for i = 1:numel(names)
          prfix{i} = 'H';
@@ -111,7 +112,6 @@ for ifig = 1:6  %range(fnums)
       util_panel_plot(co_fname{ifig},data,names,alias,units,prfix,years,save,killpanel);
 
    end
-   
    
    if plot_c13
       if ifig >= 4;
