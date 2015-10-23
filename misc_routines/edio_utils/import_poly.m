@@ -299,25 +299,29 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          %Process Uncatagorized Vars -------------------------------------
          elseif strcmp(vartype,'un')
             vdisp([' - Processing Un Var: ',varname],2,dbug)
-            if strcmp(varname,'BASAL_AREA_MORT')  || ...
-               strcmp(varname,'BASAL_AREA_GROWTH')
-               
-               tempVar = out.raw.(varname){fnum};
-               out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
-               out.C.(savname)(fnum) = 0.0;
-               out.H.(savname)(fnum) = 0.0;
-               out.G.(savname)(fnum) = 0.0;
-               for ipft=1:size(tempVar,2)
-                  if sum(ipft == [6,7,8] > 0)
-                     out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
-                  elseif sum(ipft == [9,10,11] > 0)
-                     out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
-                  elseif ipft == 5
-                     out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
+            try
+               if strcmp(varname,'BASAL_AREA_MORT')  || ...
+                  strcmp(varname,'BASAL_AREA_GROWTH')
+
+                  tempVar = out.raw.(varname){fnum};
+                  out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
+                  out.C.(savname)(fnum) = 0.0;
+                  out.H.(savname)(fnum) = 0.0;
+                  out.G.(savname)(fnum) = 0.0;
+                  for ipft=1:size(tempVar,2)
+                     if sum(ipft == [6,7,8] > 0)
+                        out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
+                     elseif sum(ipft == [9,10,11] > 0)
+                        out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
+                     elseif ipft == 5
+                        out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
+                     end
                   end
+               else
+                  out.T.(savname)(fnum) = out.raw.(varname){fnum};
                end
-            else
-               out.T.(savname)(fnum) = out.raw.(varname){fnum};
+            catch ErrorMessage
+               disp(['An error occurred while processing ' varname '. Continuing.'])
             end
          end
       end

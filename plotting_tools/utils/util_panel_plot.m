@@ -77,7 +77,7 @@ for i=1:npanels
    
    for pnum = 1:npolys
       cur_poly = polyNamesIn{pnum};
-      cur_prfx = prefix{pnum};
+      cur_prfx = prefix{i};
       cur_varn = vars{i};
       
       var_present = isfield(data.(cur_poly).(cur_prfx),cur_varn);
@@ -116,24 +116,28 @@ for i=1:npanels
       yvals    = yvals(:,ind1:ind2);
    end
    
+   switch vars{i}(1:2)
+      case('FM')
+         res = 'hourly';
+      case('DM')
+         res = 'daily';
+      case('MM')
+         res = 'monthly';
+      case('YM')
+         res = 'yearly';
+      otherwise
+         res = 'monthly';
+   end
+   
    % Format Plots
    datalength = length(yvals);
-   if strcmp(prefix{i},'de.yrsum')
-      %             plot(1:datalength,NRG.data(2:end,4),'m')
-      plot([12:12:length(yvals)*12],yvals)
-      if numel(years)>0
-         util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, years(1), 1, i, npanels)
-      else
-         util_format_plot(aliases{i}, polyNames, 2, length(12:12:length(yvals)*12),units{i}, start_year, start_month, i, npanels)
-      end
+   plot(1:datalength,yvals)
+   if numel(years) > 0
+      util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, years(1), 1, i, npanels, res)
    else
-      plot(1:datalength,yvals)
-      if numel(years) > 0
-         util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, years(1), 1, i, npanels)
-      else
-         util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, start_year, start_month, i, npanels)
-      end
+      util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, start_year, start_month, i, npanels, res)
    end
+   
 end
    %----------------------------------------------------------------------
    

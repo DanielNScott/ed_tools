@@ -8,11 +8,21 @@ function [ ] = set_monthly_labels( gca, beg )
    xticks  = get(gca,'XTick');                % Get current x tick labels
    mxticks = cell(1,size(xticks,1));          % Save them for a moment...
    
-   for j = 1:numel(xticks)                    % Cycle through x ticks
-    month_num  = mod(xticks(j)+beg-2,12)+1;   % Get the number for the month this tick should be
-    mxticks{j} = months{month_num};           % Save the month in it's place
+   nticks = numel(xticks);
+   
+   j = 1;
+   while j <= nticks                          % Cycle through x ticks
+      if xticks(j) ~= round(xticks(j))        % Check if xtick is a whole number...
+         xticks(j) = [];
+         nticks = nticks - 1;
+      else
+         month_num  = mod(xticks(j)+beg-2,12)+1;   % Get the number for the month this tick should be
+         mxticks{j} = months{month_num};           % Save the month in it's place
+         j = j + 1;
+      end
    end
    
+   set(gca,'XTick',xticks)                    %
    set(gca,'XTickLabel',mxticks)              % Reset what's on the plot
 
 end

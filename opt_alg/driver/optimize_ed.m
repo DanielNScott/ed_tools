@@ -12,6 +12,10 @@ while keep_iterating(cfe,ui.niter,ui.opt_type)
    [cfe,hist]        = update_alg (cfe,hist,ui);
    [hist,state_prop] = prop_state (cfe,hist,ui);
   
+   if ui.resub_override
+      cfe.restart = 0;
+   end
+
    if cfe.run_xtrnl
       % We save a version of opt.mat with no 'hist' variable, because this variable takes up
       % a huge amount of space.
