@@ -1,4 +1,4 @@
-function [  ] = particle_swarm(  )
+function [sol, trace] = particle_swarm( bnds, niter, nps, fn )
 %PSO This is a first pass at a particle swarm optimizer.
 %   Detailed explanation goes here
 
@@ -6,31 +6,27 @@ function [  ] = particle_swarm(  )
 % Test Settings
 %----------------------------------------------------------------------------------------------%
 % Search space as grid.
-ss_cent = [0,0];           % Specify center 
-ss_rng  = [3,3];           % Specify ranges of x,y vals, as +/-
-
-
-
+ss_cent = mean(bnds,2)';                                    % Specify center 
+ss_rng  = range(bnds');                                     % Specify ranges of x,y vals, as +/-
+ndim    = numel(ss_cent);
 
 %----------------------------------------------------------------------------------------------%
 % Von-Neumman Topology Canonical PSO.
 % Canonical PSO is has only 2 influences on a particle, and constriction coefficients.
 %----------------------------------------------------------------------------------------------%
-niter  = 40;
-nps    = 20;                                                % Set number of particles.
 phi_1  = 4.1;                                               % Strength of pbest attractor, > 4.
 phi_2  = 4.1;                                               % Strength of gbest attractor, > 4.
 phi    = phi_1 + phi_2;                                     % Shorthand
 chi    = 2/(phi - 2 + sqrt(phi^2 - 4*phi));                 % Constrictor
-Vmax   = (ss_rng - ss_cent)*2;                              % Limit velocity to dynamic range.
+%Vmax   = (ss_rng - ss_cent)*2;                             % Limit velocity to dynamic range.
 
-locs = rand(nps,2) + repmat(ss_cent - 0.5,nps,1);           % Initialize positions, recenter
-locs = locs .* repmat(ss_rng*2,nps,1);                      % Expand range
+locs = rand(nps,ndim) + repmat(ss_cent - 0.5,nps,1);        % Initialize positions, recenter
+locs = locs .* repmat(ss_rng,nps,1);                        % Expand range
 
-vels = rand(nps,2) + repmat(ss_cent - 0.5,nps,1);           % Initialize velocities, recenter
-vels = vels .* repmat(ss_rng*2,nps,1);                      % Expand range
+vels = rand(nps,ndim) + repmat(ss_cent - 0.5,nps,1);        % Initialize velocities, recenter
+vels = vels .* repmat(ss_rng,nps,1);                        % Expand range
 
-bests = rosenbrock_fn(locs);                                % Initialize particle objectives
+bests = fn(locs);                                           % Initialize particle objectives
 loci  = locs;                                               % Set locations of bests as current
 
 % Create neighborhoods
@@ -49,36 +45,47 @@ for ip = 1:nps;
    nbrhd(ip,:) = nbrs;
 end
 
-locg = nan(nps,2);
+locg = nan(nps,ndim);
+trace.loc  = nan(niter,nps,ndim);
+trace.vals = nan(niter,nps);
+
+trace.states     = nan(niter,ndim);
+trace.objectives = nan(niter,1);
+
 % Loop through actual PSO steps
-for iter = 2:niter
-   U_1  = rand(nps,2)*phi_1;
-   U_2  = rand(nps,2)*phi_2;
+for iter = 1:niter
+   U_1  = rand(nps,ndim)*phi_1;
+   U_2  = rand(nps,ndim)*phi_2;
    
    for ip = 1:nps
       best = min(bests(nbrhd(ip,:)'));
-      locg(ip,:) = locs(bests == best,:);
+      if sum(bests == best) > 1
+         ind = find(bests == best,1);
+         locg(ip,:) = locs(ind,:);
+      else
+         locg(ip,:) = locs(bests == best,:);
+      end
    end
       
    vels = chi*(vels + U_1.*(loci - locs) + U_2.*(locg - locs));
    locs = locs + vels;
    
-   objs = rosenbrock_fn(locs);
+   objs = fn(locs);
    msk  = objs < bests;
 
    loci(msk,:) = locs(msk,:);
    bests(msk)  = objs(msk);
    
-   best_loc = locs(bests == min(bests),:);
+   best_loc = locs(find(bests == min(bests),1),:);
+   
+   trace.states    (iter,:)   = locs(find(objs == min(objs),1),:);
+   trace.objectives(iter)     = min(objs);
+   trace.vals      (iter,:)   = objs;
+   trace.locs      (iter,:,:) = locs;
 end
 
+sol = best_loc;
 
-plot_rosenbrock_2D([-3,3],[-3,3],0.1,0.1,'incs');
-hold on
-plot3(loci(:,1),loci(:,2),bests,'or')
-hold off
 
-disp(['best loc: ', num2str(best_loc)])
-disp(['best obj: ', num2str(min(bests))])
 
 end

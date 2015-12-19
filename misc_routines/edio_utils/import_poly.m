@@ -151,6 +151,8 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
    nfiles   = length(fnames);          %
    flds     = fieldnames(out.raw);     % 
    splt_flg = 1;
+   proc_err_list = {};
+   num_proc_err_list = 0;
    tables();                           % Import tables for QMEAN night time mask
 
    %Convert SLZ to layer thickness
@@ -204,129 +206,152 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          if strcmp(varname,'LAI_CO'       ); plant_intensive = 0  ; end
          if strcmp(varname,'MMEAN_LAI_CO' ); plant_intensive = 0  ; end
          
-         vartype    = map.(varname){1};         % Variable type, ie patch up to grid.
-         anlg_exist = map.(varname){2};         % C13 version exists? Boolean
-         splt_poss  = map.(varname){3};         % Split-By-PFT is possible? Boolean
-         
-         %Process Patch Vars -----------------------------------------------
-         if strcmp(vartype,'pa')
-            vdisp([' - Processing Pa Var: ', varname],2,dbug)
+         try
+            vartype    = map.(varname){1};         % Variable type, ie patch up to grid.
+            anlg_exist = map.(varname){2};         % C13 version exists? Boolean
+            splt_poss  = map.(varname){3};         % Split-By-PFT is possible? Boolean
 
-            % Scale the patch var...
-            [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive,sim_beg);
+            %Process Patch Vars -----------------------------------------------
+            if strcmp(vartype,'pa')
+               vdisp([' - Processing Pa Var: ', varname],2,dbug)
 
-            % Sum the rescaled variables to get the total.
-            out.T.(savname)(fnum) = sum(std_var);
+               % Scale the patch var...
+               [std_var,savname] = scale_patch_var(out,varname,fnum,plant_intensive,sim_beg);
 
-            % PROCESS SPLIT -----------------------------------------------
-            if splt_flg && splt_poss
-               vdisp('    - Processing Split',2,dbug)
-               out = process_split(out,savname,fnum,std_var,'sum');
-            end
-            
-            % DETERMINE R AND DELTA, but only if c13out == 1 -----------------%
-            base_exist = isfield(out.T,varname);
-            if read_c13 && anlg_exist && base_exist
-               [c13name, delname] = get_iso_name(varname);
-               [c13_var, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive,sim_beg);
-               
-               del_var = get_d13C(c13_var,std_var);
+               % Sum the rescaled variables to get the total.
+               out.T.(savname)(fnum) = sum(std_var);
 
-               out.T.(c13name)(fnum) = sum(c13_var);
-               out.T.(delname)(fnum) = get_d13C(out.T.(c13name)(fnum),out.T.(varname)(fnum));
-               
                % PROCESS SPLIT -----------------------------------------------
                if splt_flg && splt_poss
-                  vdisp('    - Processing Split',2,dbug);
-                  out = process_split(out,c13name,fnum,c13_var,'sum');
-                  out = process_split(out,delname,fnum,del_var,'avg');
+                  vdisp('    - Processing Split',2,dbug)
+                  out = process_split(out,savname,fnum,std_var,'sum');
                end
-               
-            end
-            
-         %Process Site Vars -----------------------------------------------
-         elseif strcmp(vartype,'si')
-            vdisp([' - Processing Si Var: ',varname],2,dbug)
-            out.T.(varname)(fnum) = out.raw.AREA{fnum}'*out.raw.(varname){fnum};
-            
-            base_exist = isfield(out.T,varname);
-            if read_c13 && anlg_exist && base_exist
-               [c13name, delname] = get_iso_name(varname);
-               
-               var     = out.T.(varname)(fnum);
-               var_C13 = out.raw.AREA{fnum}'*out.raw.(c13name){fnum};
-               
-               out.T.(c13name)(fnum) = var_C13;
-               out.T.(delname)(fnum) = get_d13C(var_C13,var);
-            end
-         
-         %Process Ed Vars -----------------------------------------------
-         elseif strcmp(vartype,'ed')
-            vdisp([' - Processing Ed Var: ',varname],2,dbug)
-            if any(strcmp(map.(varname){4},'Q'))
-               savname = ['MMEAN' varname(6:end) '_Night'];
-               tempMsk = logical(month_night_hrs{mod(fnum+4,12)+1}');
-               tempDiv = sum(tempMsk); 
-               tempVar = out.raw.(varname){fnum}(tempMsk);
-               tempVar = sum(tempVar,1)'/tempDiv;
-               out.T.(savname)(fnum) = tempVar;
-            else
-               if strcmp(varname,'FMEAN_SOIL_WATER_PY')
-                  % This appears not to work.
-               
-                  % This variable has size [nzg,nsi,24*365] (366 for ly)
-                  % We want to turn it into a matrix from an array.
-                  %swsize = size(out.raw.FMEAN_SOIL_WATER_PY{fnum});
-                  %tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3));
-                  %out.T.(savname) = [out.T.(savname),tempVar];
-               else
-                  out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
-                  %out.T.(savname)(fnum) = out.raw.(varname){fnum};
-               
-                  base_exist = isfield(out.raw,varname);
-                  if read_c13 && anlg_exist && base_exist
-                     [c13name, delname] = get_iso_name(varname);
 
-                     var     = out.raw.(varname){fnum};
-                     var_C13 = out.raw.(c13name){fnum};
+               % DETERMINE R AND DELTA, but only if c13out == 1 -----------------%
+               base_exist = isfield(out.T,varname);
+               if read_c13 && anlg_exist && base_exist
+                  [c13name, delname] = get_iso_name(varname);
+                  [c13_var, c13name] = scale_patch_var(out,c13name,fnum,plant_intensive,sim_beg);
 
-                     out.T.(c13name) = [out.T.(c13name), var_C13];
-                     out.T.(delname) = [out.T.(delname), get_d13C(var_C13,var)];
+                  del_var = get_d13C(c13_var,std_var);
+
+                  out.T.(c13name)(fnum) = sum(c13_var);
+                  out.T.(delname)(fnum) = get_d13C(out.T.(c13name)(fnum),out.T.(varname)(fnum));
+
+                  % PROCESS SPLIT -----------------------------------------------
+                  if splt_flg && splt_poss
+                     vdisp('    - Processing Split',2,dbug);
+                     out = process_split(out,c13name,fnum,c13_var,'sum');
+                     out = process_split(out,delname,fnum,del_var,'avg');
                   end
-               end
-            end
-            
-         %Process Uncatagorized Vars -------------------------------------
-         elseif strcmp(vartype,'un')
-            vdisp([' - Processing Un Var: ',varname],2,dbug)
-            try
-               if strcmp(varname,'BASAL_AREA_MORT')  || ...
-                  strcmp(varname,'BASAL_AREA_GROWTH')
 
-                  tempVar = out.raw.(varname){fnum};
-                  out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
-                  out.C.(savname)(fnum) = 0.0;
-                  out.H.(savname)(fnum) = 0.0;
-                  out.G.(savname)(fnum) = 0.0;
-                  for ipft=1:size(tempVar,2)
-                     if sum(ipft == [6,7,8] > 0)
-                        out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
-                     elseif sum(ipft == [9,10,11] > 0)
-                        out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
-                     elseif ipft == 5
-                        out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
+               end
+
+            %Process Site Vars -----------------------------------------------
+            elseif strcmp(vartype,'si')
+               vdisp([' - Processing Si Var: ',varname],2,dbug)
+               out.T.(varname)(fnum) = out.raw.AREA{fnum}'*out.raw.(varname){fnum};
+
+               base_exist = isfield(out.T,varname);
+               if read_c13 && anlg_exist && base_exist
+                  [c13name, delname] = get_iso_name(varname);
+
+                  var     = out.T.(varname)(fnum);
+                  var_C13 = out.raw.AREA{fnum}'*out.raw.(c13name){fnum};
+
+                  out.T.(c13name)(fnum) = var_C13;
+                  out.T.(delname)(fnum) = get_d13C(var_C13,var);
+               end
+
+            %Process Ed Vars -----------------------------------------------
+            elseif strcmp(vartype,'ed')
+               vdisp([' - Processing Ed Var: ',varname],2,dbug)
+               if any(strcmp(map.(varname){4},'Q'))
+                  savname = ['MMEAN' varname(6:end) '_Night'];
+                  tempMsk = logical(month_night_hrs{mod(fnum+4,12)+1}');
+                  tempDiv = sum(tempMsk); 
+                  tempVar = out.raw.(varname){fnum}(tempMsk);
+                  tempVar = sum(tempVar,1)'/tempDiv;
+                  out.T.(savname)(fnum) = tempVar;
+               else
+                  if strcmp(varname,'FMEAN_SOIL_WATER_PY')
+                     % This appears not to work.
+
+                     % This variable has size [nzg,nsi,24*365] (366 for ly)
+                     % We want to turn it into a matrix from an array.
+                     %swsize = size(out.raw.FMEAN_SOIL_WATER_PY{fnum});
+                     %tempVar = reshape(out.raw.(varname){fnum},swsize(1),swsize(3));
+                     %out.T.(savname) = [out.T.(savname),tempVar];
+                  else
+                     out.T.(savname) = [out.T.(savname), out.raw.(varname){fnum} ];
+                     %out.T.(savname)(fnum) = out.raw.(varname){fnum};
+
+                     base_exist = isfield(out.raw,varname);
+                     if read_c13 && anlg_exist && base_exist
+                        [c13name, delname] = get_iso_name(varname);
+
+                        var     = out.raw.(varname){fnum};
+                        var_C13 = out.raw.(c13name){fnum};
+
+                        out.T.(c13name) = [out.T.(c13name), var_C13];
+                        out.T.(delname) = [out.T.(delname), get_d13C(var_C13,var)];
                      end
                   end
-               else
-                  out.T.(savname)(fnum) = out.raw.(varname){fnum};
                end
-            catch ErrorMessage
-               disp(['An error occurred while processing ' varname '. Continuing.'])
+
+            %Process Uncatagorized Vars -------------------------------------
+            elseif strcmp(vartype,'un')
+               vdisp([' - Processing Un Var: ',varname],2,dbug)
+               try
+                  if strcmp(varname,'BASAL_AREA_MORT')  || ...
+                     strcmp(varname,'BASAL_AREA_GROWTH')
+
+                     tempVar = out.raw.(varname){fnum};
+                     out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
+                     out.C.(savname)(fnum) = 0.0;
+                     out.H.(savname)(fnum) = 0.0;
+                     out.G.(savname)(fnum) = 0.0;
+                     for ipft=1:size(tempVar,2)
+                        if sum(ipft == [6,7,8] > 0)
+                           out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
+                        elseif sum(ipft == [9,10,11] > 0)
+                           out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
+                        elseif ipft == 5
+                           out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
+                        end
+                     end
+                  else
+                     out.T.(savname)(fnum) = out.raw.(varname){fnum};
+                  end
+               catch ErrorMessage
+                  disp(['An error occurred while processing ' varname '. Continuing.'])
+               end
             end
+         catch ME
+            proc_err_ind = strcmp(flds{varnum},proc_err_list);
+            if ~any(proc_err_ind)
+               num_proc_err_list(end+1) = 1;
+               proc_err_list{end+1} = flds{varnum};
+            else
+               num_proc_err_list(proc_err_ind) = num_proc_err_list(proc_err_ind) + 1;
+            end
+            continue
          end
       end
    end
-        
+   for proc_err_num = 1:numel(proc_err_list)
+      error  = proc_err_list{proc_err_num};
+      strlen = length(error);
+      if strlen < 30
+         error(strlen+1:30) = ' ';
+      end
+      disp(['Error processing ', error ,' from ', ...
+             num2str(num_proc_err_list(proc_err_num)), ' files...'])
+   end
+   if proc_err_num > 0;
+      disp('Processing the above vars was not completed properly.')
+   end
+              
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    % Here a bunch of derivative variables get created...
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

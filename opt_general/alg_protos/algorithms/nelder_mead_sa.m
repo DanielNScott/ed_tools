@@ -5,7 +5,7 @@ function [solution,trace,iter] = nelder_mead_sa(params,smplx,cnstr,f,temp_fn,ter
 %   params: Used for passing in centroid, reflected, etc points.
 %   constr: Constraints on the domains of the coordinate functions of smplx. as ND-by-2 matrix.
 %   smplx : Initial simplex. Each point is a row vector.
-%   f     :     Function to be minimized.
+%   f     : Function to be minimized.
 %
 %   If initializing, start with step = 0, count = 0, x = [].
 %   Common params are p = [1,2,-1/2,1/2].
@@ -19,7 +19,9 @@ else
    iter_lim = 1000;
 end
 
-trace = nan(iter_lim,size(smplx,2));
+trace = struct();
+trace.states     = nan(iter_lim,size(smplx,2));
+trace.objectives = nan(iter_lim,1);
 
 param_r = params(1);
 param_e = params(2);
@@ -36,23 +38,30 @@ obj_best = inf;
 while iter < iter_lim
    iter = iter + 1;
 
-   temp  = temp_fn(iter,iter_lim);                           % Get the current temperature. 
+   temp  = temp_fn(iter);%,iter_lim);                        % Get the current temperature.
+   
    obj_s = f(smplx,temp,1);                                  % Get objective vals of vertices.
+   obj_a = f(smplx,0,1);                                     % Get actual objective vals also.
 
    [~, order] = sort(obj_s);                                 % Get the low -> high order of inds
    smplx      = smplx(order,:);                              % Reorder vertices
    obj_s      = obj_s(order);                                % Reorder associated objectives.
-
-   if obj_s < obj_best
-      obj_best   = obj_s;
-      state_best = smplx(1,:);
+   
+   [~, order] = sort(obj_a);                                 % Get the low -> high order of inds
+   smplx_a    = smplx(order,:);                              % Reorder vertices
+   obj_a      = obj_a(order,:);                              % Reorder associated objectives.
+   
+   if obj_a(1) < obj_best
+      obj_best   = obj_a(1);
+      state_best = smplx_a(1,:);
    end
    
    if obj_best < term_val
       continue;
    end
    
-   trace(iter,:) = smplx(1,:);
+   trace.states(iter,:)   = smplx(1,:);
+   trace.objectives(iter) = obj_a(1);
    
    cent = get_centroid(smplx);
    pt_r = get_reflection(smplx,cent,cnstr,param_r);

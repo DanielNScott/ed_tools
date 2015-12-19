@@ -1,4 +1,4 @@
-function [ ] = plot_2D_fn(int1,int2,dx,dy,gridtype,fn)
+function [ ] = plot_2D_fn(int1,int2,dx,dy,gridtype,fn,edgecolor)
 %PLOT_ROSENBROCK_2D Summary of this function goes here
 %   p1: Parameter 1 of 2D Rosenbrock fn. denoted 'a', typically 1.
 %   p2: Parameter 2 of 2D Rosenbrock fn. denoted 'b', typically 100.
@@ -46,7 +46,9 @@ x_axis = x0 + (1:ndiv_x)*dx;
 y_axis = y0 + (1:ndiv_y)*dy;
 
 % Plot the function.
-surf(x_axis,y_axis,h');
+surf(x_axis,y_axis,h','EdgeColor',edgecolor);
+set(gca,'XLim',[x0+dx,xf])
+set(gca,'YLim',[y0+dy,yf])
 xlabel('X Axis')
 ylabel('Y Axis')
 

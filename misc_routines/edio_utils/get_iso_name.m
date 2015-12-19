@@ -23,12 +23,27 @@ end
 if strcmp(vname,'FMEAN_CARBON_AC_PA')
    c13_name  = 'FMEAN_CARBON13_AC_PA';
    d13C_name = 'FMEAN_CARBON_AC_d13C_PA';
+
 elseif strcmp(vname,'FMEAN_CARBON_ST_PA')
    c13_name  = 'FMEAN_CARBON13_ST_PA';
    d13C_name = 'FMEAN_CARBON_ST_d13C_PA';
+
 elseif strcmp(vname,'FMEAN_CSTAR_PA')
    c13_name  = 'FMEAN_C13STAR_PA';
    d13C_name = 'FMEAN_CSTAR_d13C_PA';
+
+elseif strcmp(vname,'FAST_SOIL_C_PY')
+   c13_name  = 'FAST_SOIL_C13_PY';
+   d13C_name = 'FAST_SOIL_C_d13C_PY';
+
+elseif strcmp(vname,'SLOW_SOIL_C_PY')
+   c13_name  = 'SLOW_SOIL_C13_PY';
+   d13C_name = 'SLOW_SOIL_C_d13C_PY';
+   
+elseif strcmp(vname,'STRUCTURAL_SOIL_C_PY')
+   c13_name  = 'STRUCTURAL_SOIL_C13_PY';
+   d13C_name = 'STRUCTURAL_SOIL_C_d13C_PY';
+
 end
 
 %-------------------------------------------------------------------------------------------%
