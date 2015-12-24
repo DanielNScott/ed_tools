@@ -23,18 +23,24 @@ function [ map ] = def_ed_varmap( )
 % Variable Name               = {Type, C13, Split-able, Resolution, h5units, process units}
 %-----------------------------------------------------------------------------------------------
 map.AGB_CO                    = {'pa', 0  , 1, 'YQED' ,  'kgC/pl' , 'kgC/m2'  };
-map.BLEAF                     = {'pa', 1  , 1, 'YQED' ,  'kgC/pl' , 'kgC/m2'  };
-map.BROOT                     = {'pa', 1  , 1, 'YQED' ,  'kgC/pl' , 'kgC/m2'  };
-map.BSTORAGE                  = {'pa', 1  , 1, 'YQED' ,  'kgC/pl' , 'kgC/m2'  };
-map.BSAPWOODA                 = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
-map.BSAPWOODB                 = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
-map.BALIVE                    = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
-map.BDEAD                     = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
-map.LAI_CO                    = {'pa', 0  , 1, 'YQED' ,  ''       , ''        };
+map.BLEAF_CO                  = {'pa', 1  , 1, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.BROOT_CO                  = {'pa', 1  , 1, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.BSTORAGE_CO               = {'pa', 1  , 1, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.BSAPWOODA_CO              = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
+map.BSAPWOODB_CO              = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
+map.BALIVE_CO                 = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
+map.BDEAD_CO                  = {'pa', 1  , 1, 'QED'  ,  'kgC/pl' , 'kgC/m2'  }; %**
+map.LAI_CO                    = {'pa', 0  , 1, 'YQEDI',  ''       , ''        };
 map.NPLANT                    = {'pa', 0  , 0, 'YQEDI',  ''       , ''        };
-map.PFT                       = {'pa', 0  , 0, 'YQED' ,  ''       , ''        };
+map.PFT                       = {'pa', 0  , 0, 'YQEDI',  ''       , ''        };
 map.AREA                      = {'si', 0  , 0, 'YQEDI',  ''       , ''        };
 map.PACO_ID                   = {'si', 0  , 0, 'YQEDI',  ''       , ''        };
+map.BLEAF_PY                  = {'ed', 1  , 0, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.BROOT_PY                  = {'ed', 1  , 0, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.BSTORAGE_PY               = {'ed', 1  , 0, 'YQEDI',  'kgC/pl' , 'kgC/m2'  };
+map.FAST_SOIL_C_PY            = {'ed', 1  , 0, 'YQEDI',  'kgC/m2' , 'kgC/m2'     };
+map.SLOW_SOIL_C_PY            = {'ed', 1  , 0, 'YQEDI',  'kgC/m2' , 'kgC/m2'     };
+map.STRUCTURAL_SOIL_C_PY      = {'ed', 1  , 0, 'YQEDI',  'kgC/m2' , 'kgC/m2'     };
 ...
 ... %%------------ TOWER: -----------------%%
 map.FMEAN_RH_PA                = {'si', 1  , 0, 'TI' };
@@ -46,6 +52,7 @@ map.FMEAN_CARBON_ST_PA         = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol' 
 ...
 map.FMEAN_GPP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
 map.FMEAN_NEP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
+map.FMEAN_NPP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
 map.FMEAN_VAPOR_AC_PY          = {'ed', 0  , 0, 'TI' };
 map.FMEAN_SENSIBLE_AC_PY       = {'ed', 0  , 0, 'TI' };
 map.FMEAN_RH_PY                = {'ed', 1  , 0, 'TI' };
@@ -68,8 +75,8 @@ map.FMEAN_SOIL_WATER_PY        = {'ed', 0  , 0, 'TI',   'm3/m3'     , 'm3/m3'   
 map.FMEAN_LEAF_RESP_CO         = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_ROOT_RESP_CO         = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_LASSIM_RESP_CO       = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.FMEAN_LEAF_MAINTENANCE     = {'pa', 1  , 1, 'I',   'kgC/pl'    , 'kgC/m2'     };
-map.FMEAN_ROOT_MAINTENANCE     = {'pa', 1  , 1, 'I',   'kgC/pl'    , 'kgC/m2'     };
+map.LEAF_MAINTENANCE_CO        = {'pa', 1  , 1, 'I',   'kgC/pl'    , 'kgC/m2'     };
+map.ROOT_MAINTENANCE_CO        = {'pa', 1  , 1, 'I',   'kgC/pl'    , 'kgC/m2'     };
 map.FMEAN_GPP_CO               = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_NPP_CO               = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_PLRESP_CO            = {'pa', 1  , 0, 'I',   'kgC/pl/yr' , 'kgC/m2'     };
@@ -79,6 +86,9 @@ map.FMEAN_ATM_CO2_PY           = {'ed', 1  , 0, 'I',   'umol/mol'  , 'umol/mol' 
 map.DMEAN_FS_OPEN_CO           = {'pa', 0  , 1, 'D',   ''          , ''           };
 map.DMEAN_LEAF_RESP_CO         = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.DMEAN_ROOT_RESP_CO         = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_BLEAF_CO             = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_BROOT_CO             = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_BSTORAGE_CO          = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.DMEAN_LASSIM_RESP_CO       = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.LEAF_MAINTENANCE           = {'pa', 1  , 1, 'D',   'kgC/pl'    , 'kgC/m2'     };
 map.ROOT_MAINTENANCE           = {'pa', 1  , 1, 'D',   'kgC/pl'    , 'kgC/m2'     };
@@ -97,20 +107,20 @@ map.DMEAN_STORAGE_RESP_CO      = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'
 map.DMEAN_GPP_CO               = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.DMEAN_NPP_CO               = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 ...
-map.DMEAN_NPPDAILY_CO          = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPCROOT_CO          = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPFROOT_CO          = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPLEAF_CO           = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPSAPWOOD_CO        = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPSEEDS_CO          = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.DMEAN_NPPWOOD_CO           = {'pa', 0  , 1, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPDAILY_CO          = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPCROOT_CO          = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPFROOT_CO          = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPLEAF_CO           = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPSAPWOOD_CO        = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPSEEDS_CO          = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NPPWOOD_CO           = {'pa', 0  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.DMEAN_PLRESP_CO            = {'pa', 1  , 1, 'D',   'kgC/pl/yr' , 'kgC/m2'     };
 ...
-map.AVG_DAILY_TEMP             = {'si', 1  , 0, 'D',   ''          , ''           };
+map.AVG_DAILY_TEMP             = {'si', 0  , 0, 'D',   ''          , ''           };
 map.DMEAN_RH_PA                = {'si', 1  , 0, 'D',   ''          , ''           };
 map.DMEAN_CWD_RH_PA            = {'si', 1  , 0, 'D',   ''          , ''           };
 ...
-map.DMEAN_NEP_PY               = {'ed', 0  , 0, 'D',   'kgC/m2/yr' , 'kgC/m2/yr'  };
+map.DMEAN_NEP_PY               = {'ed', 1  , 0, 'D',   'kgC/m2/yr' , 'kgC/m2/yr'  };
 ...
 ... %%------------ MONTHLY: ------------%%
 map.BA_CO                      = {'pa', 0  , 1, 'QE',  'cm2'       , 'cm2'        };
@@ -161,9 +171,9 @@ map.MMEAN_VAPOR_AC_PY          = {'un', 0  , 1, 'QE',  'kgH2O/m2/s', 'kgH2O/m2/s
 map.MMEAN_MORT_RATE_CO         = {'un', 0  , 1, 'QE'};
 ...
 map.BASAL_AREA_PY              = {'ed', 0  , 0, 'QE'};
-map.MMEAN_NEP_PY               = {'ed', 0  , 0, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
-map.MMEAN_RH_PY                = {'ed', 0  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
-map.MMEAN_CWD_RH_PY            = {'ed', 0  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
+map.MMEAN_NEP_PY               = {'ed', 1  , 0, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
+map.MMEAN_RH_PY                = {'ed', 1  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
+map.MMEAN_CWD_RH_PY            = {'ed', 1  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
 map.MMEAN_MINERAL_SOIL_N_PY    = {'ed', 0  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
 ...
 ... %%------------ QMEANS: ------------%%
@@ -173,9 +183,6 @@ map.QMEAN_NEP_PY               = {'ed', 0  , 1, 'Q' ,  'kgC/pl/yr' , 'kgC/m2/yr'
 map.QMEAN_RH_PY                = {'ed', 0  , 1, 'Q' ,  'kgC/m2'    , 'kgC/m2'     };
 ...
 ... %%------------ YEARLY: ------------%%
-map.FAST_SOIL_C                = {'si', 0  , 0, 'Y' ,  'kgC/m2'    , 'kgC/m2'     };
-map.SLOW_SOIL_C                = {'si', 0  , 0, 'Y' ,  'kgC/m2'    , 'kgC/m2'     };
-map.STRUCTURAL_SOIL_C          = {'si', 0  , 0, 'Y' ,  'kgC/m2'    , 'kgC/m2'     };
 map.STRUCTURAL_SOIL_L          = {'si', 0  , 0, 'Y' ,  'kgL/m2'    , 'kgL/m2'     };
 map.BASAL_AREA_GROWTH          = {'un', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
 map.BASAL_AREA_MORT            = {'un', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
