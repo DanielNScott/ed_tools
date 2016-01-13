@@ -407,12 +407,12 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          out.X.FMEAN_NEE_C13_Night(:,~night_msk) = NaN;
          out.X.FMEAN_NEE_C13_Day(:,night_msk)    = NaN;
          
-         %out.X.FMEAN_NEE_d13C       = out.T.FMEAN_NEP_d13C_PY;
-         %out.X.FMEAN_NEE_d13C_Night = out.T.FMEAN_NEP_d13C_PY;
-         %out.X.FMEAN_NEE_d13C_Day   = out.T.FMEAN_NEP_d13C_PY;
+         out.X.FMEAN_NEE_d13C       = get_d13C(out.X.FMEAN_NEE_C13      ,out.X.FMEAN_NEE);
+         out.X.FMEAN_NEE_d13C_Night = get_d13C(out.X.FMEAN_NEE_C13_Night,out.X.FMEAN_NEE_Night);
+         out.X.FMEAN_NEE_d13C_Day   = get_d13C(out.X.FMEAN_NEE_C13_Day  ,out.X.FMEAN_NEE_Day);
 
-         %out.X.FMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
-         %out.X.FMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         out.X.FMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         out.X.FMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
          
          out.X.FMEAN_Soil_Resp_C13  = out.T.FMEAN_RH_C13_PY + out.T.FMEAN_ROOT_RESP_C13_PY;
       
