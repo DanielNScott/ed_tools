@@ -19,7 +19,7 @@ function [] = util_stack_plot(fig_name,data,vars,aliases,units,prefix,years,save
     % npanels:      Number of panels in the figure window    
     %----------------------------------------------------------------------
     polyNames  = fieldnames(data);
-    start_year = str2double( data.(polyNames{1}).nl.start(end-3:end));
+    start_year = str2double( data.(polyNames{1}).sim_beg(end-3:end));
     nvars  = numel(vars);
     npolys = numel(polyNames);   
     %----------------------------------------------------------------------

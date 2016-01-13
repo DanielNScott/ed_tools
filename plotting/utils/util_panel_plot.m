@@ -58,14 +58,18 @@ for i=1:npanels
    
    % Figure out what panels to create and create + format them
    if any(killpanel == i); continue; end;
-   if npanels == 9
+   if any(npanels == [7,8,9])
       subaxis(3,3,i, 'Spacing', 0.015, 'Padding', 0.02, 'Margin', 0.03)
-   elseif npanels == 6 || npanels == 5
+      
+   elseif any(npanels == [5,6])
       subaxis(3,2,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
+      
    elseif npanels == 4
       subaxis(2,2,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
+      
    elseif npanels == 3
       subaxis(3,1,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
+      
    elseif npanels == 2
       subaxis(2,1,i, 'Spacing', 0.015, 'Padding', 0.03, 'Margin', 0.015)
    end
@@ -84,7 +88,7 @@ for i=1:npanels
       if var_present
          cur_var = data.(cur_poly).(cur_prfx).(cur_varn);
          
-         last_yval_ind = pnum - 1 + num_nonex_pvars;
+         last_yval_ind = pnum - 1 - num_nonex_pvars;
          if pnum > 1 && ~isempty(yvals) && length(cur_var) > length(yvals(last_yval_ind,:))
             disp(['Field truncated: ',cur_poly,'.',cur_prfx,'.',cur_var])
             yvals(pnum,:) = cur_var(1:length(yvals(pnum-1,:)));
@@ -116,7 +120,7 @@ for i=1:npanels
       yvals    = yvals(:,ind1:ind2);
    end
    
-   switch vars{i}(1:2)
+   switch aliases{i}(1:2)
       case('FM')
          res = 'hourly';
       case('DM')
@@ -131,7 +135,12 @@ for i=1:npanels
    
    % Format Plots
    datalength = length(yvals);
-   plot(1:datalength,yvals)
+   
+   if strcmp(res,'yearly')
+      bar(yvals')
+   else
+      plot(1:datalength,yvals)
+   end
    if numel(years) > 0
       util_format_plot(aliases{i}, polyNames, 2, datalength,units{i}, years(1), 1, i, npanels, res)
    else

@@ -26,7 +26,7 @@ end
 %----------------------------------------------------------------------------------------------%
 
 if strcmp(ui.opt_type,'PSO')
-   plot_state_hist_pso( cfe.iter, hist.obj, hist.state, ui.nps, cfe.labels(:,1), save);
+   plot_state_hist_pso( cfe.iter, hist.obj, hist.state, hist.state_ref, ui.nps, cfe.labels(:,1), save);
    %plot_part_ids(cfe,data,hist,ui,save);
 elseif strcmp(ui.opt_type,'NM')
    plot_state_hist_nm(cfe,hist,ui,save)

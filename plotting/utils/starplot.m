@@ -1,4 +1,4 @@
-function [] = starplot(data,labels,figname,save)
+function [] = starplot(data,labels,figname,lgnd,save)
 
 for i = 1:size(data,2)
    std_data(:,i) = data(:,i)/max(data(:,i)); 
@@ -66,7 +66,7 @@ for i = 1:num_axes
    % Modify label to include list of vals.
    ival = num2str(data(1,i),'%10.3f');
    bval = num2str(data(2,i),'%10.3f');
-   labels{i} = {['\bf{' labels{i} '}'],['\rm{' 'Init   : ' ival '}'],['Best: ' bval]};
+   labels{i} = {['\bf{' labels{i} '}'],['\rm{' 'Ref  : ' ival '}'],['Best: ' bval]};
    
    % Insert Labels
    mText = text(position(1),position(2),labels{i},'FontSize',8);
@@ -82,8 +82,7 @@ for i = 1:num_axes
 end
 
 % Insert a legend with each dataset.
-dset_names = {'Initial', 'Best'};
-legend([dhand{:}],dset_names);
+legend([dhand{:}],lgnd);
 %xlabel('Conifer Parameters','Color',[0,0,0])
 
 if save;

@@ -40,8 +40,9 @@ end
 time = fill_dates('I',start_str,end_str,'010000','-mat');
 
 if size(time,1) ~= size(data,1)
-   msg = ['The length of "data" is not compatible with "start_str" and "end_str" ' ...
-          'Is the data filled? It should be hourly, with missing vals as -9999.'];
+   msg = ['length(data) appears wrong given "start_str" and "end_str". ' ...
+          'Check data is filled, hourly, has missing vals as -9999.' ...
+          ' length(data): ' num2str(length(data)) ' length(time): ' num2str(length(time))];
    error(msg)
 end
 

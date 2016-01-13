@@ -35,6 +35,8 @@ for i = 1:4
    ylabel('Score')
    xlabel('Iterations')
    set(gca,'XLim',[1,iter]);
+   set(gca,'XGrid','on')
+   set(gca,'YGrid','on')
 
    if isfield(hist.stats,'ref')
       legend('Ensemble Bests','Reference')

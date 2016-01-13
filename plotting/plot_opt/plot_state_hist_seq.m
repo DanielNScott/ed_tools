@@ -1,4 +1,4 @@
-function [ ] = plot_state_hist_seq( ctrl, data, hist, nfo, ui )
+function [ ] = plot_state_hist_seq( ctrl, data, hist, nfo, ui, save )
 %PLOT_STATE_HISTORY Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -16,11 +16,11 @@ for iplt = 1:numel(var_names)
 
    row_msk  = strcmp(var_names(iplt),labels(:,1));
    splt_num = sum(row_msk);
-   hist_msk = repmat(row_msk,1,iter-1);
+   hist_msk = repmat(row_msk,1,ctrl.iter-1);
 
    subaxis(nrows,2,iplt,'Spacing',0.015,'Padding',0.010,'Margin',0.03)
       yvals = hist.state_prop(hist_msk);
-      yvals = reshape(yvals,splt_num,iter-1)';
+      yvals = reshape(yvals,splt_num,ctrl.iter-1)';
 
       names = labels(row_msk);
       if splt_num > 1;
@@ -29,18 +29,18 @@ for iplt = 1:numel(var_names)
       end
 
       hold on
-      plot(1:(iter-1),yvals)
+      plot(1:(ctrl.iter-1),yvals)
       plot(repmat(hist.iter_best,2,splt_num), ...
            yvals(hist.iter_best,:),'or');
       hold off
 
-      set(gca,'XLim',[1,iter-1]);
+      set(gca,'XLim',[1,ctrl.iter-1]);
       legend(names,'Interpreter','None','Location','NorthWest')
       if iplt == 11 || iplt == 12
-          xlabel('Iterations')
+          xlabel('ctrl.iterations')
       end
       if iplt == 1 || iplt == 2
-          title('Parameter Values by Iteration')
+          title('Parameter Values by ctrl.iteration')
       end
       %if mod(iplt,2) == 1;
       %    ylabel('Parameter Values')
@@ -48,9 +48,9 @@ for iplt = 1:numel(var_names)
       %title(titles{j},'Interpreter','None')
 end
 
-if save;
-    export_fig( gcf, figname, '-jpg', '-r150' );
-end
+%if save;
+%    export_fig( gcf, figname, '-jpg', '-r150' );
+%end
    
 end
 

@@ -1,6 +1,7 @@
 function [ data ] = read_cols_to_flds( filename, seperator, nhead, fix_flg )
-%READ_COLS_TO_FIELDS Summary of this function goes here
-%   Detailed explanation goes here
+%read_cols_to_flds( filename, seperator, nhead, fix_flg )
+%   Reads a seperator seperated file with nhead headers & name filename into a matlab structure
+%   with columns as fields. Field names come from the first non-header row.
 
 % Read Data
 raw = readtext(filename,seperator);

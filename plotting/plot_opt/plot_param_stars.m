@@ -1,9 +1,9 @@
-function [ ] = plot_param_stars( hist,ui,save )
+function [ ] = plot_param_stars( hist,cfe,opt_type,save )
 %PLOT_PARAM_STARS Summary of this function goes here
 %   Detailed explanation goes here
 
 
-labels = ui.labels(:,1);                                 % Alias the param labels.
+labels = cfe.labels(:,1);                                 % Alias the param labels.
 nps    = size(hist.state,2);
 niter  = size(hist.state,3);
 
@@ -17,16 +17,39 @@ end
 
 labels = char_sub(labels,'_',' ');
 
-init_best_ind   = hist.obj == min(hist.obj(:,1));
-global_best_ind = hist.obj == min(hist.obj(:));
+init_best_ind   = hist.obj(:,1) == min(hist.obj(:,1));
+init_best_ind   = [init_best_ind, zeros(nps,niter-1)];
+global_best_ind = hist.obj      == min(hist.obj(:));
 best_inds       = or(init_best_ind,global_best_ind);
 best_params     = hist.state(:,best_inds);
 
-if isfield(hist,'state_ref')
-   best_params = [hist.state_ref, best_params(:,2)];
-   %labels = {'Ref', labels{:}};
+iteration = floor((find(init_best_ind)-1)/44)+1;
+job = mod(find(init_best_ind)-1,44)+1;
+
+if iteration == 1
+   smplx_num = floor((job-1)/11)+1;
+   job_num2 = mod((job-1),11)+1;
+else
+   smplx_num = job;
+   job_num2  = 1;
 end
 
+if strcmp(opt_type,'NM')
+   best_params = hist.smplx(smplx_num).state(:,job_num2,iteration);
+else
+   best_params = hist.best_state;
+end
+
+if init_best_ind == global_best_ind
+   best_params = [best_params, best_params];
+end
+
+lgnd = 'Best';
+if isfield(hist,'state_ref')
+   best_params = [hist.state_ref, best_params];
+   %labels = {'Ref', labels{:}};
+   lgnd = {'Ref','Best'};
+end
 % co_param_names = ...
 % {'vmfact','q','R_growth fact'}';
 % hw_param_names = ...
@@ -42,7 +65,7 @@ end
 % starplot(hw_params,hw_param_names,'Hardwood Parameters',save)
 % starplot(sh_params,sh_param_names,'Shared Parameters',save)
 
-starplot(best_params',labels,'Parameter Star Plot',save);
+starplot(best_params',labels,'Parameter Star Plot',lgnd,save);
 
 end
 

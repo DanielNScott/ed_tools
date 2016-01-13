@@ -1,19 +1,24 @@
-function [ ] = plot_pred_and_obs( hist,obs,ui,save )
+function [ ] = plot_pred_and_obs(obj,iter_best,out_best,stats,out_ref,obs,opt_type,opt_metadata,save )
 %PLOT_LIKELY_ANALY Summary of this function goes here
 %   Detailed explanation goes here
 
-if strcmp(ui.opt_type,'PSO')
-   init_best_ind   = hist.obj == min(hist.obj(:,1));
-   global_best_ind = hist.obj == min(hist.obj(:));
+% obj iter_best out_best stats out_ref
+% opt_type, opt_metadata
+recalc_likely = 0;
+
+
+if strcmp(opt_type,'PSO')
+   init_best_ind   = obj == min(obj(:,1));
+   global_best_ind = obj == min(obj(:));
    best_inds       = or(init_best_ind,global_best_ind);
    iter_best       = find(sum(global_best_ind));
 else
-   iter_best = hist.iter_best;
+   iter_best = iter_best;
 end
 
 
-opt_metadata = ui.opt_metadata;
-out = hist.out_best;
+opt_metadata = opt_metadata;
+out = out_best;
 
 row_ind  = 0;
 
@@ -81,7 +86,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          %---------------------------------------------%
          % Set data name and save the x axis title.    %
          %---------------------------------------------%
-         datalen = numel(obs_data);
+         datalen   = numel(obs_data);
          data_name = {[res ' ' fld]};
          data_name = char_sub(data_name,'_',' ');
          data_name = char_sub(data_name,'.',' ');
@@ -103,36 +108,40 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          ma = 0.03;  mt = 0.03;
          mb = 0.03;
          
-         [yrs, mos, ds] = tokenize_time(hist.out_best.nl.start,'ED','num');
-         [yrf, mof, df] = tokenize_time(hist.out_best.nl.end  ,'ED','num');
+         [yrs, mos, ds] = tokenize_time(out_best.sim_beg,'ED','num');
+         [yrf, mof, df] = tokenize_time(out_best.sim_end,'ED','num');
          switch (res)
             case('yearly')
-               xlab = 'year';
+               xlab = 'Year';
                xtck = yrs:yrf;
                xtck = xtck(2:end-1);
+               barcolors = [0,0,1; 0,0.489,0; 1,0,0];
             case('monthly')
-               xlab = 'month';
+               %xlab = 'month';
+               marker = '-o';
             case('daily')
                xlab = 'day';
+               marker = '.';
             case('hourly')
                xlab = 'hour';
+               marker = '.';
          end
          %---------------------------------------------%
          
          zero_pad   = zeros(size(obs_unc'));
          bar_unc    = [zero_pad; obs_unc'];
          pdata      = [out_data; obs_data'];
-         likely     = hist.stats.likely.(res).(fld)(:,iter_best);
+         likely     = stats.likely.(res).(fld)(:,iter_best);
          
-         ref_exists = isfield(hist,'out_ref');
-         if ref_exists
-            ref_data = hist.out_ref.(out_fld(2)).(out_fld(4:end));
-            ref_like = hist.stats.ref.likely.(res).(fld);
+         %ref_exists = isfield(hist,'pred_ref');
+         %if ref_exists
+            ref_data = out_ref.(out_fld(2)).(out_fld(4:end));
+            ref_like = stats.ref.likely.(res).(fld);
             
             pdata   = [ref_data; pdata];
             likely  = [ref_like, likely];
             bar_unc = [zero_pad; bar_unc];
-         end
+         %end
          
          likely = -1 *likely;
          
@@ -140,59 +149,80 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          %---------------------------------------------%
          % Plot predictions, observations, likelihoods %
          %---------------------------------------------%
-         if datalen > 200
-            marker = '.';
-         else
-            marker = '-o';
-         end
+         delta_ll = likely(:,2) - likely(:,1);
             
-         subaxis(2,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-         if datalen < 4
+         subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         if strcmp(res,'yearly')
             barwitherr(bar_unc',pdata')               
-            colormap(cool)
+            colormap(barcolors)
+            set(gca,'XTickLabel',xtck)
+         elseif strcmp(res,'monthly')
+            hold on
+            plot(1:datalen,ref_data,marker)
+            plot(1:datalen,pdata(end-1,:),marker,'Color',[0,0.489,0]);
+            errorbar(1:datalen,pdata(end,:),bar_unc(end,:),'Color','r');               
+            hold off
+            set_monthly_labels(gca,1);
          else
             plot(1:datalen,pdata,marker);
          end
          
          title(['\bf{' data_name '}'])
          set(gca,'YGrid','on')
+         set(gca,'XGrid','on')
          set(gca,'YMinorGrid','off')
          
-         if ref_exists
-            legend({'Ref','Best','Obs'})
-         else
-            legend({'Best','Obs'})
-         end
+         legend({'Ref','Best','Obs'})
          ylabel(' ')
-         xlabel(xlab)
+         %xlabel(xlab)
             
          
          % Plot associated (detailed) likelihoods.     %
          subaxis(2,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
-         if datalen < 4
-            bar(likely)
+         if strcmp(res,'yearly')
+            BH = bar(likely);
+            set(BH(1),'FaceColor',[0,0,1])
+            set(BH(2),'FaceColor',[0,0.48,0])
+            set(gca,'XTickLabel',xtck)
+         elseif strcmp(res,'monthly')
+            plot(1:datalen,likely,marker)
+            set_monthly_labels(gca,1);
          else
             plot(1:datalen,likely,marker)
          end
          
-         if ref_exists
-            legend({'Ref', 'Best'})
-         else
-            legend({'Likelihood'})
-         end
+         legend({'Ref', 'Best'})
          title(['\bf{' data_name ' Likelihood}'])
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
+         set(gca,'XGrid','on')
          ylabel('-1 * Log Likelihood')
          xlabel(xlab)
+         
+         % Plot associated (detailed) likelihoods.     %
+         subaxis(2,2,4,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         bar(delta_ll)
+         if strcmp(res,'yearly')
+            set(gca,'XTickLabel',xtck)
+         elseif strcmp(res,'monthly')
+            set_monthly_labels(gca,1);
+         else
+            xlabel(xlab)
+         end
+         
+         title(['\bf{\Delta_{log likely}}'])
+         set(gca,'YGrid','on')
+         set(gca,'XGrid','on')
+         set(gca,'YMinorGrid','off')
+         ylabel('-1 * Log Likelihood')
          %---------------------------------------------%
          
          
-         if 1
+         if recalc_likely
             ns         = numel(obs_data(~isnan(obs_data)));
             likely     = ((obs_data' - out_data)./ obs_unc').^2 * -0.5/ns;
             likely_ref = ((obs_data' - ref_data)./ obs_unc').^2 * -0.5/ns;
-            likely = [ -1* likely_ref; -1* likely]';
+            likely     = [ -1* likely_ref; -1* likely]';
             
             % Plot associated (detailed) likelihoods.     %
             subaxis(2,2,3,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
@@ -201,9 +231,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             else
                plot(1:datalen,likely,marker)
             end
-            
          end
-         
          
          if save; export_fig( gcf, data_name, '-jpg', '-r150' ); end
       end

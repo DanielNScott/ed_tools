@@ -58,26 +58,15 @@ end
 
 % Function for removing leading white space
 function [out_str] = remove_lws(in_str)
-   ws_ind = find(in_str == ' ');
-
-   % Easy if string is all white space...
-   if numel(in_str) == numel(ws_ind)
-      out_str = '';
-      return
-   else
-      % First non-white-space
-      non_ws_ind = find(in_str ~= ' ');
-      out_str = in_str(non_ws_ind:end);
+   wsind = in_str == ' ';
+   j = 1;
+   if ~isempty(wsind) && wsind(1) == 1;
+      isws = 1;
+      while isws
+         j = j + 1;
+         isws = wsind(j) == 1;
+      end   
    end
-
-   %j = 1;
-   %if ~isempty(wsind) && wsind(1) == 1;
-   %   isws = 1;
-   %   while isws
-   %      j = j + 1;
-   %      isws = wsind(j) == 1;
-   %   end   
-   %end
-   %out_str = in_str(j:end);
+   out_str = in_str(j:end);
 end
 
