@@ -9,7 +9,7 @@ function [ out ] = import_poly( rundir, dbug )
 
    [sim_beg, sim_end] = get_sim_times(namelist);
    
-   map = def_ed_varmap();   
+   map = def_ed_varmap_dbdt_dtlsm();   
    out = struct;
    
    out.namelist = namelist;
