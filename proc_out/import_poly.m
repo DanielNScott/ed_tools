@@ -302,29 +302,25 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             %Process Uncatagorized Vars -------------------------------------
             elseif strcmp(vartype,'un')
                vdisp([' - Processing Un Var: ',varname],2,dbug)
-               try
-                  if strcmp(varname,'BASAL_AREA_MORT')  || ...
-                     strcmp(varname,'BASAL_AREA_GROWTH')
+               if strcmp(varname,'BASAL_AREA_MORT')  || ...
+                  strcmp(varname,'BASAL_AREA_GROWTH')
 
-                     tempVar = out.raw.(varname){fnum};
-                     out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
-                     out.C.(savname)(fnum) = 0.0;
-                     out.H.(savname)(fnum) = 0.0;
-                     out.G.(savname)(fnum) = 0.0;
-                     for ipft=1:size(tempVar,2)
-                        if sum(ipft == [6,7,8] > 0)
-                           out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
-                        elseif sum(ipft == [9,10,11] > 0)
-                           out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
-                        elseif ipft == 5
-                           out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
-                        end
+                  tempVar = out.raw.(varname){fnum};
+                  out.T.(savname)(fnum) = sum(sum(out.raw.(varname){fnum}));
+                  out.C.(savname)(fnum) = 0.0;
+                  out.H.(savname)(fnum) = 0.0;
+                  out.G.(savname)(fnum) = 0.0;
+                  for ipft=1:size(tempVar,2)
+                     if sum(ipft == [6,7,8] > 0)
+                        out.C.(savname)(fnum) = out.C.(savname)(fnum) + sum(tempVar(ipft,:));
+                     elseif sum(ipft == [9,10,11] > 0)
+                        out.H.(savname)(fnum) = out.H.(savname)(fnum) + sum(tempVar(ipft,:));
+                     elseif ipft == 5
+                        out.G.(savname)(fnum) = out.G.(savname)(fnum) + sum(tempVar(ipft,:));
                      end
-                  else
-                     out.T.(savname)(fnum) = out.raw.(varname){fnum};
                   end
-               catch ErrorMessage
-                  disp(['An error occurred while processing ' varname '. Continuing.'])
+               else
+                  out.T.(savname)(fnum) = out.raw.(varname){fnum};
                end
             end
          catch ME
@@ -453,6 +449,7 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
    if strcmp(out_type,'D')
       %nee_fact = KgperSqm2TperHa /365;
       nee_fact = 1;
+      
       out.X.DMEAN_Soil_Resp  = out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO;
       
       if ~isempty(out.T.DMEAN_ROOT_GROWTH_RESP_CO)
@@ -469,6 +466,20 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       out.X.DMEAN_NEE =  -1*out.T.DMEAN_NEP_PY * nee_fact;
       
       if read_c13
+         out.X.DMEAN_NEE_C13       = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+         out.X.DMEAN_NEE_C13_Night = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+         out.X.DMEAN_NEE_C13_Day   = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+
+         out.X.DMEAN_NEE_C13_Night(:,~night_msk) = NaN;
+         out.X.DMEAN_NEE_C13_Day(:,night_msk)    = NaN;
+         
+         out.X.DMEAN_NEE_d13C       = get_d13C(out.X.DMEAN_NEE_C13      ,out.X.DMEAN_NEE);
+         out.X.DMEAN_NEE_d13C_Night = get_d13C(out.X.DMEAN_NEE_C13_Night,out.X.DMEAN_NEE_Night);
+         out.X.DMEAN_NEE_d13C_Day   = get_d13C(out.X.DMEAN_NEE_C13_Day  ,out.X.DMEAN_NEE_Day);
+
+         out.X.DMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         out.X.DMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         
          out.X.DMEAN_Soil_Resp_C13  = (out.T.DMEAN_RH_C13_PA ...
                                     +  out.T.DMEAN_ROOT_RESP_C13_CO) * nee_fact;
          
@@ -516,6 +527,20 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       out.X.MMEAN_Soil_Resp_HF = out.T.MMEAN_RH_PA    ./ out.X.MMEAN_Soil_Resp;
 
       if read_c13
+         out.X.MMEAN_NEE_C13       = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
+         out.X.MMEAN_NEE_C13_Night = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
+         out.X.MMEAN_NEE_C13_Day   = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
+
+         out.X.MMEAN_NEE_C13_Night(:,~night_msk) = NaN;
+         out.X.MMEAN_NEE_C13_Day(:,night_msk)    = NaN;
+         
+         out.X.MMEAN_NEE_d13C       = get_d13C(out.X.MMEAN_NEE_C13      ,out.X.MMEAN_NEE);
+         out.X.MMEAN_NEE_d13C_Night = get_d13C(out.X.MMEAN_NEE_C13_Night,out.X.MMEAN_NEE_Night);
+         out.X.MMEAN_NEE_d13C_Day   = get_d13C(out.X.MMEAN_NEE_C13_Day  ,out.X.MMEAN_NEE_Day);
+
+         out.X.MMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         out.X.MMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         
          out.X.MMEAN_Reco_C13      = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
          out.X.MMEAN_Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
       
@@ -568,6 +593,11 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             out.X.YMEAN_NEE_Night     (yrInd) = sum(out.X.MMEAN_NEE_Night     (fnum-11:fnum));
             out.X.YMEAN_VAPOR_CA_PY   (yrInd) = sum(out.X.MMEAN_VAPOR_CA_PY   (fnum-11:fnum));
             out.X.YMEAN_SENSIBLE_CA_PY(yrInd) = sum(out.X.MMEAN_SENSIBLE_CA_PY(fnum-11:fnum));
+
+            out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
+            out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
+            out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+
             yrInd = yrInd + 1;
          end
       end
