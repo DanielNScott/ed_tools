@@ -15,7 +15,15 @@ not_restart   = ~restart;
 use_srun      = strcmp(ui.alloc_method,'sbsr');
 upfront_alloc = strcmp(ui.alloc_method,'upfront') || use_srun;
 
-for job_num = 1:njobs
+
+% If this is the first iteration, we need to set up a reference run.
+if iter == 1
+   first_job = 0;
+else
+   first_job = 1;
+end
+
+for job_num = first_job:njobs
    %--- This is some NM specific setup ---%
    if strcmp(ui.opt_type,'NM') && job_num > ui.nsimp
       niter = 1;

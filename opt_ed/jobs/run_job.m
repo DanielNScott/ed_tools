@@ -166,7 +166,7 @@ for iter = 1:niter
    end
 
    if nargout > 0;
-      varargout{1} = obj;
+      varargout{1} = stats;
       if ~cfe.is_test
          varargout{2} = pred;
       end
