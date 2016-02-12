@@ -1,75 +1,70 @@
-function [ ] = curvature_covar_opt_test( )
+function [ ] = pdf_covar_eigenval_toy( )
 %CURVATURE_COVAR_OPT_TEST Summary of this function goes here
 %   Detailed explanation goes here
 
-close all
+% Generate a mesh grid for plotting pdf
+axis1Vals = -4:.2:4;                                     % Mesh axis 1 values
+axis2Vals = -4:.2:4;                                     % Mesh axis 2 values
+[meshVec1,meshVec2] = meshgrid(axis1Vals,axis2Vals);     % Create grid from axis values
+meshMat = [meshVec1(:), meshVec2(:)];
 
-mu    = [0 0];                         % Mean
-Sigma = [1 0.5;  0.5 1];               % Covariance Matrix
+% Initialize params for a gaussian pdf
+mean  = [0 0];                                           % Mean
+covar = [1 0.5; 0.5 1];                                  % Covariance Matrix
 
-theta = 2*pi/360;
-Rmat  = [cos(theta) -sin(theta); sin(theta),cos(theta)];
+% Create plane rotation function
+theta  = 2*pi/360;                                       % Angle of each small rotation
+rotate = @(x) x * [cos(theta) -sin(theta); ...           % Rotation matrix for transforming
+                   sin(theta),cos(theta)];               % ... data in plane.
 
-[V,D] = eig(Sigma);
+% Get eigenvecs and eigenvals of covar matrix
+[eigenVecs,eigenValMat] = eig(covar);                    % For plotting
 
-%A     = [1, 0.5];
-%Sigma = A*A';
-
-x1 = -4:.2:4;                          % Mesh axis 1 values
-x2 = -4:.2:4;                          % Mesh axis 2 values
-
-[X1,X2] = meshgrid(x1,x2);             % Create grid from axis values
-F = mvnpdf([X1(:) X2(:)],mu,Sigma);    % Generate the pdf
-F = reshape(F,length(x2),length(x1));  % Reshape the pdf as matrix
-
+% Plot a bunch of things
 gen_new_fig('')
+for i = 1:360
+   vecPDF = mvnpdf(meshMat,mean,covar);                  % Generate the pdf
+   matPDF = reshape(vecPDF,length(x2),length(x1));       % Reshape the pdf as matrix
 
-%for i = 1:360
-   F = mvnpdf([X1(:) X2(:)],mu,Sigma);    % Generate the pdf
-   F = reshape(F,length(x2),length(x1));  % Reshape the pdf as matrix
-
+   % Plot 3D PDF
    subaxis(2,2,1)
-   surf(x1,x2,F,'EdgeColor','k');         % Plot PDF against grid
-   xlabel('x1')
-   ylabel('x2')
+   surf(axis1Vals,axis2Vals,matPDF,'EdgeColor','k');     % Plot PDF against grid
+   xlabel('Axis 1')
+   ylabel('Axis 2')
    alpha(0.5)
 
+   % Plot level curves of PDF
    subaxis(2,2,2)
-   contour(x1,x2,F)
-   xlabel('x1')
-   ylabel('x2')
+   contour(axis1Vals,axis2Vals,matPDF)
+   xlabel('Axis 1')
+   ylabel('Axis 2')
    
+   % Add scaled eigenvectors to level curve plot
    hold on
-   plot([0,V(1,1)*D(1)],[0,V(2,1)*D(1)],'-or')
-   plot([0,V(1,2)*D(4)],[0,V(2,2)*D(4)],'-or')
+   scaledEigenVec1x = [0,eigenVecs(1,1)*eigenValMat(1)];
+   scaledEigenVec1y = [0,eigenVecs(2,1)*eigenValMat(1)];
+   scaledEigenVec2x = [0,eigenVecs(1,2)*eigenValMat(4)];
+   scaledEigenVec2x = [0,eigenVecs(2,2)*eigenValMat(4)];
+   
+   plot(scaledEigenVec1x,scaledEigenVec1y,'-or')
+   plot(scaledEigenVec2x,scaledEigenVec2y,'-or')
    hold off
    
-%   if i > 1
-%      delete(ah)
-%   end
-   sx1 = sprintf('% 0.2f',V(1,1));
-   sx2 = sprintf('% 0.2f',V(2,1));
-   sy1 = sprintf('% 0.2f',V(1,2));
-   sy2 = sprintf('% 0.2f',V(2,2));
+   % Print the eigenvectors of the current PDF
+   if i > 1; delete(ah); end
+   sx1 = sprintf('% 0.2f',eigenVecs(1,1));
+   sx2 = sprintf('% 0.2f',eigenVecs(2,1));
+   sy1 = sprintf('% 0.2f',eigenVecs(1,2));
+   sy2 = sprintf('% 0.2f',eigenVecs(2,2));
    
-   str = {['v_1: ' '(' sx1 ',' sy1 ')'], ['v_2: ' '(' sx2 ',' sy2 ')']};
+   str = {['Eigenvector 1: ' '(' sx1 ',' sy1 ')'], ['Eigenvector 2: ' '(' sx2 ',' sy2 ')']};
    ah = annotation('textbox','String',str, 'FitBoxToText','on','Position',[0.54 0.77 0.1 0.1]);
    drawnow()
    
-   %V = V*Rmat;
-   %Sigma = V*D*V';
-%end
-
-subaxis(2,2,3)
-   pfh = fit([X1(:),X2(:)],F(:),'poly23' );
-   surf([X1(:),X2(:)],pfh([X1(:),X2(:)]))
-   
-%particle_swarm([-2,2; -2,2],40,20,-f)
-
-%caxis([min(F(:))-.5*range(F(:)),max(F(:))]);
-%axis([-3 3 -3 3 0 .4])
-%xlabel('x1'); ylabel('x2'); zlabel('Probability Density');
-
+   % Rotate the eigenvectors and reconstruct rotated covariance matrix.
+   eigenVecs = rotate(eigenVecs);
+   covar = eigenVecs * eigenValMat * eigenVecs';
+end
 
 end
 
