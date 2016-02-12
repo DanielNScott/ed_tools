@@ -2,6 +2,8 @@ function [ stats ] = get_stats( out, obs, opt_metadata)
 %GET_STATS Summary of this function goes here
 %   Detailed explanation goes here
 
+dbug = 1;
+
 %-----------------------------------------------------------------------------------------%
 % Initialize those statistics (which will be incremented in loops) to zero.               %
 %-----------------------------------------------------------------------------------------%
@@ -46,6 +48,9 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          if rework                                       % If so change the path in the out
             out_fld(2) = 'Y';                            % struct to reworked copy under "Y".
          end
+
+         msg = ['Computing stats for ' fld ' & ' out_fld];
+         vdisp(msg,1,dbug)
 
          out_data = out.(out_fld(2)).(out_fld(4:end));   % Get output data
          obs_data = obs.proc.(res).(fld);                % Get the observational data
@@ -152,14 +157,16 @@ function [obs, unc] = check_sizes(obs,unc,out,fld)
    nobs = numel(obs);
    nout = numel(out);
    if nobs ~= nout
+      new_first_ind = nobs - nout + 1;
+      
       disp('--------- Warning! --------------')
       disp('numel(obs) ~= numel(out)')
       disp(['Field     : ', fld])
       disp(['numel(obs): ', num2str(nobs)])
       disp(['numel(out): ', num2str(nout)])
+      disp(['new index : ', num2str(new_first_ind)])
       disp('Removing leading portion of nobs.')
       
-      new_first_ind = nobs - nout + 1;
       obs = obs(new_first_ind:end);
       unc = unc(new_first_ind:end);
    end

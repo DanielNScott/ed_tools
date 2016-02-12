@@ -9,7 +9,7 @@ function [ out ] = import_poly( rundir, dbug )
 
    [sim_beg, sim_end] = get_sim_times(namelist);
    
-   map = def_ed_varmap_dbdt_dtlsm();   
+   map = def_ed_varmap();   
    out = struct;
    
    out.namelist = namelist;
@@ -467,18 +467,19 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       
       if read_c13
          out.X.DMEAN_NEE_C13       = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
-         out.X.DMEAN_NEE_C13_Night = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
-         out.X.DMEAN_NEE_C13_Day   = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
 
-         out.X.DMEAN_NEE_C13_Night(:,~night_msk) = NaN;
-         out.X.DMEAN_NEE_C13_Day(:,night_msk)    = NaN;
+         %out.X.DMEAN_NEE_C13_Night = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+         %out.X.DMEAN_NEE_C13_Day   = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+
+         %out.X.DMEAN_NEE_C13_Night(:,~night_msk) = NaN;
+         %out.X.DMEAN_NEE_C13_Day(:,night_msk)    = NaN;
          
          out.X.DMEAN_NEE_d13C       = get_d13C(out.X.DMEAN_NEE_C13      ,out.X.DMEAN_NEE);
-         out.X.DMEAN_NEE_d13C_Night = get_d13C(out.X.DMEAN_NEE_C13_Night,out.X.DMEAN_NEE_Night);
-         out.X.DMEAN_NEE_d13C_Day   = get_d13C(out.X.DMEAN_NEE_C13_Day  ,out.X.DMEAN_NEE_Day);
+         %out.X.DMEAN_NEE_d13C_Night = get_d13C(out.X.DMEAN_NEE_C13_Night,out.X.DMEAN_NEE_Night);
+         %out.X.DMEAN_NEE_d13C_Day   = get_d13C(out.X.DMEAN_NEE_C13_Day  ,out.X.DMEAN_NEE_Day);
 
-         out.X.DMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
-         out.X.DMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         %out.X.DMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         %out.X.DMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
          
          out.X.DMEAN_Soil_Resp_C13  = (out.T.DMEAN_RH_C13_PA ...
                                     +  out.T.DMEAN_ROOT_RESP_C13_CO) * nee_fact;
@@ -526,20 +527,35 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       
       out.X.MMEAN_Soil_Resp_HF = out.T.MMEAN_RH_PA    ./ out.X.MMEAN_Soil_Resp;
 
+      %----------------------------------------------------------------------%
+      % Create Monthly Mean NEE and NEE_Night
+      %----------------------------------------------------------------------%
+      % Get NEE and NEE_Night (in kgC/m^2)
+      % These are done from cohort vars since 'Night' calc is done from cohort.
+      out.X.MMEAN_NEE       = -1*(out.T.MMEAN_NPP_CO       - out.T.MMEAN_RH_PY      );
+      out.X.MMEAN_NEE_Night = -1*(out.T.MMEAN_NPP_CO_Night - out.T.MMEAN_RH_PY_Night);
+      
       if read_c13
-         out.X.MMEAN_NEE_C13       = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
-         out.X.MMEAN_NEE_C13_Night = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
-         out.X.MMEAN_NEE_C13_Day   = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
 
-         out.X.MMEAN_NEE_C13_Night(:,~night_msk) = NaN;
-         out.X.MMEAN_NEE_C13_Day(:,night_msk)    = NaN;
-         
+         out.X.MMEAN_NEE_C13       = -1*(out.T.MMEAN_NPP_C13_CO       - out.T.MMEAN_RH_C13_PY      );
+         %out.X.MMEAN_NEE_C13_Night = -1*(out.T.MMEAN_NPP_C13_CO_Night - out.T.MMEAN_RH_C13_PY_Night);
+
          out.X.MMEAN_NEE_d13C       = get_d13C(out.X.MMEAN_NEE_C13      ,out.X.MMEAN_NEE);
-         out.X.MMEAN_NEE_d13C_Night = get_d13C(out.X.MMEAN_NEE_C13_Night,out.X.MMEAN_NEE_Night);
-         out.X.MMEAN_NEE_d13C_Day   = get_d13C(out.X.MMEAN_NEE_C13_Day  ,out.X.MMEAN_NEE_Day);
+         %out.X.MMEAN_NEE_d13C_Night = get_d13C(out.X.MMEAN_NEE_C13_Night,out.X.MMEAN_NEE_Night);
+         
+         %out.X.MMEAN_NEE_C13       = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
+         %out.X.MMEAN_NEE_C13_Night = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
+         %out.X.MMEAN_NEE_C13_Day   = -1*out.T.MMEAN_NEP_C13_PY * nee_fact;
 
-         out.X.MMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
-         out.X.MMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
+         %out.X.MMEAN_NEE_C13_Night(:,~night_msk) = NaN;
+         %out.X.MMEAN_NEE_C13_Day(:,night_msk)    = NaN;
+         
+         %out.X.MMEAN_NEE_d13C       = get_d13C(out.X.MMEAN_NEE_C13      ,out.X.MMEAN_NEE);
+         %out.X.MMEAN_NEE_d13C_Night = get_d13C(out.X.MMEAN_NEE_C13_Night,out.X.MMEAN_NEE_Night);
+         %out.X.MMEAN_NEE_d13C_Day   = get_d13C(out.X.MMEAN_NEE_C13_Day  ,out.X.MMEAN_NEE_Day);
+
+         %out.X.MMEAN_NEE_d13C_Night(:,~night_msk) = NaN;
+         %out.X.MMEAN_NEE_d13C_Day(:,night_msk)    = NaN;
          
          out.X.MMEAN_Reco_C13      = out.T.MMEAN_PLRESP_C13_CO + out.T.MMEAN_RH_C13_PA;
          out.X.MMEAN_Soil_Resp_C13 = out.T.MMEAN_RH_C13_PA     + out.T.MMEAN_ROOT_RESP_C13_CO;
@@ -558,14 +574,6 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
          out.X.MMEAN_Reco_d13C      = get_d13C(out.X.MMEAN_Reco_C13     ,out.X.MMEAN_Reco);
          out.X.MMEAN_Soil_Resp_d13C = get_d13C(out.X.MMEAN_Soil_Resp_C13,out.X.MMEAN_Soil_Resp);
       end
-      
-      %----------------------------------------------------------------------%
-      % Create Monthly Mean NEE and NEE_Night
-      %----------------------------------------------------------------------%
-      % Get NEE and NEE_Night (in kgC/m^2)
-      % These are done from cohort vars since 'Night' calc is done from cohort.
-      out.X.MMEAN_NEE       = -1*(out.T.MMEAN_NPP_CO       - out.T.MMEAN_RH_PY      );
-      out.X.MMEAN_NEE_Night = -1*(out.T.MMEAN_NPP_CO_Night - out.T.MMEAN_RH_PY_Night);
       
       % Convert vapor and sensible heat fluxes, NEEs, and create 'YMEAN' vars
       yrInd = 1;
@@ -595,8 +603,8 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             out.X.YMEAN_SENSIBLE_CA_PY(yrInd) = sum(out.X.MMEAN_SENSIBLE_CA_PY(fnum-11:fnum));
 
             out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
-            out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
-            out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+            %out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
+            %out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
 
             yrInd = yrInd + 1;
          end
