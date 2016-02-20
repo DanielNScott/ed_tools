@@ -31,11 +31,24 @@ proc = struct_valswap(proc,-9999,NaN);
 proc = licd(proc,times,0);
 
 % Compute NEE and delta values from components
-NEE         = proc.EddyFlux      + proc.StorFlux;
-NEE_Iso     = proc.EddyIsoflux13 + proc.StorIsoflux13;
+%proc.EddyFlux(abs(proc.EddyFlux) <= prctile(abs(proc.EddyFlux),1)) = NaN;
+%proc.StorFlux(abs(proc.StorFlux) <= prctile(abs(proc.StorFlux),1)) = NaN;
 
-data.NEE_d13C     = NEE_Iso ./ NEE;
-data.NEE_d13C_std = repmat(0.3,size(data.NEE_d13C)); %* See Below
+Flux_d13C = proc.EddyIsoflux13 ./ proc.EddyFlux;
+Stor_d13C = proc.StorIsoflux13 ./ proc.StorFlux;
+
+Flux_C13 = get_C13(proc.EddyFlux,Flux_d13C);
+Stor_C13 = get_C13(proc.StorFlux,Stor_d13C);
+
+NEE     = proc.EddyFlux + proc.StorFlux;
+NEE_C13 = Flux_C13      + Stor_C13;
+
+% This removes ~0.75% of the data, with a total contribution pf 0.14% of absolute flux...
+data.NEE_d13C     = get_d13C(NEE_C13,NEE);
+data.NEE_d13C_std = 0.21495 + 14.204* abs(NEE).^(-0.95502);
+
+msk = or(data.NEE_d13C >= 200,data.NEE_d13C <= -200);
+data.NEE_d13C(msk) = NaN;
 data.NEE_d13C_std(isnan(data.NEE_d13C)) = NaN;
 
 % Start and end strings for Monte-Carlo resampling.
@@ -64,9 +77,6 @@ mc.hs_night   = data.NEE_d13C_std .*nt_op;
 
 %NEE_Unc     = ((25/7)*NEE     + (515/7)).*neg_nee_msk + (0.50)*NEE    .*pos_nee_msk;
 %NEE_Iso_Unc = ((25/7)*NEE_Iso + (515/7)).*neg_nee_msk + (0.50)*NEE_Iso.*pos_nee_msk;
-
-
-
 
 %----------------------------------------------------------------------------------------------%
 end
