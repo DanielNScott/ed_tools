@@ -19,8 +19,10 @@ for job_num = 1:njobs
    wait_for(pred_name ,5,verbose)
    wait_for(stats_name,5,verbose)
 
+   pause(0.5);
+
    load(obj_name  );
-   load(stats_name)
+   load(stats_name);
    hist.obj(job_num,iter) = obj;
 
    vdisp(['job_' num2str(job_num,fmt) ' objective: ' num2str(obj)],1,verbose)
