@@ -32,8 +32,13 @@ for job_num = first_job:njobs
    end
    
    %--- Set up directories ---%
-   setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
-             ,state_prop(:,job_num),labels,ui.pfts,ui.persist,ui.verbose);
+   if job_num == 0
+      setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
+                ,ui.state_ref,labels,ui.pfts,ui.persist,ui.verbose);
+   else
+      setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
+                ,state_prop(:,job_num),labels,ui.pfts,ui.persist,ui.verbose);
+   end
 
    %--- Decide to skip submission or not ---%
    not_iter_one  = iter > 1;
