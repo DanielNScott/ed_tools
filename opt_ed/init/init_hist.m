@@ -17,7 +17,7 @@ function [ hist ] = init_hist( cfe, ui )
          cents  = repmat(cfe.bounds(:,1) + spread(:,1)/2 ,1,vs_dim);  % Compute centers of ranges
          
          istate = (rand(cfe.nvar,vs_dim) - 0.5) .*spread + cents;    % Recenter & expand rands.
-         ivels  = (rand(cfe.nvar,vs_dim) - 0.5) .*spread + cents;    % Recenter & expand rands.
+         ivels  = (rand(cfe.nvar,vs_dim) - 0.5) .*spread;            % 
 
          hist.pbs          = istate;
          hist.state(:,:,1) = istate;
