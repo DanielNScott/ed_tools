@@ -1,19 +1,15 @@
-function [mc] = proc_chambers(varargin)
+function [mc] = proc_chambers(seperate,varargin)
 %PROC_CHAMBERS Summary of this function goes here
 %   Detailed explanation goes here
 
-seperate = 0;
-
 % Either read the file specified below or accept the data as an argument.
-if nargin == 0
+if nargin == 1
    filepath  = 'C:\Users\Dan\moorcroft_lab\observations\harvard_forest_archives\chamber\proc\inputs\';
    filename  = [filepath, '2012_2013_soil_resp_data.csv'];
    seperator = ',';
    
    % Heads up, raw gets altered/overwritten.
    raw   = readtext(filename,seperator);
-   nhead = 2;
-   head  = raw(1:2,:);
    raw   = raw(3:end,:);
    
    % The CSV should look like this:
@@ -21,11 +17,8 @@ if nargin == 0
    %2012 5	19    18 56    8        264.15      C
    %...
    save('proc_chambers_raw.mat')
-   
 else
-   head  = varargin{1};
-   raw   = varargin{2};
-   nhead = 2;
+   raw   = varargin{1};
 end
 
 % Clean data:
@@ -92,109 +85,126 @@ if seperate
          fld = flds{fld_num};
          sep_data{ch_num}.(fld) = data.(fld)(ch_msk{ch_num});      
          if isempty(sep_data{ch_num}.(fld)); continue; end
-         sep_agg{ch_num}  = licd(sep_data{ch_num},sep_time{ch_num},1);
+         
+         if any(ch_num == [1,3,5,7])
+            sep_agg{ch_num} = licd(sep_data{ch_num},sep_time{ch_num},1);
+            sep_agg{ch_num}.CO2_flux     = [sep_agg{ch_num}.CO2_flux    ; NaN(8760,1)];
+            sep_agg{ch_num}.CO2_flux_std = [sep_agg{ch_num}.CO2_flux_std; NaN(8760,1)];
+         else
+            sep_agg{ch_num}  = licd(sep_data{ch_num},sep_time{ch_num},1);
+         end
       end
+
+      tmp{ch_num} = convert_and_resample(sep_agg{ch_num},2012,2014);
    end
-
-   figure;
-   plot(1:8784,[sep_agg{1}.CO2_flux'; ...
-                sep_agg{3}.CO2_flux'; ...
-                sep_agg{5}.CO2_flux'; ...
-                sep_agg{7}.CO2_flux'; ...
-        ],'.')
    
-   figure;
-   plot(1:8784,[sep_agg{2}.CO2_flux'; ...
-                sep_agg{4}.CO2_flux'; ...
-                sep_agg{6}.CO2_flux'; ...
-                sep_agg{8}.CO2_flux'; ...
-        ],'.')
+   mc = struct();
+   mc = replace_vals('hs'      ,'hm'      ,tmp,mc);
+   mc = replace_vals('hs_day'  ,'hm_day'  ,tmp,mc);
+   mc = replace_vals('hs_night','hm_night',tmp,mc);
+   mc = replace_vals('ds'      ,'dm'      ,tmp,mc);
+   mc = replace_vals('ds_day'  ,'dm_day'  ,tmp,mc);
+   mc = replace_vals('ds_night','dm_night',tmp,mc);
+   mc = replace_vals('ms'      ,'mm'      ,tmp,mc);
+   mc = replace_vals('ms_day'  ,'mm_day'  ,tmp,mc);
+   mc = replace_vals('ms_night','mm_night',tmp,mc);
+   mc = replace_vals('ys'      ,'ym'      ,tmp,mc);
+   mc = replace_vals('ys_day'  ,'ym_day'  ,tmp,mc);
+   mc = replace_vals('ys_night','ym_night',tmp,mc);
+
+%    mc.dm = nanmean([tmp{1}.dm, tmp{2}.dm, tmp{3}.dm, tmp{4}.dm ...
+%                    ,tmp{5}.dm, tmp{6}.dm, tmp{7}.dm, tmp{8}.dm],2);
+%    mc.ds = nanstd ([tmp{1}.dm, tmp{2}.dm, tmp{3}.dm, tmp{4}.dm ...
+%                    ,tmp{5}.dm, tmp{6}.dm, tmp{7}.dm, tmp{8}.dm],0,2);
+% 
+%    mc.mm = nanmean([tmp{1}.mm, tmp{2}.mm, tmp{3}.mm, tmp{4}.mm ...
+%                    ,tmp{5}.mm, tmp{6}.mm, tmp{7}.mm, tmp{8}.mm],2);
+%    mc.ms = nanstd ([tmp{1}.mm, tmp{2}.mm, tmp{3}.mm, tmp{4}.mm ...
+%                    ,tmp{5}.mm, tmp{6}.mm, tmp{7}.mm, tmp{8}.mm],0,2);
+% 
+%    mc.ym = nanmean([tmp{1}.ym, tmp{2}.ym, tmp{3}.ym, tmp{4}.ym ...
+%                    ,tmp{5}.ym, tmp{6}.ym, tmp{7}.ym, tmp{8}.ym],2);
+%    mc.ys = nanstd ([tmp{1}.ym, tmp{2}.ym, tmp{3}.ym, tmp{4}.ym ...
+%                    ,tmp{5}.ym, tmp{6}.ym, tmp{7}.ym, tmp{8}.ym],0,2);
+
+   %dlen = numel(sep_agg{1}.CO2_flux);
+   %figure;
+   %plot(1:dlen,[sep_agg{1}.CO2_flux'; ...
+   %             sep_agg{2}.CO2_flux'; ...
+   %             sep_agg{3}.CO2_flux'; ...
+   %             sep_agg{4}.CO2_flux'; ...
+   %             sep_agg{5}.CO2_flux'; ...
+   %             sep_agg{6}.CO2_flux'; ...
+   %             sep_agg{7}.CO2_flux'; ...
+   %             sep_agg{8}.CO2_flux'; ...
+   %     ],'.')
+   
+%    data = rmfield(data,'Chamber');
+%    for ich = 1:8
+%       valname = ['Ch' num2str(ich) '_CO2_flux'];
+%       stdname = ['Ch' num2str(ich) '_CO2_flux_std'];
+%       if any(ich == [1,3,5,7])
+%          data.(valname) = [NaN(8784,1); sep_agg{ich}.CO2_flux];
+%          data.(stdname) = [NaN(8784,1); sep_agg{ich}.CO2_flux_std];
+%       else
+%          data.(valname) = sep_agg{ich}.CO2_flux;
+%          data.(stdname) = sep_agg{ich}.CO2_flux_std;
+%       end
+%    end
+   
+else
+   % Linearly interpolate the contiguous portions of the data:
+   data = licd(data,time,1);
+   data = rmfield(data,'Chamber');
+   mc = convert_and_resample(data,2012,2014);
 end
 
-% Linearly interpolate the contiguous portions of the data:
-data = licd(data,time,1);
-save('proc_chambers_proc.mat')
-
-% Set the SD for single data-point-hours to the mean SD.
-data.CO2_flux_std(data.CO2_flux_std == 0) = nanmean(data.CO2_flux_std(data.CO2_flux_std ~= 0));
-
-% Convert units from mg/m2/hr to kg/m2/yr.
-conversion        = (1/10^6) * 8760;
-data.CO2_flux     = data.CO2_flux     * conversion;
-data.CO2_flux_std = data.CO2_flux_std * conversion;
-
-% Start and end strings for Monte-Carlo resampling.
-beg_str = pack_time(2012,1 ,1 ,0,0,0,'std');
-end_str = pack_time(2014,1 ,1 ,0,0,0,'std');
-
-% Get resampled data w/ SDs. 
-% Note samples aren't forced to be positive, but this is alright for now.
-mc = mc_ems_data(data.CO2_flux,data.CO2_flux_std,5000,beg_str,end_str,'normrnd');
-
-% Save hourly data to the same structure.
-[nt_op,dt_op] = get_nt_dt_ops([2012,2013]);
-mc.hm         = data.CO2_flux;
-mc.hs         = data.CO2_flux_std;
-mc.hm_day     = data.CO2_flux     .*dt_op;
-mc.hs_day     = data.CO2_flux_std .*dt_op;
-mc.hm_night   = data.CO2_flux     .*nt_op;
-mc.hs_night   = data.CO2_flux_std .*nt_op;
 
 end
 
-% 
-% %----------------------------------------------------------------------------------------------%
-% % Create year, month, day, hour fields for times without data.                                 %
-% %----------------------------------------------------------------------------------------------%
-% hours = [];
-% days  = [];
-% mos   = [];
-% 
-% mo_days = reshape(yrfrac(1:12,2012,'-days')',12,1);
-% yrs     = repmat(2012,nday*24,1);
-% 
-% for imo = 1:12
-%    mos   = [mos  ; repmat(mod(imo-1,12)+1,24*mo_days(imo),1)];
-%    days  = [days ; reshape(repmat(1:mo_days(imo),24,1),mo_days(imo)*24,1)];
-%    hours = [hours; repmat((0:23)',mo_days(imo),1)];
-% end
-% 
-% dates = [yrs,mos,days,hours];
-% %----------------------------------------------------------------------------------------------%
-% 
-% 
-% %----------------------------------------------------------------------------------------------%
-% % Pack data for export.                                                                        %
-% %----------------------------------------------------------------------------------------------%
-% hr_data = [dates,CO2,CO2_err];
-% 
-% % if show
-% %    figure();
-% %    set(gcf,'Name','daily means')
-% %    errorbar(1:731,dy_data(:,4),dy_data(:,5),'or')
-% % 
-% %    figure();
-% %    set(gcf,'Name','number of obs per day')
-% %    plot(1:731,day_nobs,'ob')
-% % 
-% %    figure();
-% %    set(gcf,'Name','diel histogram')
-% %    bar(1:24,diel_nobs,'m')
-% % end
-% 
-% hr_data(isnan(hr_data)) = -9999;
-% %----------------------------------------------------------------------------------------------%
-% 
-% %----------------------------------------------------------------------------------------------%
-% % Export Data                                                                                  %
-% %----------------------------------------------------------------------------------------------%
-% header_line_1 = ['"# Soil Respiration [umol/m^2/s]"\n'];
-% 
-% header_line_2 = ['Year, Month, Day, Hour, Soil_Resp, Soil_Resp_sd \n'];
-%               
-% fid = fopen('chmbr_flux.csv','wt');
-% fprintf(fid,header_line_1);
-% fprintf(fid,header_line_2);
-% dlmwrite('chmbr_flux.csv',hr_data,'delimiter',',','-append');
-% fclose(fid);
-% %----------------------------------------------------------------------------------------------%
+
+function [mc] = replace_vals(sfield,mfield,tmp,mc)
+
+   mc.(mfield) = nanmean([tmp{1}.(mfield), tmp{2}.(mfield), tmp{3}.(mfield), tmp{4}.(mfield) ...
+                         ,tmp{5}.(mfield), tmp{6}.(mfield), tmp{7}.(mfield), tmp{8}.(mfield)],2);
+                
+   mc.(sfield) = nanstd ([tmp{1}.(mfield), tmp{2}.(mfield), tmp{3}.(mfield), tmp{4}.(mfield) ...
+                         ,tmp{5}.(mfield), tmp{6}.(mfield), tmp{7}.(mfield), tmp{8}.(mfield)],0,2);
+
+   perc_rep = sum(mc.(sfield)(mc.(sfield) == 0))/numel(mc.(sfield))*100;
+   mean_val = nanmean(mc.(sfield)(mc.(sfield) ~= 0));
+   mc.(sfield)(mc.(sfield) == 0) = mean_val;
+   disp(['Mean value of SDs: ', num2str(mean_val)])
+   disp(['Number replaced  : ', num2str(perc_rep)])
+   disp(' ')
+
+end
+
+function [mc] = convert_and_resample(data,beg_yr,end_yr)
+
+   % Set the SD for single data-point-hours to the mean SD.
+   data.CO2_flux_std(data.CO2_flux_std == 0) = nanmean(data.CO2_flux_std(data.CO2_flux_std ~= 0));
+
+   % Convert units from mg/m2/hr to kg/m2/yr.
+   conversion        = (1/10^6) * 8760;
+   data.CO2_flux     = data.CO2_flux     * conversion;
+   data.CO2_flux_std = data.CO2_flux_std * conversion;
+
+   % Start and end strings for Monte-Carlo resampling.
+   beg_str = pack_time(beg_yr  ,1 ,1 ,0,0,0,'std');
+   end_str = pack_time(end_yr,1 ,1 ,0,0,0,'std');
+
+   % Get resampled data w/ SDs. 
+   % Note samples aren't forced to be positive, but this is alright for now.
+   mc = mc_ems_data(data.CO2_flux,data.CO2_flux_std,5000,beg_str,end_str,'normrnd');
+
+   % Save hourly data to the same structure.
+   [nt_op,dt_op] = get_nt_dt_ops(beg_yr:(end_yr-1));
+   mc.hm         = data.CO2_flux;
+   mc.hs         = data.CO2_flux_std;
+   mc.hm_day     = data.CO2_flux     .*dt_op;
+   mc.hs_day     = data.CO2_flux_std .*dt_op;
+   mc.hm_night   = data.CO2_flux     .*nt_op;
+   mc.hs_night   = data.CO2_flux_std .*nt_op;
+
+end

@@ -13,9 +13,8 @@ mean  = [0 0];                                           % Mean
 covar = [1 0.5; 0.5 1];                                  % Covariance Matrix
 
 % Create plane rotation function
-theta  = 2*pi/360;                                       % Angle of each small rotation
-rotate = @(x) x * [cos(theta) -sin(theta); ...           % Rotation matrix for transforming
-                   sin(theta),cos(theta)];               % ... data in plane.
+rotate = @(x,theta) x * [cos(theta) -sin(theta); ...     % Rotation matrix for transforming
+                         sin(theta),cos(theta)];         % ... data in plane.
 
 % Get eigenvecs and eigenvals of covar matrix
 [eigenVecs,eigenValMat] = eig(covar);                    % For plotting
@@ -69,12 +68,33 @@ for i = 1:360
    
    str = {'Eigenvector 1: ',['(' sx1 ',' sy1 ')'],'Eigenvector 2: ',['(' sx2 ',' sy2 ')']};
    ah = annotation('textbox','String',str, 'FitBoxToText','on','Position',[0.54 0.69 0.108 0.19]);
-   drawnow()
+   drawnow;
    
    % Rotate the eigenvectors and reconstruct rotated covariance matrix.
-   eigenVecs = rotate(eigenVecs);
+   theta     = 2*pi/360;                                       % Angle of each small rotation
+   eigenVecs = rotate(eigenVecs,theta);
    covar = eigenVecs * eigenValMat * eigenVecs';
 end
+
+n = 5;
+figure();
+x = 1;
+y = 0;
+figure();
+for i = 1:n
+   hold on
+   vec = [x,y] * covar;
+   x = vec(1);
+   y = vec(2);
+   quiver(0,0,x,y)
+   set(gca,'XLim',[-1,1])
+   set(gca,'YLim',[-1,1])
+   pause(1)
+   vec = [x,y] * covar;
+   x = vec(1);
+   y = vec(2);
+   pause(1)
+end   
 
 end
 
