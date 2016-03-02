@@ -33,7 +33,8 @@ blocrng = blocmax - blocmin;
 blocinc = blocrng/50;
 
 % Get the response surface aka second order fit surface.
-[funHand,goodOfFit] = fit([blocs(:,1),blocs(:,2)],flat_objs(msk),'poly22');
+[funHand,goodOfFit,fitOut] = fit([blocs(:,1),blocs(:,2)],flat_objs(msk),'poly22');
+%params = fit_quadratic([blocs(:,1),blocs(:,2),flat_objs(msk)],repmat([-400,400],6,1));
 
 % Determine the x-domain and y-domain (the parameter space grid)
 % used in plotting the fit surface.
@@ -127,4 +128,3 @@ subaxis(2,2,3)
 %pause
 
 end
-
