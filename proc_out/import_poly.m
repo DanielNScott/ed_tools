@@ -611,13 +611,14 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       end
    end
    if strcmp(out_type,'Y')
-      out.T.BAG = out.T.BASAL_AREA_GROWTH(2:end)/12 - out.T.BASAL_AREA_GROWTH(1:end-1)/12;
-      out.H.BAG = out.H.BASAL_AREA_GROWTH(2:end)/12 - out.H.BASAL_AREA_GROWTH(1:end-1)/12;
-      out.C.BAG = out.C.BASAL_AREA_GROWTH(2:end)/12 - out.C.BASAL_AREA_GROWTH(1:end-1)/12;
+      % Using old broken BAG and BAM
+      %out.T.BAG = out.T.BASAL_AREA_GROWTH(2:end)/12 - out.T.BASAL_AREA_GROWTH(1:end-1)/12;
+      %out.H.BAG = out.H.BASAL_AREA_GROWTH(2:end)/12 - out.H.BASAL_AREA_GROWTH(1:end-1)/12;
+      %out.C.BAG = out.C.BASAL_AREA_GROWTH(2:end)/12 - out.C.BASAL_AREA_GROWTH(1:end-1)/12;
       
-      out.T.BAM = out.T.BASAL_AREA_MORT(2:end)/12 - out.T.BASAL_AREA_MORT(1:end-1)/12;
-      out.H.BAM = out.H.BASAL_AREA_MORT(2:end)/12 - out.H.BASAL_AREA_MORT(1:end-1)/12;
-      out.C.BAM = out.C.BASAL_AREA_MORT(2:end)/12 - out.C.BASAL_AREA_MORT(1:end-1)/12;
+      %out.T.BAM = out.T.BASAL_AREA_MORT(2:end)/12 - out.T.BASAL_AREA_MORT(1:end-1)/12;
+      %out.H.BAM = out.H.BASAL_AREA_MORT(2:end)/12 - out.H.BASAL_AREA_MORT(1:end-1)/12;
+      %out.C.BAM = out.C.BASAL_AREA_MORT(2:end)/12 - out.C.BASAL_AREA_MORT(1:end-1)/12;
    end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
