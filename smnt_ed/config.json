@@ -1,17 +1,17 @@
 {
     "language"        : "PYTHON",
-    "experiment-name" : "spearmint-test-1",
+    "experiment-name" : "smnt-test",
     "polling-time"    : 1,
     "resources" : {
         "my-machine" : {
             "scheduler"         : "local",
             "max-concurrent"    : 1,
-            "max-finished-jobs" : 100
+            "max-finished-jobs" : 3
         },
         "cluster" : {
             "scheduler"         : "SLURM",
-            "max-concurrent"    : 3,
-            "max-finished-jobs" : 10
+            "max-concurrent"    : 1,
+            "max-finished-jobs" : 3
         }
     },
     "tasks": {
@@ -19,7 +19,7 @@
             "type"       : "OBJECTIVE",
             "likelihood" : "NOISELESS",
             "main-file"  : "job_wrap",
-            "resources"  : ["cluster"]
+            "resources"  : ["my-machine","cluster"]
         }
     },
     "variables": {

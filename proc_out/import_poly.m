@@ -602,9 +602,11 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             out.X.YMEAN_VAPOR_CA_PY   (yrInd) = sum(out.X.MMEAN_VAPOR_CA_PY   (fnum-11:fnum));
             out.X.YMEAN_SENSIBLE_CA_PY(yrInd) = sum(out.X.MMEAN_SENSIBLE_CA_PY(fnum-11:fnum));
 
-            out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
-            %out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
-            %out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+            if read_c13
+               out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
+               %out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
+               %out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+            end
 
             yrInd = yrInd + 1;
          end
