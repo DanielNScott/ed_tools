@@ -153,7 +153,7 @@ function [ out ] = ceiling(in)
 end
 
 
-function [obs, unc] = check_sizes(obs,unc,out,fld)
+function [obs, unc, out] = check_sizes(obs,unc,out,fld)
    nobs = numel(obs);
    nout = numel(out);
    if nobs ~= nout
@@ -165,10 +165,15 @@ function [obs, unc] = check_sizes(obs,unc,out,fld)
       disp(['numel(obs): ', num2str(nobs)])
       disp(['numel(out): ', num2str(nout)])
       disp(['new index : ', num2str(new_first_ind)])
-      disp('Removing leading portion of nobs.')
       
-      obs = obs(new_first_ind:end);
-      unc = unc(new_first_ind:end);
+      if new_first_ind <= 0;
+         disp('Rmoving leading portion of out')
+         out = out(2-new_first_ind:end);
+      else
+         disp('Removing leading portion of obs.')
+         obs = obs(new_first_ind:end);
+         unc = unc(new_first_ind:end);
+      end
    end
 end
 
