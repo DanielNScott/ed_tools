@@ -57,9 +57,10 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
 
          
-         [obs_data, obs_unc] ...                         % Make sure sizes are conformant.
+
+         [obs_data, obs_unc, out_data] ...               % Make sure sizes are conformant.
             = check_sizes(obs_data,obs_unc,out_data,fld);% If not, leading data trimmed.
-         
+
 %          % THIS IS A HACK TO MAKE FIA DATA WORK! %
 %          if strcmp(type,'FIA')
 %            %obs_data = obs_data(2:end);
@@ -137,6 +138,10 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          %if ref_exists
             ref_data = out_ref.(out_fld(2)).(out_fld(4:end));
             ref_like = stats.ref.likely.(res).(fld);
+            
+            if any(strcmp(fld(1:3),{'BAG','BAR','BAM'}))
+               ref_data = ref_data(2:3);
+            end
             
             pdata   = [ref_data; pdata];
             likely  = [ref_like, likely];
@@ -245,21 +250,27 @@ end
 
 
 
-function [obs, unc] = check_sizes(obs,unc,out,fld)
+function [obs, unc, out] = check_sizes(obs,unc,out,fld)
    nobs = numel(obs);
    nout = numel(out);
    if nobs ~= nout
+      new_first_ind = nobs - nout + 1;
+      
       disp('--------- Warning! --------------')
       disp('numel(obs) ~= numel(out)')
       disp(['Field     : ', fld])
       disp(['numel(obs): ', num2str(nobs)])
       disp(['numel(out): ', num2str(nout)])
-      disp('Removing leading portion of nobs.')
+      disp(['new index : ', num2str(new_first_ind)])
       
-      new_first_ind = nobs - nout + 1;
-      obs = obs(new_first_ind:end);
-      unc = unc(new_first_ind:end);
+      if new_first_ind <= 0;
+         disp('Rmoving leading portion of out')
+         out = out(2-new_first_ind:end);
+      else
+         disp('Removing leading portion of obs.')
+         obs = obs(new_first_ind:end);
+         unc = unc(new_first_ind:end);
+      end
    end
 end
-
 

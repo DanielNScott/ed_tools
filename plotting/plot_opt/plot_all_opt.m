@@ -26,7 +26,7 @@ end
 %----------------------------------------------------------------------------------------------%
 
 if strcmp(ui.opt_type,'PSO')
-   plot_state_hist_pso( cfe.iter, hist.obj, hist.state, hist.state_ref, ui.nps, cfe.labels(:,1), save);
+   plot_state_hist_pso( cfe.iter, hist.obj, hist.state, ui.state_ref, ui.nps, cfe.labels(:,1), save);
    %plot_part_ids(cfe,data,hist,ui,save);
 elseif strcmp(ui.opt_type,'NM')
    plot_state_hist_nm(cfe,hist,ui,save)
@@ -36,7 +36,7 @@ end
 
 plot_fit_stats(cfe,hist,ui,save);
 
-plot_param_stars(hist,cfe,ui.opt_type,save);
+plot_param_stars(hist,cfe,ui.opt_type,ui.state_ref,save);
 
 %init_best_ind   = hist.obj == min(hist.obj(:,1));
 %global_best_ind = hist.obj == min(hist.obj(:));
