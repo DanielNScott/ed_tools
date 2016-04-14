@@ -34,7 +34,7 @@ echo "--------------------------------------------------------------------------
 
 
 #----- Set paths for matlab and template --------------------------------------------------#
-path_tools='/n/moorcroftfs2/dscott/ed_tools_dev/'
+path_tools='/n/moorcroftfs4/dscott/ed_tools_dev/'
 
 rm -f out_m.txt out_m.err out_ed.txt out_ed.err
 
