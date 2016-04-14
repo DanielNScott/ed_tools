@@ -3,11 +3,12 @@ function [] = plot_general(data,resin,plot_c13,splt,save,varargin)
 % and outputs graphs of that data.
 %----------------------------------------------------------------------
 %  Input: data - the data substructure of an mpost file.
-%          c13 - Graph C13; T,F = 1,0
-%         type - 'many' or 'few', defines which graphs to produce.
-%        years - [first year, last year] to graphclear
+%        resin - Resolution input, a string of ED resolution codes
+%     plot_c13 - Boolean, whould d13C be plotted?
+%         splt - String for which pft-type-split vars to show
+%         save - Should the plots be saved to disk?
 %
-% Example: gen_many_graphs_v3(mpost.data,1,'few',[2009,20010],0)
+% Example: gen_many_graphs_v3(mpost,'DMTY',0,'THC',0)
 %----------------------------------------------------------------------
 years      = [];
 res.fast   = any('F' == resin);
