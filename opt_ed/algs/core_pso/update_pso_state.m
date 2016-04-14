@@ -1,4 +1,4 @@
-function [ state, vels ] = update_pso_state(state,vels,vel_max,chi,phi_1,phi_2,pbs,pbo,nbrhd,nvar)
+function [ state, vels ] = update_pso_state(state,vels,vel_max,chi,phi_1,phi_2,pbs,pbo,nbrhd,nvar,bnds)
 %UPDATE_PSO_STATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -25,6 +25,15 @@ end
 
 vels  = chi*(vels + U_1.*(pbs - state) + U_2.*(nbs - state));
 state = state + vels;
+
+for ip = 1:nps
+   too_large = state(:,ip) > bnds(:,2);
+   too_small = state(:,ip) < bnds(:,1);
+   
+   state(too_large,ip) = bnds(too_large,2);
+   state(too_small,ip) = bnds(too_small,1);
+end
+
 
 clip_inds    = vels > vel_max;
 %big_vel_max = repmat(vel_max,1,nps);

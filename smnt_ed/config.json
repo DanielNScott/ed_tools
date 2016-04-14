@@ -1,0 +1,40 @@
+{
+    "language"        : "PYTHON",
+    "experiment-name" : "smnt-test",
+    "polling-time"    : 1,
+    "resources" : {
+        "my-machine" : {
+            "scheduler"         : "local",
+            "max-concurrent"    : 1,
+            "max-finished-jobs" : 3
+        },
+        "cluster" : {
+            "scheduler"         : "SLURM",
+            "max-concurrent"    : 1,
+            "max-finished-jobs" : 3,
+            "scheduler-args"    : "-p moorcroft_6100"
+        }
+    },
+    "tasks": {
+        "job_wrap" : {
+            "type"       : "OBJECTIVE",
+            "likelihood" : "NOISELESS",
+            "main-file"  : "job_wrap",
+            "resources"  : ["my-machine","cluster"]
+        }
+    },
+    "variables": {
+        "x" : {
+            "type" : "FLOAT",
+            "size" : 1,
+            "min"  : 0,
+            "max"  : 5
+        },
+        "y" : {
+            "type" : "FLOAT",
+            "size" : 1,
+            "min"  : 3,
+            "max"  : 7
+        }
+    }
+}

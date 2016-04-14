@@ -602,22 +602,25 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
             out.X.YMEAN_VAPOR_CA_PY   (yrInd) = sum(out.X.MMEAN_VAPOR_CA_PY   (fnum-11:fnum));
             out.X.YMEAN_SENSIBLE_CA_PY(yrInd) = sum(out.X.MMEAN_SENSIBLE_CA_PY(fnum-11:fnum));
 
-            out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
-            %out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
-            %out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+            if read_c13
+               out.X.YMEAN_NEE_d13C      (yrInd) = mean(out.X.MMEAN_NEE_d13C      (fnum-11:fnum));
+               %out.X.YMEAN_NEE_d13C_Day  (yrInd) = mean(out.X.MMEAN_NEE_d13C_Day  (fnum-11:fnum));
+               %out.X.YMEAN_NEE_d13C_Night(yrInd) = mean(out.X.MMEAN_NEE_d13C_Night(fnum-11:fnum));
+            end
 
             yrInd = yrInd + 1;
          end
       end
    end
    if strcmp(out_type,'Y')
-      out.T.BAG = out.T.BASAL_AREA_GROWTH(2:end)/12 - out.T.BASAL_AREA_GROWTH(1:end-1)/12;
-      out.H.BAG = out.H.BASAL_AREA_GROWTH(2:end)/12 - out.H.BASAL_AREA_GROWTH(1:end-1)/12;
-      out.C.BAG = out.C.BASAL_AREA_GROWTH(2:end)/12 - out.C.BASAL_AREA_GROWTH(1:end-1)/12;
+      % Using old broken BAG and BAM
+      %out.T.BAG = out.T.BASAL_AREA_GROWTH(2:end)/12 - out.T.BASAL_AREA_GROWTH(1:end-1)/12;
+      %out.H.BAG = out.H.BASAL_AREA_GROWTH(2:end)/12 - out.H.BASAL_AREA_GROWTH(1:end-1)/12;
+      %out.C.BAG = out.C.BASAL_AREA_GROWTH(2:end)/12 - out.C.BASAL_AREA_GROWTH(1:end-1)/12;
       
-      out.T.BAM = out.T.BASAL_AREA_MORT(2:end)/12 - out.T.BASAL_AREA_MORT(1:end-1)/12;
-      out.H.BAM = out.H.BASAL_AREA_MORT(2:end)/12 - out.H.BASAL_AREA_MORT(1:end-1)/12;
-      out.C.BAM = out.C.BASAL_AREA_MORT(2:end)/12 - out.C.BASAL_AREA_MORT(1:end-1)/12;
+      %out.T.BAM = out.T.BASAL_AREA_MORT(2:end)/12 - out.T.BASAL_AREA_MORT(1:end-1)/12;
+      %out.H.BAM = out.H.BASAL_AREA_MORT(2:end)/12 - out.H.BASAL_AREA_MORT(1:end-1)/12;
+      %out.C.BAM = out.C.BASAL_AREA_MORT(2:end)/12 - out.C.BASAL_AREA_MORT(1:end-1)/12;
    end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

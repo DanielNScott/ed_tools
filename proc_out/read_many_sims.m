@@ -24,6 +24,7 @@ disp('==================================================================')
 for sim_num = 1:numel(sim_names)
    cur_sim_name = sim_names{sim_num};
    sim_dir      = [pwd(),'/',cur_sim_name];
+   cur_sim_name(cur_sim_name == '-') = '_';             % Allowed structure name char.
    mpost.(cur_sim_name) = import_poly(sim_dir,0);
 end
 

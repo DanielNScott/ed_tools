@@ -76,7 +76,7 @@ for iter = 1:niter
    loci(msk,:) = locs(msk,:);
    bests(msk)  = objs(msk);
    
-   best_loc = locs(find(bests == min(bests),1),:);
+   best_loc = loci(find(bests == min(bests),1),:);
    
    trace.states    (iter,:)   = locs(find(objs == min(objs),1),:);
    trace.objectives(iter)     = min(objs);

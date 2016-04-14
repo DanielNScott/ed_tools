@@ -32,15 +32,23 @@ for job_num = first_job:njobs
    end
    
    %--- Set up directories ---%
-   setup_dirs(job_num,niter,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
-             ,state_prop(:,job_num),labels,ui.pfts,ui.persist,ui.verbose);
+   if job_num == 0
+      state_input = ui.state_ref;
+      niter_input = 1;
+   else
+      state_input = state_prop(:,job_num);
+      niter_input = niter;
+   end
+
+   setup_dirs(job_num,niter_input,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
+             ,state_input,labels,ui.pfts,ui.persist,ui.verbose);
 
    %--- Decide to skip submission or not ---%
    not_iter_one  = iter > 1;
    if not_iter_one && not_restart && upfront_alloc
       vdisp('Upfront allocation on and iter > 1, skipping slurm interaction.',1,ui.verbose)
       vdisp(' ',1,ui.verbose)
-     continue
+      continue
    else
       
    %--- Job submission ---%
@@ -50,23 +58,23 @@ for job_num = first_job:njobs
    
    opt_name = regexp(pwd,'/','split');
    opt_name = opt_name{end-1};
-   setenv('niter'   ,      num2str(niter      )      )           % run_job will see as number
-   setenv('job_num' ,['''' num2str(job_num,fmt) ''''])           % run_job will see as string
-   setenv('proc_loc',['''' ui.rundir            ''''])           % run_job will see as string
-   setenv('opt_name',      opt_name                  ) 
+   setenv('niter_input',      num2str(niter_input)      )           % run_job will see as number
+   setenv('job_num'    ,['''' num2str(job_num,fmt) ''''])           % run_job will see as string
+   setenv('proc_loc'   ,['''' ui.rundir            ''''])           % run_job will see as string
+   setenv('opt_name'   ,      opt_name                  ) 
       
    if use_srun
       % srun ignores #SBATCH configs so we set them here.
       setenv('job_mem'  ,num2str(ui.job_mem ))
-      setenv('job_wtime',num2str(ui.job_wtime*niter))
+      setenv('job_wtime',num2str(ui.job_wtime*niter_input))
       
       % Submit the current job.
-      !srun -J job_${job_num} -t ${job_wtime} --mem=${job_mem} ./run_job.sh  ${job_num} ${niter} &
+      !srun -J job_${job_num} -t ${job_wtime} --mem=${job_mem} ./run_job.sh  ${job_num} ${niter_input} &
    else
       if ui.persist
-         !sbatch ./wrap_script.sh -p ${opt_name} './run_job.sh ${job_num} ${niter} ${proc_loc}' &
+         !sbatch ./wrap_script.sh -p ${opt_name} './run_job.sh ${job_num} ${niter_input} ${proc_loc}' &
       else
-         !sbatch ./wrap_script.sh -p ${opt_name} './run_job_xtrnl.sh ${job_num} ${niter} ${proc_loc}' &
+         !sbatch ./wrap_script.sh -p ${opt_name} './run_job_xtrnl.sh ${job_num} ${niter_input} ${proc_loc}' &
       end
    end
    cd('../')
