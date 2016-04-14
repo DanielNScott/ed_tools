@@ -467,6 +467,7 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       
       if read_c13
          out.X.DMEAN_NEE_C13       = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
+
          %out.X.DMEAN_NEE_C13_Night = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
          %out.X.DMEAN_NEE_C13_Day   = -1*out.T.DMEAN_NEP_C13_PY * nee_fact;
 
@@ -535,6 +536,7 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       out.X.MMEAN_NEE_Night = -1*(out.T.MMEAN_NPP_CO_Night - out.T.MMEAN_RH_PY_Night);
       
       if read_c13
+
          out.X.MMEAN_NEE_C13       = -1*(out.T.MMEAN_NPP_C13_CO       - out.T.MMEAN_RH_C13_PY      );
          %out.X.MMEAN_NEE_C13_Night = -1*(out.T.MMEAN_NPP_C13_CO_Night - out.T.MMEAN_RH_C13_PY_Night);
 

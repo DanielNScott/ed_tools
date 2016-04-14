@@ -1,141 +1,76 @@
-function [ hr_data ] = proc_iso_eddy( )
-%PROC_ISO_EDDY Reads in & transforms the eddy isoflux data into an hourly dataset for use with
-%the optimize_ed() program.
-%
-%  The data file is full of gaps and is on a 40-minute sampling freq. With the optimization
-%     framework we use fast-freq ED output of hourly means, so we want to get estimates of
-%     these hourly means from the data for comparison. To do this, we'll interpolate to the half
-%     hour mark whenever we're not on a gap boundary, in which case we'll just use the value
-%     we're given for whatever time in that hour as the hourly ave.
+function [mc] = proc_iso_eddy(varargin)
+% This script reads some tower data and produces a file with that data and gaps filled with
+% -9999 indicator values.
 
-filename  = ['C:\Users\Dan\Moorcroft_Lab\data\' ...
-             'harvard forest archive\hf-209-iso\HF-FluxesEtc-safe_chars.tsv'];
-seperator = '\s';
-fix_flg   = 0;
-data      = read_cols_to_flds(filename,seperator,fix_flg);
+% Either read the file specified below or accept the data as an argument.
+if nargin == 0
+   % Read in the data
+   fpath = 'C:\Users\Dan\moorcroft_lab\observations\harvard_forest_archives\hf-209-iso\proc\';
+   fname = 'HF-FluxesEtc-QCpassed-safe-chars-min-no-units-2011-2012.csv';
 
-%----------------------------------------------------------------------------------------------%
-% Get start and end dates and create a NaN matrix with entries for every hour between them,
-% inclusive of the last.
-%----------------------------------------------------------------------------------------------%
-beg_str = pack_time(data.YYYY(1)    ,1 ,1 ,1 ,0,0,'std');
-end_str = pack_time(data.YYYY(end)+1,1 ,1 ,1 ,0,0,'std');
-nhrs    = get_date_index(beg_str,end_str,'hourly') - 1;        % (sr is endpoint inclusive)
-ndata   = numel(data.YYYY);
+   seperator = ',';
+   fix_flg   = 0;
+   nhead     = 0;
+   raw       = read_cols_to_flds([fpath fname],seperator,nhead,0);
+   
+   % The CSV should look like this:
+   %Yr	Mo	Day	Hr	Min	Field ...   Field
+   %2012 5	19    18 56    value ...   value
+   %...
+   save('proc_iso_eddy_raw.mat')
+else
+   raw = varargin{1};
+end
 
-EddyFlux      = NaN(nhrs,1);
-StorFlux      = NaN(nhrs,1);
-EddyIsoflux13 = NaN(nhrs,1);
-StorIsoflux13 = NaN(nhrs,1);
-meanDel13C    = NaN(nhrs,1);
-meanCO2       = NaN(nhrs,1);
+% Pre-process the data
+tflds = {'Year','Month','Day','Hour','Min'};
+[proc, times] = split_struct(raw,tflds);
+proc = struct_valswap(proc,-9999,NaN);
 
-year          = NaN(nhrs,1);
-month         = NaN(nhrs,1);
-day           = NaN(nhrs,1);
-hour          = NaN(nhrs,1);
-%----------------------------------------------------------------------------------------------%
+% Interpolation onto the right grid
+proc = licd(proc,times,0);
+
+% Compute NEE and delta values from components
+NEE         = proc.EddyFlux      + proc.StorFlux;
+NEE_Iso     = proc.EddyIsoflux13 + proc.StorIsoflux13;
+
+data.NEE_d13C     = NEE_Iso ./ NEE;
+data.NEE_d13C_std = repmat(0.3,size(data.NEE_d13C)); %* See Below
+data.NEE_d13C_std(isnan(data.NEE_d13C)) = NaN;
+
+% Start and end strings for Monte-Carlo resampling.
+beg_str = pack_time(2011,1 ,1 ,0,0,0,'std');
+end_str = pack_time(2013,1 ,1 ,0,0,0,'std');
+
+% Get resampled data w/ SDs. 
+% Note samples aren't forced to be positive, but this is alright for now.
+mc = mc_ems_data(data.NEE_d13C,data.NEE_d13C_std,5000,beg_str,end_str,'normrnd');
+
+% Save hourly data to the same structure.
+[nt_op,dt_op] = get_nt_dt_ops([2011,2012]);
+mc.hm         = data.NEE_d13C;
+mc.hs         = data.NEE_d13C_std;
+mc.hm_day     = data.NEE_d13C     .*dt_op;
+mc.hs_day     = data.NEE_d13C_std .*dt_op;
+mc.hm_night   = data.NEE_d13C     .*nt_op;
+mc.hs_night   = data.NEE_d13C_std .*nt_op;
 
 
 
-
-%----------------------------------------------------------------------------------------------%
-% Interpolate actual data                                                                      %
-%----------------------------------------------------------------------------------------------%
-skip  = 0;
-for idata = 1:ndata
-   if ~skip;                                                % Have we already processed this?
-      itime = pack_time(data.YYYY(idata),data.MO(idata),... % Time of datum
-              data.DD(idata),data.HH(idata),0,0,'std');     % ...
-      index = get_date_index(beg_str,itime,'hourly')+2;     % Index for datum in 'temp'
-
-      if data.MI(idata) < 20                                % Then expect a pt after 40min too.
-         same_day = data.DD(idata) == data.DD(idata+1);     % Next pt is in the same day?
-         same_hr  = data.HH(idata) == data.HH(idata+1);     % Next pt is in the same hour?
-
-         if same_day && same_hr
-            EddyFlux(index)      = (data.EddyFlux(idata)      + data.EddyFlux(idata+1))/2; 
-            StorFlux(index)      = (data.StorFlux(idata)      + data.StorFlux(idata+1))/2;
-            EddyIsoflux13(index) = (data.EddyIsoflux13(idata) + data.EddyIsoflux13(idata+1))/2;
-            StorIsoflux13(index) = (data.StorIsoflux13(idata) + data.StorIsoflux13(idata+1))/2;
-            meanDel13C(index)    = (data.meanDel13C(idata)    + data.meanDel13C(idata+1))/2;
-            meanCO2(index)       = (data.meanCO2(idata)       + data.meanCO2(idata+1))/2;
-            skip = 1;
-         else                                               % Next pt not in hr, use this one
-            EddyFlux(index)      = data.EddyFlux(idata); 
-            StorFlux(index)      = data.StorFlux(idata);
-            EddyIsoflux13(index) = data.EddyIsoflux13(idata);
-            StorIsoflux13(index) = data.StorIsoflux13(idata);
-            meanDel13C(index)    = data.meanDel13C(idata);
-            meanCO2(index)       = data.meanCO2(idata);
-         end
+%NEE_Iso_sd = 0.21495 + 14.204* abs(NEE).^(-0.95502);
          
-      else                                                  % Next pt not in hr, use this one
-         EddyFlux(index)      = data.EddyFlux(idata); 
-         StorFlux(index)      = data.StorFlux(idata);
-         EddyIsoflux13(index) = data.EddyIsoflux13(idata);
-         StorIsoflux13(index) = data.StorIsoflux13(idata);
-         meanDel13C(index)    = data.meanDel13C(idata);
-         meanCO2(index)       = data.meanCO2(idata);
-      end
-%       year (index) = data.YYYY(idata);
-%       month(index) = data.MO(idata);
-%       day  (index) = data.DD(idata);
-%       hour (index) = data.HH(idata);
-   else
-      skip = 0;
-   end
-end
-%----------------------------------------------------------------------------------------------%
+%neg_nee_msk = NEE <= 0;
+%pos_nee_msk = ~neg_nee_msk;
 
-% hr_data.year  = year;
-% hr_data.month = month;
-% hr_data.day   = day;
-% hr_data.hour  = hour+1;
-% 
-% hr_data.EddyFlux = EddyFlux;
-% hr_data.StorFlux = StorFlux;
-% hr_data.EddyIsoflux13 = EddyIsoflux13;
-% hr_data.StorIsoflux13 = StorIsoflux13;
-
-%----------------------------------------------------------------------------------------------%
-% Create year, month, day, hour fields for times without data.                                 %
-%----------------------------------------------------------------------------------------------%
-hours = [];
-days  = [];
-mos   = [];
-
-mo_days = reshape(yrfrac(1:12,2011:2012,'-days')',24,1);
-yrs     = [repmat(2011,nhrs/2-12,1); repmat(2012,nhrs/2+12,1)];
-
-for imo = 1:24
-   mos   = [mos  ; repmat(mod(imo-1,12)+1,24*mo_days(imo),1)];
-   days  = [days ; reshape(repmat(1:mo_days(imo),24,1),mo_days(imo)*24,1)];
-   hours = [hours; repmat((0:23)',mo_days(imo),1)];
-end
-
-dates = [yrs,mos,days,hours];
-%----------------------------------------------------------------------------------------------%
+%NEE_Unc     = ((25/7)*NEE     + (515/7)).*neg_nee_msk + (0.50)*NEE    .*pos_nee_msk;
+%NEE_Iso_Unc = ((25/7)*NEE_Iso + (515/7)).*neg_nee_msk + (0.50)*NEE_Iso.*pos_nee_msk;
 
 
-%----------------------------------------------------------------------------------------------%
-% Pack data for export.                                                                        %
-%----------------------------------------------------------------------------------------------%
-NEE     = EddyFlux + StorFlux;
-NEE_Iso = EddyIsoflux13 + StorIsoflux13;
 
-neg_nee_msk = NEE <= 0;
-pos_nee_msk = ~neg_nee_msk;
-
-NEE_Unc     = ((25/7)*NEE     + (515/7)).*neg_nee_msk + (0.50)*NEE    .*pos_nee_msk;
-NEE_Iso_Unc = ((25/7)*NEE_Iso + (515/7)).*neg_nee_msk + (0.50)*NEE_Iso.*pos_nee_msk;
-
-d13C_Unc = meanDel13C * 0.01;
-CO2_Unc  = meanCO2    * 0.01;
-
-hr_data = [dates, NEE, NEE_Unc, NEE_Iso, NEE_Iso_Unc, meanDel13C, d13C_Unc, meanCO2, CO2_Unc];
-hr_data(isnan(hr_data)) = -9999;
 
 %----------------------------------------------------------------------------------------------%
 end
 
+% * Note: SD is conservative upper bound, twice the reported approx. error from
+% "What are the instrument requirements for measuring the isotopic composition of net ecosystem
+% exchange of CO2 using eddy covariance methods?" Saleska et al (2005)

@@ -30,7 +30,7 @@ while keep_iterating(cfe,ui.niter,ui.opt_type)
       %end
       
    elseif cfe.run_local
-      [hist.obj(:,cfe.iter)] = run_jobs   (cfe,obs,hist,ui);
+      [hist.obj(:,cfe.iter)] = run_jobs_locally(cfe,obs,hist,state_prop,ui);
    end
    
    hist = proc_jobs  (cfe,hist,ui);
