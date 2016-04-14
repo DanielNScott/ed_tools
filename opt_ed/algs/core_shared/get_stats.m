@@ -56,7 +56,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          obs_data = obs.proc.(res).(fld);                % Get the observational data
          obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
 
-         [obs_data, obs_unc] ...                         % Make sure sizes are conformant.
+         [obs_data, obs_unc, out_data] ...               % Make sure sizes are conformant.
             = check_sizes(obs_data,obs_unc,out_data,fld);% If not, leading data trimmed.
 
 %             % THIS IS A HACK TO MAKE FIA DATA WORK! %

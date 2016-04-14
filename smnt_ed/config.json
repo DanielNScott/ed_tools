@@ -11,7 +11,8 @@
         "cluster" : {
             "scheduler"         : "SLURM",
             "max-concurrent"    : 1,
-            "max-finished-jobs" : 3
+            "max-finished-jobs" : 3,
+            "scheduler-args"    : "-p moorcroft_6100"
         }
     },
     "tasks": {
