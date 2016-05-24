@@ -13,6 +13,11 @@ if length(vname) > 2 && strcmp(vname(end-1:end),'_C')
    c13_name  = [vname,'13'];
    d13C_name = [vname(1:end-2),'_d13C'];
 elseif length(vname) > 3 && any(strcmp(vname(end-2:end),{'_CO','_PA','_SI','_PY'}))
+   if length(vname) > 6 && strcmp(vname(end-4:end-2),'_C_')
+      c13_name  = [vname(1:end-5),'_C13',vname(end-2:end)];
+      d13C_name = [vname(1:end-5),'_d13C',vname(end-2:end)];
+      return
+   end
    c13_name  = [vname(1:end-3),'_C13',vname(end-2:end)];
    d13C_name = [vname(1:end-3),'_d13C',vname(end-2:end)];
 else

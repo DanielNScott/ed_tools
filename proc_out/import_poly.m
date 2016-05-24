@@ -9,7 +9,18 @@ function [ out ] = import_poly( rundir, dbug )
 
    [sim_beg, sim_end] = get_sim_times(namelist);
    
-   map = def_ed_varmap();   
+   if isfield(namelist,'C13AF')
+      read_c13 = str2double(namelist.C13AF);
+   else
+      read_c13 = 0;
+   end
+   
+   if read_c13
+      map = def_ed_varmap(0);
+   else
+      map = def_ed_varmap(1);
+   end
+   
    out = struct;
    
    out.namelist = namelist;
@@ -37,12 +48,6 @@ function [ out ] = import_poly( rundir, dbug )
             disp('Warning, import poly was asked to generate a 0 length list of filenames.')
             disp('Check the simulation start and end times and the output type.')
             return;
-         end
-         
-         if isfield(namelist,'C13AF')
-            read_c13 = str2double(namelist.C13AF);
-         else
-            read_c13 = 0;
          end
          
          vdisp(['Beginning ',io_cur,' HDF5 file loop...'],0,dbug)
@@ -450,7 +455,10 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       %nee_fact = KgperSqm2TperHa /365;
       nee_fact = 1;
       
-      out.X.DMEAN_Soil_Resp  = out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO;
+      out.X.DMEAN_Reco         = out.T.DMEAN_PLRESP_CO + out.T.DMEAN_RH_PA;
+      out.X.DMEAN_Reco_HF      = out.T.DMEAN_RH_PA    ./ out.X.DMEAN_Reco;
+      out.X.DMEAN_Soil_Resp    = out.T.DMEAN_RH_PA     + out.T.DMEAN_ROOT_RESP_CO;
+      out.X.DMEAN_Soil_Resp_HF = out.T.DMEAN_RH_PA    ./ out.X.DMEAN_Soil_Resp;
       
       if ~isempty(out.T.DMEAN_ROOT_GROWTH_RESP_CO)
          out.X.DMEAN_Soil_Resp = out.X.DMEAN_Soil_Resp           ... 
