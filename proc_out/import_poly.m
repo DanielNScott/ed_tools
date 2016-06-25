@@ -699,6 +699,11 @@ for i = 1:nfields
       out.H.(vname) = [ ];
       out.G.(vname) = [ ];
       
+      out.pft2.(vname)  = [ ];
+      out.pft4.(vname)  = [ ];
+      out.pft25.(vname) = [ ];
+      out.pft26.(vname) = [ ];
+      
       if anlg_exist && read_c13
          out.T.(c13_name) = [ ];
          out.C.(c13_name) = [ ];
@@ -788,7 +793,19 @@ out.C.(savname)(fnum) = 0.0;
 out.H.(savname)(fnum) = 0.0;
 out.G.(savname)(fnum) = 0.0;
 for k=1:length(tempVar)
-   if sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
+   if out.raw.PFT{fnum}(k) == 2)
+      out.pft2.(savname)(fnum) = out.pft2.(savname)(fnum) + tempVar(k);
+      pft2_cnt = pft2_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 4)
+      out.pft4.(savname)(fnum) = out.pft4.(savname)(fnum) + tempVar(k);
+      pft4_cnt = pft4_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 25)
+      out.pft25.(savname)(fnum) = out.pft25.(savname)(fnum) + tempVar(k);
+      pft25_cnt = pft25_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 26)
+      out.pft26.(savname)(fnum) = out.pft26.(savname)(fnum) + tempVar(k);
+      pft26_cnt = pft26_cnt + 1;
+   elseif sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
       out.C.(savname)(fnum) = out.C.(savname)(fnum) + tempVar(k);
       co_cnt = co_cnt + 1;
    elseif sum(out.raw.PFT{fnum}(k) == [9,10,11] > 0)
@@ -804,6 +821,11 @@ if  strcmp(norm_cond,'avg')
    out.C.(savname)(fnum) = out.C.(savname)(fnum)/co_cnt;
    out.H.(savname)(fnum) = out.H.(savname)(fnum)/hw_cnt;
    out.G.(savname)(fnum) = out.G.(savname)(fnum)/gr_cnt;
+
+   out.pft2.(savname)(fnum)  = out.pft2.(savname)(fnum) /pft2_cnt;
+   out.pft4.(savname)(fnum)  = out.pft4.(savname)(fnum) /pft4_cnt;
+   out.pft25.(savname)(fnum) = out.pft25.(savname)(fnum)/pft25_cnt;
+   out.pft26.(savname)(fnum) = out.pft26.(savname)(fnum)/pft26_cnt;
 end
 
 end
