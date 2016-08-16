@@ -32,20 +32,20 @@ clearvars -except ui
 
 % Look for opt.mat, infer init/restart status, determine opt_years.
 cfe.restart = 0; % By default.
+disp(['Restart? (Boolean): ', num2str(cfe.restart)])
 if ui.opt_mat_check
    if exist('./opt.mat','file')
+
+      % Give primacy to new value of some vars:
+      resub_override = ui.resub_override;
+      disp('Resubmission override from current settings file taking primacy over opt.mat content.')
+
       load('./opt.mat')
+      
+      ui.resub_override = resub_override;
       cfe.restart = 1;
    end
-%   [opt_check] = check_for_opt_mat(cfe,ui);
-%   if ~isempty(opt_check)
-%      cfe  = opt_check{1};
-%      hist = opt_check{2};
-%      nfo  = opt_check{3};
-%      ui   = opt_check{4};
-%   end
 end
-disp(['Restart? (Boolean): ', num2str(cfe.restart)])
 
 if ~ cfe.restart
    cfe  = init_cfe(cfe,ui);
@@ -54,8 +54,6 @@ if ~ cfe.restart
    % Get observations against which to compare the model.
    if ~ cfe.is_test
       disp('Retrieving observational data...')
-      % DEPRECATED
-      %data.obs = get_obs( ui.opt_data_dir, ui.data_fnames , cfe.simres);
       obs = get_obs( ui.opt_data_dir, ui.obs_prefixes, cfe.simres, ui.obs_years);
    else
       obs = [];

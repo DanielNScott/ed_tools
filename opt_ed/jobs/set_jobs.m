@@ -11,7 +11,6 @@ vdisp(['set_jobs sees njobs as: ' num2str(njobs,fmt)],1,ui.verbose);
 vdisp(' ',1,ui.verbose)
 
 %--- Some parameters controlling submission ---%
-not_restart   = ~restart;
 use_srun      = strcmp(ui.alloc_method,'sbsr');
 upfront_alloc = strcmp(ui.alloc_method,'upfront') || use_srun;
 
@@ -44,8 +43,7 @@ for job_num = first_job:njobs
              ,state_input,labels,ui.pfts,ui.persist,ui.verbose);
 
    %--- Decide to skip submission or not ---%
-   not_iter_one  = iter > 1;
-   if not_iter_one && not_restart && upfront_alloc
+   if iter > 1 && not(restart) && upfront_alloc
       vdisp('Upfront allocation on and iter > 1, skipping slurm interaction.',1,ui.verbose)
       vdisp(' ',1,ui.verbose)
       continue
