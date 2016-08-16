@@ -62,6 +62,20 @@ map.FMEAN_SAPA_STORAGE_RESP_PY = {'ed', 1  , 1, 'TI',  'kgC/pl/yr' , 'kgC/m2/yr'
 map.FMEAN_SAPB_STORAGE_RESP_PY = {'ed', 1  , 1, 'TI',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_STORAGE_RESP_PY      = {'ed', 1  , 1, 'TI',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.FMEAN_SOIL_WATER_PY        = {'ed', 0  , 0, 'TI',   'm3/m3'     , 'm3/m3'     };
+map.FMEAN_FSW_PY               = {'ed', 0  , 0, 'TI',   ''          , ''          };
+map.FMEAN_VAPOR_GC_PY          = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_VAPOR_AC_PY          = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_VAPOR_LC_PY          = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_VAPOR_WC_PY          = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_TRANSP_PY            = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_TRANSLOSS_PY         = {'ed', 0  , 0, 'TI',   'kgW/m2g/s' , 'kgW/m2g/s' };
+map.FMEAN_LEAF_GSW_PY          = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_LEAF_GBW_PY          = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_LEAF_WATER_PY        = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_WOOD_WATER_PY        = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_WOOD_GBW_PY          = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_LEAF_VPDEF_PY        = {'ed', 0  , 0, 'TI',   'kg/m2l/s'  , 'kg/m2l/s'  };
+map.FMEAN_LAI_PY               = {'ed', 0  , 0, 'TI'};
 ...
 ... %%------------ Fast not Tower: ------------%%
 map.FMEAN_FS_OPEN_CO           = {'pa', 0  , 0, 'I',   'None'      , 'None'       };

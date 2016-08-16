@@ -122,7 +122,9 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
       % likelihoods being less negative than 'initial' likelihoods. Meaning the greater
       % "best - init" is, the more improvement there is.
       subaxis(1,2,1,'S',0.015,'P',0.03,'Margin',0.015)
-      pie(double(better)); colormap(cool);
+      if not(isempty(better))
+         pie(double(better)); colormap(cool);
+      end
       title('\bf{Better}')
       legend(bnames,'Interpreter','None','Location','SouthEast')
 

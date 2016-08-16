@@ -11,9 +11,9 @@ if strcmp(opt_type,'PSO')
    init_best_ind   = obj == min(obj(:,1));
    global_best_ind = obj == min(obj(:));
    best_inds       = or(init_best_ind,global_best_ind);
-   iter_best       = find(sum(global_best_ind));
+%   iter_best       = find(sum(global_best_ind));
 else
-   iter_best = iter_best;
+%   iter_best = iter_best;
 end
 
 

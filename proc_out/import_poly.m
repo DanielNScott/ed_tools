@@ -793,16 +793,16 @@ out.C.(savname)(fnum) = 0.0;
 out.H.(savname)(fnum) = 0.0;
 out.G.(savname)(fnum) = 0.0;
 for k=1:length(tempVar)
-   if out.raw.PFT{fnum}(k) == 2)
+   if out.raw.PFT{fnum}(k) == 2
       out.pft2.(savname)(fnum) = out.pft2.(savname)(fnum) + tempVar(k);
       pft2_cnt = pft2_cnt + 1;
-   elseif out.raw.PFT{fnum}(k) == 4)
+   elseif out.raw.PFT{fnum}(k) == 4
       out.pft4.(savname)(fnum) = out.pft4.(savname)(fnum) + tempVar(k);
       pft4_cnt = pft4_cnt + 1;
-   elseif out.raw.PFT{fnum}(k) == 25)
+   elseif out.raw.PFT{fnum}(k) == 25
       out.pft25.(savname)(fnum) = out.pft25.(savname)(fnum) + tempVar(k);
       pft25_cnt = pft25_cnt + 1;
-   elseif out.raw.PFT{fnum}(k) == 26)
+   elseif out.raw.PFT{fnum}(k) == 26
       out.pft26.(savname)(fnum) = out.pft26.(savname)(fnum) + tempVar(k);
       pft26_cnt = pft26_cnt + 1;
    elseif sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
