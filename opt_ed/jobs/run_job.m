@@ -144,9 +144,54 @@ for iter = 1:niter
       %----------------------------------------------------------------------------------%
 
 
+      %----------------------------------------------------------------------------------%
+      % Compare this particle's objective function on this iteration to that of last.    %
+      % If it is much larger, we'll want information on why.                             %
+      %----------------------------------------------------------------------------------%
+      fname   = 'stats_logfile.csv';
+      header  = '';
+      log_row = [];
+      
+      res_flds = fieldnames(stats.likely);
+      for res_num = 1:numel(res_flds)
+         res = res_flds{res_num};
+         obs_flds = fieldnames(stats.likely.(res));
+
+         for obs_num = 1:numel(obs_flds)
+            obs    = obs_flds{obs_num};
+            header = [header ', ' [res '_' obs]];
+
+            likelihood = -1*nansum(stats.likely.(res).(obs));
+            log_row    = [log_row likelihood];
+         end
+      end
+      header  = [header, ', total_likelihood \n'];
+      log_row = [log_row, stats.total_likely];
+
+      % Write to log file
+      
+      if iter == 1
+         fid = fopen(fname,'wt');
+         fprintf(fid,header);
+         fclose(fid);
+      end
+      
+      dlmwrite(fname,log_row,'delimiter',',','-append','precision','%013.3f');
+
+      if iter > 1
+         prev_obj = hist.obj(job_num,iter);
+         if abs(obj) > 10*abs(prev_obj)
+            save(['anomalous_obj_data.mat', num2str(iter)])
+         end
+      end
+      %----------------------------------------------------------------------------------%
+
+
+      %----------------------------------------------------------------------------------%
       % If this is the first particle and the first iteration, transfer back the processed
       % observational data, otherwise just xfer the output and the objective. Elements of structures
       % aren't valid variables here so we have to put them in "normal" vars.
+      %----------------------------------------------------------------------------------%
       if job_num == 1 && iter == 1 && ~cfe.is_test
          vdisp('Saving obs_proc.mat.',1,ui.verbose)
          save(obs_proc_fname,'obs')
