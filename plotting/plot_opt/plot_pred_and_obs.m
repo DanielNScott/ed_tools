@@ -2,10 +2,7 @@ function [ ] = plot_pred_and_obs(obj,iter_best,out_best,stats,out_ref,obs,opt_ty
 %PLOT_LIKELY_ANALY Summary of this function goes here
 %   Detailed explanation goes here
 
-% obj iter_best out_best stats out_ref
-% opt_type, opt_metadata
-recalc_likely = 0;
-
+recalc_likely = 0;                                       % Flag for checking likelihood calculation.
 
 if strcmp(opt_type,'PSO')
    init_best_ind   = obj == min(obj(:,1));
@@ -16,12 +13,10 @@ else
 %   iter_best = iter_best;
 end
 
-
-opt_metadata = opt_metadata;
-out = out_best;
-
-row_ind  = 0;
-
+%-------------------------------------------------------------------------%
+% Here we cycle through resolutions and fields to plot, compare, and
+% compute derived quantities for each observation-prediction pair.
+%-------------------------------------------------------------------------%
 resolutions = fieldnames(obs);                           % What data resolutions exist?
 for res_num = 1:numel(resolutions)                       % Cycle through the resolutions
 
@@ -52,7 +47,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             out_fld(2) = 'Y';                            % struct to reworked copy under "Y".
          end
 
-         out_data = out.(out_fld(2)).(out_fld(4:end));   % Get output data
+         out_data = out_best.(out_fld(2)).(out_fld(4:end));   % Get output data
          obs_data = obs.proc.(res).(fld);                % Get the observational data
          obs_unc  = obs.proc.(res).([fld '_sd']);        % Get the uncertainty data
 
@@ -61,6 +56,9 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          [obs_data, obs_unc, out_data] ...               % Make sure sizes are conformant.
             = check_sizes(obs_data,obs_unc,out_data,fld);% If not, leading data trimmed.
 
+         %----------------------------------------------------------------%
+         % Some saved code for changing FIA data sizes.                   %
+         %----------------------------------------------------------------%
 %          % THIS IS A HACK TO MAKE FIA DATA WORK! %
 %          if strcmp(type,'FIA')
 %            %obs_data = obs_data(2:end);
@@ -99,15 +97,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          % Open a figure and save formatting info.     %
          %---------------------------------------------%
          figure('Name',data_name)
-         fig_pos = get(gcf,'Position');
-         fig_pos(3) = fig_pos(3)*2;
-         set(gcf,'Position',fig_pos)
+         set(gcf,'Position',[1,1,890,799]);
          
          % Subaxis options
-         sp = 0.015; pd = 0.03;
-         pt = 0.05;  pb = 0.06;
-         ma = 0.03;  mt = 0.03;
-         mb = 0.03;
+         sp = 0.03;  pd = 0.00;
+         pt = 0.005; pb = 0.00;
+         ma = 0.07;  mt = 0.05;
+         mb = 0.05;
          
          [yrs, mos, ds] = tokenize_time(out_best.sim_beg,'ED','num');
          [yrf, mof, df] = tokenize_time(out_best.sim_end,'ED','num');
@@ -150,13 +146,23 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          
          likely = -1 *likely;
          
+         cum_likely = likely;
+         cum_likely(isnan(likely)) = 0;
+         cum_likely = cumsum(cum_likely,1);
+         cum_likely(isnan(likely)) = NaN;
 
          %---------------------------------------------%
          % Plot predictions, observations, likelihoods %
          %---------------------------------------------%
          delta_ll = likely(:,2) - likely(:,1);
-            
-         subaxis(1,2,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+
+         cum_delta_ll = delta_ll;
+         cum_delta_ll(isnan(delta_ll)) = 0;
+         cum_delta_ll = cumsum(cum_delta_ll,1);
+         cum_delta_ll(isnan(delta_ll)) = NaN;
+
+         % Plot panel 1, the actual predictions 
+         subaxis(3,1,1,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if strcmp(res,'yearly')
             barwitherr(bar_unc',pdata')               
             colormap(barcolors)
@@ -168,8 +174,10 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             errorbar(1:datalen,pdata(end,:),bar_unc(end,:),'Color','r');               
             hold off
             set_monthly_labels(gca,1);
+            set(gca,'XLim',[0,datalen]);
          else
             plot(1:datalen,pdata,marker);
+            set(gca,'XLim',[0,datalen]);
          end
          
          title(['\bf{' data_name '}'])
@@ -179,11 +187,12 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          
          legend({'Ref','Best','Obs'})
          ylabel(' ')
-         %xlabel(xlab)
-            
+         %%xlabel(xlab)
+         set(gca,'XTickLabel','')
+
          
-         % Plot associated (detailed) likelihoods.     %
-         subaxis(2,2,2,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         % Plot panel 2, the associated (detailed) likelihoods.     %
+         subaxis(6,1,3,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if strcmp(res,'yearly')
             BH = bar(likely);
             set(BH(1),'FaceColor',[0,0,1])
@@ -192,30 +201,81 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          elseif strcmp(res,'monthly')
             plot(1:datalen,likely,marker)
             set_monthly_labels(gca,1);
+            set(gca,'XLim',[0,datalen]);
          else
             plot(1:datalen,likely,marker)
+            set(gca,'XLim',[0,datalen]);
          end
          
          legend({'Ref', 'Best'})
-         title(['\bf{' data_name ' Likelihood}'])
+         title(['\bf{' data_name ' Likelihoods by Datum}'])
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
          set(gca,'XGrid','on')
          ylabel('-1 * Log Likelihood')
-         xlabel(xlab)
+         %xlabel(xlab)
+         set(gca,'XTickLabel','')
+
          
-         % Plot associated (detailed) likelihoods.     %
-         subaxis(2,2,4,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         % Plot panel 3 associated cumulative sum of likelihoods.     %
+         subaxis(6,1,4,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         if strcmp(res,'yearly')
+            BH = bar(likely);
+            set(BH(1),'FaceColor',[0,0,1])
+            set(BH(2),'FaceColor',[0,0.48,0])
+            set(gca,'XTickLabel',xtck)
+         elseif strcmp(res,'monthly')
+            plot(1:datalen,cum_likely,marker)
+            set_monthly_labels(gca,1);
+            set(gca,'XLim',[0,datalen]);
+         else
+            plot(1:datalen,cum_likely,marker)
+            set(gca,'XLim',[0,datalen]);
+         end
+         
+         legend({'Ref', 'Best'},'Location','SouthEast')
+         title(['\bf{Cumulative Sums of ' data_name ' Likelihoods}'])
+         set(gca,'YGrid','on')
+         set(gca,'YMinorGrid','off')
+         set(gca,'XGrid','on')
+         ylabel('-1 * Log Likelihood')
+         %xlabel(xlab)
+         set(gca,'XTickLabel','')
+         
+         % Plot associated (detailed) likelihood changes.     %
+         subaxis(6,1,5,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          bar(delta_ll)
          if strcmp(res,'yearly')
             set(gca,'XTickLabel',xtck)
          elseif strcmp(res,'monthly')
             set_monthly_labels(gca,1);
+            set(gca,'XLim',[0,datalen]);
          else
-            xlabel(xlab)
+            %xlabel(xlab)
+            set(gca,'XLim',[0,datalen]);
          end
          
-         title(['\bf{\Delta_{log likely}}'])
+         title(['\bf{\Delta_{log likely} by Datum}'])
+         set(gca,'YGrid','on')
+         set(gca,'XGrid','on')
+         set(gca,'YMinorGrid','off')
+         ylabel('-1 * Log Likelihood')
+         set(gca,'XTickLabel','')
+         
+         % Plot associated (detailed) likelihood changes.     %
+         subaxis(6,1,6,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
+         bar(cum_delta_ll)
+         if strcmp(res,'yearly')
+            set(gca,'XTickLabel',xtck)
+         elseif strcmp(res,'monthly')
+            set_monthly_labels(gca,1);
+            set(gca,'XLim',[0,datalen]);
+         else
+            xlabel(xlab)
+            set(gca,'XLim',[0,datalen]);
+         end
+         
+         title(['\bf{Cumulative Sums of \Delta_{log likely}}'])
          set(gca,'YGrid','on')
          set(gca,'XGrid','on')
          set(gca,'YMinorGrid','off')

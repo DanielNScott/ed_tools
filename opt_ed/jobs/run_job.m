@@ -148,7 +148,7 @@ for iter = 1:niter
       % Compare this particle's objective function on this iteration to that of last.    %
       % If it is much larger, we'll want information on why.                             %
       %----------------------------------------------------------------------------------%
-      fname   = 'stats_logfile.csv';
+      fname   = [job_dir 'stats_logfile.csv'];
       header  = '';
       log_row = [];
       
