@@ -4,7 +4,7 @@ function [ out ] = rework_data( obs, out, opt_metadata )
 %the data implies the corresponding value in the output should be NaN) and then creates daily,
 %monthly, and yearly means of the output for comparison with corresponding means in obs. These
 %are saved in out.Y.(fld) fields.
-%   Detailed explanation goes here
+%   Note: Only applies to hourly data. Rework flag gets ignored for other resolutions.
 
 fields = fieldnames(obs.hourly);                         % What types of hourly data are there?
 for fld_num = 1:numel(fields)                            % Cycle through fields
@@ -67,8 +67,39 @@ for fld_num = 1:numel(fields)                            % Cycle through fields
          end
          out_beg = [num2str(beg_yr), '-01-01-00-00-00']; % And pretend we started on the 1st.
          
-         % Aggregate the modified data
-         agg_dat = aggregate_data(out_data,out_beg,out_end,'ave');
+         % d13C data isn't aggregated independently.
+         d13C_flds = {'nee_d13C_Day', 'nee_d13C_Night', 'sr_iso_Day', 'sr_iso_Night'};
+         d13C_comp = strcmp(fld, d13C_flds);
+         is_d13C   = any(d13C_comp);
+         if is_d13C
+            
+            % We need to get rid of outliers with negligable contributions to total NEE and NEE_C13 
+            % flux because they have a disproportionately adverse impact on the likelihoods.
+            out_fld_total = ['FMEAN_NEE'     out_fld(15:end)];
+            out_fld_heavy = ['FMEAN_NEE_C13' out_fld(15:end)];
+            
+            nee      = out.Y.(out_fld_total);
+            nee_c13  = out.X.(out_fld_heavy);
+            nee_d13C = get_d13C(nee_c13, nee);
+            
+            prctile_msk = abs(nee) < prctile(abs(nee), 1);
+            outlier_msk = abs(nee_d13C) > 100;
+            removal_msk = and(prctile_msk, outlier_msk);
+             
+            nee(removal_msk)     = NaN;
+            nee_c13(removal_msk) = NaN;
+            
+            % Note that even though isn't totally NaN-masked in accordance w/ nee, 
+            % aggregate_d13C_data (below) will still work as if it is.
+            
+            % Re-compute d13C aggregates
+            agg_dat = aggregate_d13C_data(nee', nee_c13', out_beg, out_end, 'ave');
+
+            out.Y.(out_fld) = nee_d13C';
+         else
+            % Aggregate the modified data
+            agg_dat = aggregate_data(out_data,out_beg,out_end,'ave');
+         end
          
          % Xfer the aggregates to new fields.
          out.Y.(out_fld_dmean) = agg_dat.dmeans';

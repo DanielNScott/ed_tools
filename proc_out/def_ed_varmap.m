@@ -39,10 +39,10 @@ map.STRUCTURAL_SOIL_C_PY   = {'ed', 1  , 0, 'DI'   ,  'kgC/m2' , 'kgC/m2'  };
 map.FMEAN_RH_PA                = {'si', 1  , 0, 'TI' };
 map.FMEAN_CWD_RH_PA            = {'si', 1  , 0, 'TI',   ''          , ''           };
 map.FMEAN_CSTAR_PA             = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
-map.FMEAN_CAN_CO2_PA           = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 map.FMEAN_CARBON_AC_PA         = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 map.FMEAN_CARBON_ST_PA         = {'si', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 ...
+map.FMEAN_CAN_CO2_PY           = {'ed', 1  , 0, 'TI',  'umol/mol'  , 'umol/mol'   };
 map.FMEAN_GPP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
 map.FMEAN_NEP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
 map.FMEAN_NPP_PY               = {'ed', 1  , 0, 'TI',  'kgC/m2/yr' , 'kgC/m2/yr'  };
@@ -117,6 +117,7 @@ map.DMEAN_RH_PA                = {'si', 1  , 0, 'D',   ''          , ''         
 map.DMEAN_CWD_RH_PA            = {'si', 1  , 0, 'D',   ''          , ''           };
 ...
 map.DMEAN_NEP_PY               = {'ed', 1  , 0, 'D',   'kgC/m2/yr' , 'kgC/m2/yr'  };
+map.DMEAN_CAN_CO2_PY           = {'ed', 1  , 0, 'D',   'umol/mol'  , 'umol/mol'   };
 ...
 ... %%------------ MONTHLY: ------------%%
 map.BA_CO                      = {'pa', 0  , 1, 'QE',  'cm2'       , 'cm2'        };
@@ -165,6 +166,7 @@ map.MMEAN_SENSIBLE_AC_PY       = {'un', 0  , 1, 'QE',  'W/m2'      , 'W/m2'     
 map.MMEAN_VAPOR_AC_PY          = {'un', 0  , 1, 'QE',  'kgH2O/m2/s', 'kgH2O/m2/s' };
 %map.MMEAN_MORT_RATE_CO         = {'pa', 0  , 1, 'QE'};
 ...
+map.MMEAN_CAN_CO2_PY           = {'ed', 1  , 0, 'QE',  'umol/mol'  , 'umol/mol'   };
 map.BASAL_AREA_PY              = {'ed', 0  , 0, 'QE'};
 map.MMEAN_NEP_PY               = {'ed', 1  , 0, 'QE',  'kgC/pl/yr' , 'kgC/m2/yr'  };
 map.MMEAN_RH_PY                = {'ed', 1  , 0, 'QE',  'kgC/m2'    , 'kgC/m2'     };
@@ -178,6 +180,7 @@ map.QMEAN_NEP_PY               = {'ed', 0  , 1, 'Q' ,  'kgC/pl/yr' , 'kgC/m2/yr'
 map.QMEAN_RH_PY                = {'ed', 0  , 1, 'Q' ,  'kgC/m2'    , 'kgC/m2'     };
 ...
 ... %%------------ YEARLY: ------------%%
+map.YMEAN_CAN_CO2_PY           = {'ed', 1  , 0, 'Y' ,  'umol/mol'  , 'umol/mol'   };
 map.STRUCTURAL_SOIL_L          = {'si', 0  , 0, 'Y' ,  'kgL/m2'    , 'kgL/m2'     };
 map.BASAL_AREA_GROWTH          = {'un', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };
 map.BASAL_AREA_MORT            = {'un', 0  , 0, 'Y' ,  'cm2/m2/yr' , 'cm2/m2/yr'  };

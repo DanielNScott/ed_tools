@@ -119,7 +119,7 @@ for iter = 1:niter
       end
       if iter == 1
          vdisp('Preprocessing the observational data... ',0,ui.verbose);
-         obs = preproc_obs(obs, pred, ui.opt_metadata);
+         obs = preproc_obs(obs, pred.namelist, ui.opt_metadata);
       end
       pred = rework_data(obs, pred, ui.opt_metadata);
       %-------------------------------------------------------------------------------%
@@ -189,8 +189,8 @@ for iter = 1:niter
 
       %----------------------------------------------------------------------------------%
       % If this is the first particle and the first iteration, transfer back the processed
-      % observational data, otherwise just xfer the output and the objective. Elements of structures
-      % aren't valid variables here so we have to put them in "normal" vars.
+      % observational data, otherwise just xfer the output and the objective. Elements of 
+      % structures aren't valid variables here so we have to put them in "normal" vars.
       %----------------------------------------------------------------------------------%
       if job_num == 1 && iter == 1 && ~cfe.is_test
          vdisp('Saving obs_proc.mat.',1,ui.verbose)
