@@ -5,9 +5,9 @@ function [ recvr ] = update_struct( donor, recvr )
 rflds = fieldnames(recvr);
 dflds = fieldnames(donor);
 
-if ~isempty(setdiff(rflds,dflds))
-   error('At this time you cannot use update_struct with structs having different field names.')
-end
+%if ~isempty(setdiff(rflds,dflds))
+%   error('At this time you cannot use update_struct with structs having different field names.')
+%end
 
 for fld_num = 1:numel(dflds)                    % Want to access all flds, so loop
    dfld = dflds{fld_num};                       % Get field name for easy access
