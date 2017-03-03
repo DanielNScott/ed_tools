@@ -170,7 +170,7 @@ for iter = 1:niter
 
       % Write to log file
       
-      if iter == 1
+      if not(exist(fname,'file'))
          fid = fopen(fname,'wt');
          fprintf(fid,header);
          fclose(fid);
