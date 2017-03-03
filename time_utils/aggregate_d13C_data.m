@@ -72,6 +72,7 @@ dmeans       = NaN(nyrs*366   ,ndcol);
 dmeans_day   = NaN(nyrs*366   ,ndcol);
 dmeans_night = NaN(nyrs*366   ,ndcol);
 
+hourly       = NaN(nyrs*366*24,ndcol);
 hourly_day   = NaN(nyrs*366*24,ndcol);
 hourly_night = NaN(nyrs*366*24,ndcol);
 
@@ -229,6 +230,7 @@ for yr_num = 1:nyrs
          dmeans_day(dcnt,:)   = get_d13C(dt_agg_C13.agg, dt_agg.agg);        % ...
          dmeans_night(dcnt,:) = get_d13C(nt_agg_C13.agg, nt_agg.agg);        % ...
          
+         hourly      (hind:hind+23,:) = get_d13C(d_dat_C13, d_dat );         % Save 
          hourly_day  (hind:hind+23,:) = get_d13C(dt_dat_C13,dt_dat);
          hourly_night(hind:hind+23,:) = get_d13C(nt_dat_C13,nt_dat);
          
@@ -266,11 +268,13 @@ if sflg
 end
 
 mmeans_night = mmeans_night(1:mcnt-1,:);
+hourly       = hourly(1:hind-1,:);
 hourly_day   = hourly_day(1:hind-1,:);
+hourly_night = hourly_night(1:hind-1,:);
 dmeans_day   = dmeans_day(1:dcnt-1,:);
 mmeans_day   = mmeans_day(1:mcnt-1,:);
-dmeans = dmeans(1:dcnt-1,:);
-mmeans = mmeans(1:mcnt-1,:);
+dmeans       = dmeans(1:dcnt-1,:);
+mmeans       = mmeans(1:mcnt-1,:);
 dmeans_night = dmeans_night(1:dcnt-1,:);
 
 if sds
@@ -292,6 +296,7 @@ agg_dat.mmeans_night = mmeans_night;
 agg_dat.dmeans       = dmeans;
 agg_dat.dmeans_day   = dmeans_day;
 agg_dat.dmeans_night = dmeans_night;
+agg_dat.hourly       = hourly;
 agg_dat.hourly_day   = hourly_day;
 agg_dat.hourly_night = hourly_night;
 
