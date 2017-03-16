@@ -81,13 +81,16 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
 
          % Update Statistics
          try
+            % Sick of stupid shape errors!
+            out_data = reshape(out_data, size(obs_data));
+
             stats.SSTot = stats.SSTot +  nansum((obs_data - obs_ave  ).^2);
-            stats.SSRes = stats.SSRes +  nansum((obs_data - out_data').^2);
+            stats.SSRes = stats.SSRes +  nansum((obs_data - out_data ).^2);
             stats.Sx    = stats.Sx    +  nansum( obs_data                ); 
             stats.Sy    = stats.Sy    +  nansum( out_data                );
             stats.Sx2   = stats.Sx2   +  nansum( obs_data.^2             );
             stats.Sy2   = stats.Sy2   +  nansum( out_data.^2             );
-            stats.SPxy  = stats.SPxy  +  nansum( obs_data.*out_data'     );
+            stats.SPxy  = stats.SPxy  +  nansum( obs_data.*out_data      );
             stats.ns    = stats.ns    +  ns;
          catch ME
             ME.getReport()
@@ -105,10 +108,10 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
 
          if strcmp(res,'hourly')
             % Get the normalized absolute error.
-            stats.likely.(res).(fld) = get_NAE(obs_data, out_data', obs_unc)* -0.5/ns;
+            stats.likely.(res).(fld) = get_NAE(obs_data, out_data, obs_unc)* -0.5/ns;
          else
             % Get Nintendo Entertainment System! Sweeet!
-            stats.likely.(res).(fld) = get_NES(obs_data, out_data', obs_unc)* -0.5/ns;
+            stats.likely.(res).(fld) = get_NES(obs_data, out_data, obs_unc)* -0.5/ns;
          end
 
          % Update total likelihood
