@@ -125,9 +125,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          end
          %---------------------------------------------%
          
-         zero_pad   = zeros(size(obs_unc'));
-         bar_unc    = [zero_pad; obs_unc'];
-         pdata      = [out_data; obs_data'];
+         disp(data_name)
+         disp(mat2str(size(out_data)))
+         disp(mat2str(size(obs_data)))
+         
+         zero_pad   = zeros(size(obs_unc(:)'));
+         bar_unc    = [zero_pad; obs_unc(:)'];
+         pdata      = [out_data(:)'; obs_data(:)'];
          likely     = stats.likely.(res).(fld)(:,iter_best);
          
          %ref_exists = isfield(hist,'pred_ref');
@@ -136,10 +140,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             ref_like = stats.ref.likely.(res).(fld);
             
             if any(strcmp(fld(1:3),{'BAG','BAR','BAM'}))
+               if length(ref_data) < 3;
+                  continue
+               end
                ref_data = ref_data(2:3);
             end
             
-            pdata   = [ref_data; pdata];
+            pdata   = [ref_data(:)'; pdata];
             likely  = [ref_like, likely];
             bar_unc = [zero_pad; bar_unc];
          %end
@@ -195,9 +202,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          subaxis(6,1,3,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if strcmp(res,'yearly')
             BH = bar(likely);
-            set(BH(1),'FaceColor',[0,0,1])
-            set(BH(2),'FaceColor',[0,0.48,0])
-            set(gca,'XTickLabel',xtck)
+            try
+               set(BH(1),'FaceColor',[0,0,1])
+               set(BH(2),'FaceColor',[0,0.48,0])
+               set(gca,'XTickLabel',xtck)
+            catch ME
+               disp(ME)
+            end
          elseif strcmp(res,'monthly')
             plot(1:datalen,likely,marker)
             set_monthly_labels(gca,1);
@@ -221,9 +232,13 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          subaxis(6,1,4,'S',sp,'P',pd,'PT',pt,'PB',pb,'M',ma,'MT',mt,'MB',mb)
          if strcmp(res,'yearly')
             BH = bar(likely);
-            set(BH(1),'FaceColor',[0,0,1])
-            set(BH(2),'FaceColor',[0,0.48,0])
-            set(gca,'XTickLabel',xtck)
+            try
+               set(BH(1),'FaceColor',[0,0,1])
+               set(BH(2),'FaceColor',[0,0.48,0])
+               set(gca,'XTickLabel',xtck)
+            catch ME
+               disp(ME)
+            end
          elseif strcmp(res,'monthly')
             plot(1:datalen,cum_likely,marker)
             set_monthly_labels(gca,1);

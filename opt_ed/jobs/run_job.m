@@ -158,10 +158,10 @@ for iter = 1:niter
          obs_flds = fieldnames(stats.likely.(res));
 
          for obs_num = 1:numel(obs_flds)
-            obs    = obs_flds{obs_num};
-            header = [header ', ' [res '_' obs]];
+            obs_name = obs_flds{obs_num};
+            header   = [header ', ' [res '_' obs_name]];
 
-            likelihood = -1*nansum(stats.likely.(res).(obs));
+            likelihood = -1*nansum(stats.likely.(res).(obs_name));
             log_row    = [log_row likelihood];
          end
       end
