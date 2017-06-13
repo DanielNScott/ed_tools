@@ -9,7 +9,18 @@ function [ out ] = import_poly( rundir, dbug )
 
    [sim_beg, sim_end] = get_sim_times(namelist);
    
-   map = def_ed_varmap();   
+   if isfield(namelist,'C13AF')
+      read_c13 = str2double(namelist.C13AF);
+   else
+      read_c13 = 0;
+   end
+   
+   if read_c13
+      map = def_ed_varmap(0);
+   else
+      map = def_ed_varmap(1);
+   end
+   
    out = struct;
    
    out.namelist = namelist;
@@ -37,12 +48,6 @@ function [ out ] = import_poly( rundir, dbug )
             disp('Warning, import poly was asked to generate a 0 length list of filenames.')
             disp('Check the simulation start and end times and the output type.')
             return;
-         end
-         
-         if isfield(namelist,'C13AF')
-            read_c13 = str2double(namelist.C13AF);
-         else
-            read_c13 = 0;
          end
          
          vdisp(['Beginning ',io_cur,' HDF5 file loop...'],0,dbug)
@@ -450,7 +455,10 @@ function [ out ] = process_vars(out,fnames,res,map,read_c13,sim_beg,out_type ...
       %nee_fact = KgperSqm2TperHa /365;
       nee_fact = 1;
       
-      out.X.DMEAN_Soil_Resp  = out.T.DMEAN_RH_PA + out.T.DMEAN_ROOT_RESP_CO;
+      out.X.DMEAN_Reco         = out.T.DMEAN_PLRESP_CO + out.T.DMEAN_RH_PA;
+      out.X.DMEAN_Reco_HF      = out.T.DMEAN_RH_PA    ./ out.X.DMEAN_Reco;
+      out.X.DMEAN_Soil_Resp    = out.T.DMEAN_RH_PA     + out.T.DMEAN_ROOT_RESP_CO;
+      out.X.DMEAN_Soil_Resp_HF = out.T.DMEAN_RH_PA    ./ out.X.DMEAN_Soil_Resp;
       
       if ~isempty(out.T.DMEAN_ROOT_GROWTH_RESP_CO)
          out.X.DMEAN_Soil_Resp = out.X.DMEAN_Soil_Resp           ... 
@@ -691,6 +699,11 @@ for i = 1:nfields
       out.H.(vname) = [ ];
       out.G.(vname) = [ ];
       
+      out.pft2.(vname)  = [ ];
+      out.pft4.(vname)  = [ ];
+      out.pft25.(vname) = [ ];
+      out.pft26.(vname) = [ ];
+      
       if anlg_exist && read_c13
          out.T.(c13_name) = [ ];
          out.C.(c13_name) = [ ];
@@ -780,7 +793,19 @@ out.C.(savname)(fnum) = 0.0;
 out.H.(savname)(fnum) = 0.0;
 out.G.(savname)(fnum) = 0.0;
 for k=1:length(tempVar)
-   if sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
+   if out.raw.PFT{fnum}(k) == 2
+      out.pft2.(savname)(fnum) = out.pft2.(savname)(fnum) + tempVar(k);
+      pft2_cnt = pft2_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 4
+      out.pft4.(savname)(fnum) = out.pft4.(savname)(fnum) + tempVar(k);
+      pft4_cnt = pft4_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 25
+      out.pft25.(savname)(fnum) = out.pft25.(savname)(fnum) + tempVar(k);
+      pft25_cnt = pft25_cnt + 1;
+   elseif out.raw.PFT{fnum}(k) == 26
+      out.pft26.(savname)(fnum) = out.pft26.(savname)(fnum) + tempVar(k);
+      pft26_cnt = pft26_cnt + 1;
+   elseif sum(out.raw.PFT{fnum}(k) == [6,7,8] > 0)
       out.C.(savname)(fnum) = out.C.(savname)(fnum) + tempVar(k);
       co_cnt = co_cnt + 1;
    elseif sum(out.raw.PFT{fnum}(k) == [9,10,11] > 0)
@@ -796,6 +821,11 @@ if  strcmp(norm_cond,'avg')
    out.C.(savname)(fnum) = out.C.(savname)(fnum)/co_cnt;
    out.H.(savname)(fnum) = out.H.(savname)(fnum)/hw_cnt;
    out.G.(savname)(fnum) = out.G.(savname)(fnum)/gr_cnt;
+
+   out.pft2.(savname)(fnum)  = out.pft2.(savname)(fnum) /pft2_cnt;
+   out.pft4.(savname)(fnum)  = out.pft4.(savname)(fnum) /pft4_cnt;
+   out.pft25.(savname)(fnum) = out.pft25.(savname)(fnum)/pft25_cnt;
+   out.pft26.(savname)(fnum) = out.pft26.(savname)(fnum)/pft26_cnt;
 end
 
 end

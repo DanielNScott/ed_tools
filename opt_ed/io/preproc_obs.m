@@ -1,4 +1,4 @@
-function [obs] = preproc_obs(obs, out, opt_metadata)
+function [obs] = preproc_obs(obs, namelist, opt_metadata)
 %PREPROC_OBS This function pre-processes observational data.
 %   It pads and truncates observational data to make it easy to manipulate
 %   with output data.
@@ -36,7 +36,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          obs_beg = obs.(res).([fld '_lims']){1};            % Extract the time of 1st obs
          obs_end = obs.(res).([fld '_lims']){2};            % Extract time of last obs
 
-         [out_start,out_end] = get_sim_times(out.namelist); % Get run beginning and end.
+         [out_start,out_end] = get_sim_times(namelist); % Get run beginning and end.
 
          out_start = refmt_time(out_start,'ED','std');   % Reformat ED style time string
          out_end   = refmt_time(out_end  ,'ED','std');   % Reformat ED style time string
@@ -114,7 +114,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          
          % And threshold unrealistic uncertainty claims.
          low_unc_msk  = (unc_data < 0.01*abs(obs_data));             % Mask for absurd claims
-         unc_data(low_unc_msk) = abs(obs_data(low_unc_msk))*0.01;    % And make them reasonable.         
+         unc_data(low_unc_msk) = abs(obs_data(low_unc_msk))*0.01;    % And make them reasonable.   
          
          % Keep everything we've done under the field and resolution it lives in, but as
          % "processed" data.

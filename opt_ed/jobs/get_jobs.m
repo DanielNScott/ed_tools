@@ -8,7 +8,14 @@ vdisp('Retrieving jobs...',0,verbose)
 prfx  = '/job_';
 new_global_best = 0;
 
-for job_num = 1:njobs
+% If this is the first iteration, we need to set up a reference run.
+if iter == 1
+   first_job = 0;
+else
+   first_job = 1;
+end
+
+for job_num = first_job:njobs
    vdisp(' ',1,verbose)
    vdisp(['Current directory: ',pwd],1,verbose)
    obj_name   = ['.' prfx num2str(job_num,fmt) prfx 'obj.mat'  ];
@@ -23,6 +30,14 @@ for job_num = 1:njobs
 
    load(obj_name  );
    load(stats_name);
+   
+   if job_num == 0
+      load(pred_name);
+      hist.pred_ref  = pred;
+      hist.stats.ref = stats;
+      continue
+   end
+   
    hist.obj(job_num,iter) = obj;
 
    vdisp(['job_' num2str(job_num,fmt) ' objective: ' num2str(obj)],1,verbose)

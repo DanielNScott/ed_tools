@@ -61,6 +61,11 @@ for idata = 1:ndata
          agg.(field)  = nan(60,1);
       end
    end
+   
+   if mod(idata,20) == 0
+      clc;
+      disp(['LICD progress [%]: ' num2str(idata/ndata * 100)])
+   end
 end
 %----------------------------------------------------------------------------------------------%
 

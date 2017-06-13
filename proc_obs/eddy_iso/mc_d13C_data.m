@@ -1,19 +1,22 @@
-function [ out ] = mc_ems_data( data, sds, nsamples, start_date, end_date, dist )
+function [ out ] = mc_d13C_data( heavy, heavy_sds, total, total_sds, nsamples, start_date, end_date, dist )
 %MCMC_EMS_DATA Summary of this function goes here
 %   Detailed explanation goes here
 
 if strcmp(dist,'laprnd')
-   samples = laprnd(data,sds,nsamples);
+   heavy_samples = laprnd(heavy,heavy_sds,nsamples);
+   total_samples = laprnd(total,total_sds,nsamples);
 elseif strcmp(dist,'normrnd')
-   samples = nan(length(data),nsamples);
+   heavy_samples = nan(length(heavy),nsamples);
+   total_samples = nan(length(total),nsamples);
    for i = 1:nsamples
-      samples(:,i) = normrnd(data,sds);
+      heavy_samples(:,i) = normrnd(heavy,heavy_sds);
+      total_samples(:,i) = normrnd(total,total_sds);
    end
 else
    error('Please specify a distribution, either normrnd or laprnd.')
 end
 
-aggs = aggregate_data(samples,start_date,end_date,'ave');
+aggs = aggregate_d13C_data(total_samples,heavy_samples,start_date,end_date,'ave');
 
 out.ym       = nanmean(aggs.ymeans      ,2);
 out.ym_day   = nanmean(aggs.ymeans_day  ,2);
@@ -48,12 +51,20 @@ yr_list = beg_yr:(end_yr - 1);
 
 % The hourly data in the aggregate_data output is actually means over
 % the set of samples from the MC procedure, not the original observations.
-out.hm       = data;
-out.hs       = sds ;
-out.hm_day   = data.*dt_op;
-out.hs_day   = sds .*dt_op;
-out.hm_night = data.*nt_op;
-out.hs_night = sds .*nt_op;
+%out.hm       = get_d13C(heavy,total);
+%out.hs       = sds ;
+%out.hm_day   = data.*dt_op;
+%out.hs_day   = sds .*dt_op;
+%out.hm_night = data.*nt_op;
+%out.hs_night = sds .*nt_op;
+
+out.hm       = get_d13C(heavy, total);
+out.hm_day   = get_d13C(heavy, total) .*dt_op;
+out.hm_night = get_d13C(heavy, total) .*nt_op;
+
+out.hs       = nanstd(aggs.hourly'      )';
+out.hs_day   = nanstd(aggs.hourly_day'  )';
+out.hs_night = nanstd(aggs.hourly_night')';
 
 end
 

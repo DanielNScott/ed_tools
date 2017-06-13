@@ -1,4 +1,4 @@
-function [ ] = plot_param_stars( hist,cfe,opt_type,save )
+function [ ] = plot_param_stars( hist,cfe,opt_type,state_ref,save )
 %PLOT_PARAM_STARS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -45,11 +45,11 @@ if init_best_ind == global_best_ind
 end
 
 lgnd = 'Best';
-if isfield(hist,'state_ref')
-   best_params = [hist.state_ref, best_params];
+%if isfield(ui,'state_ref')
+   best_params = [state_ref, best_params];
    %labels = {'Ref', labels{:}};
    lgnd = {'Ref','Best'};
-end
+%end
 % co_param_names = ...
 % {'vmfact','q','R_growth fact'}';
 % hw_param_names = ...

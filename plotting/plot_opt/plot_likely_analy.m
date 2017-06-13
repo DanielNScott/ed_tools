@@ -19,7 +19,7 @@ function [ ] = plot_likely_analy( iter_best, opt_type, stats, save )
 
 
 if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
-   figname = 'Likelihoods Analysis';
+   figname = 'Likelihoods Analy Pies';
    figure('Name',figname)
    set(gcf,'Color',[1,1,1])
    %gen_new_fig(figname)
@@ -121,19 +121,29 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
       % to minimize the sum of their opposite. So improvement would be indicated by 'best'
       % likelihoods being less negative than 'initial' likelihoods. Meaning the greater
       % "best - init" is, the more improvement there is.
-      subaxis(2,3,3,'S',0.015,'P',0.03,'Margin',0.015)
-      pie(double(better)); colormap(cool);
+      subaxis(1,2,1,'S',0.015,'P',0.03,'Margin',0.015)
+      if not(isempty(better))
+         pie(double(better)); colormap(cool);
+      end
       title('\bf{Better}')
       legend(bnames,'Interpreter','None','Location','SouthEast')
 
-      subaxis(2,3,6,'S',0.015,'P',0.03,'Margin',0.015)
+      subaxis(1,2,2,'S',0.015,'P',0.03,'Margin',0.015)
       pie(double(-worse));
       title('\bf{Worse}')
       legend(wnames,'Interpreter','None','Location','SouthEast')
    end
-  
+
+   set(gcf,'Position',[1 1 1280 1024]);
+   set(gcf, 'Color', 'white');
+   if save; export_fig( gcf, figname, '-jpg', '-r150' ); end
+   
+   
+   figname = 'Likelihoods Analy Bars';
+   figure('Name',figname)
+   set(gcf,'Color',[1,1,1])
    rdegs = 15;
-   subaxis(2,1.5,1,'S',0.015,'P',0.03,'M',0.03,'MB',0.05)
+   subaxis(2,1,1,'S',0.015,'P',0.03,'M',0.03,'MB',0.05)
 
    row_ind  = 0;
    res_flds = fieldnames(stats.likely);
@@ -181,7 +191,7 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
    ylabel('-1 * Log Likelihood')
    title('\bf{Data Likelihoods}')
    
-   subaxis(2,1.5,2.5,'S',0.015,'P',0.03,'M',0.03,'MB',0.05)
+   subaxis(2,1,2,'S',0.015,'P',0.03,'M',0.03,'MB',0.05)
       ref_diffs = end_likely - ref_likely ;
       bar(ref_diffs')      
 
