@@ -61,7 +61,9 @@ if nargin == 0
    [funHand,~,~] = fit([blocs(:,1),blocs(:,2)],flat_objs(msk),'poly22');
    %params = fit_quadratic([blocs(:,1),blocs(:,2),flat_objs(msk)],repmat([-400,400],6,1));
    
-   [myBetas, X] = llsqfit(flat_objs(msk),blocs);
+   %[myBetas, X] = llsqfit(flat_objs(msk),blocs);
+   design = sq_design(blocs);
+   myBetas = lmfit(design, flat_objs(msk));
 else
 
    [betas, regressors, labels, squares] = ...
@@ -124,6 +126,7 @@ figure();
 % Plot the Rosenbrock Function.
 subaxis(2,2,1)
    plot_2D_fn( bnds(1,:), bnds(2,:), inc, inc, 'incs', gn, 'none');
+   title('\bf{Response Surface (Global)}')
 
 
 % Plot the 90th-percentile best-particle locations & the solution
@@ -133,6 +136,8 @@ subaxis(2,2,2)
    scatter(sol(1),sol(2),'or')            % Plot the solution
    quiver( sol(1),sol(2),-dfdx,-dfdy)     % Plot the local downhill direction.
    quiver( sol(1),sol(2), dfdy,-dfdx)     % Plot the local characteristic direction.
+   title('\bf{Best Particle Locations, Gradient, & Characteristic.}')
+
    hold off
    
    disp(['dfdxx: ', num2str(dfdxx)])
@@ -146,7 +151,8 @@ subaxis(2,2,2)
 subaxis(2,2,3)
    surf(xdom,ydom,funVals,'EdgeColor','none')
    alpha(0.5)
-
+   title('\bf{Response Surface and Obj. Fn.}')
+   
    set(gca,'XLim',[xdom(1),xdom(end)])
    set(gca,'YLim',[ydom(1),ydom(end)])
 
@@ -175,19 +181,20 @@ subaxis(2,2,3)
    plot3(pontoyax(:,1),pontoyax(:,2),btranyval,'-m')
    plot3(sol(1,1),sol(1,2),rosenbrock(sol),'or')
 
-   legend({'Fit Surf.','Obj Fn.','X-Transect @ Best','Y-Transect @ Best' ...
-          ,'X-Transect Proj.','Y-Transect Proj.','Solution'})
+   %legend({'Fit Surf.','Obj Fn.','X-Transect @ Best','Y-Transect @ Best' ...
+   %       ,'X-Transect Proj.','Y-Transect Proj.','Solution'}, 'NorthEast')
 
 
 % Plot fit residuals at particles
 subaxis(2,4,7)
-   plot(blocs(:,1),X*myBetas - flat_objs(msk),'or')
+   plot(blocs(:,1),design*myBetas - flat_objs(msk),'or')
+   title('\bf{Residuals by x-value}')
    
 subaxis(2,4,8)
-   plot(blocs(:,2),X*myBetas - flat_objs(msk),'or')
+   plot(blocs(:,2),design*myBetas - flat_objs(msk),'or')
+   title('\bf{Residuals by y-value}')
 
        
 %gof.adjrsquare
-%pause
 
 end
