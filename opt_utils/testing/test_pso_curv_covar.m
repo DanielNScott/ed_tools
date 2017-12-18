@@ -1,4 +1,4 @@
-function [ ] = test_pso_curv_covar(varargin)
+function [trace] = test_pso_curv_covar(varargin)
 %test_pso_curv_covar tests an objective-function analysis.
 %   It constructs a local least squares quadratic approximation of an
 %   objective function and analyzes it.
@@ -7,9 +7,9 @@ function [ ] = test_pso_curv_covar(varargin)
 % STEP 1: Set up & solve test problem w/ PSO, get best particles
 %-------------------------------------------------------------------------%
 if nargin == 0
-   nps   = 20;
+   nps   = 10;
    niter = 60;
-   bnds  = [-3,3; -3,3];
+   bnds  = [-0.5,4; -0.5,4];
    inc   = 0.1;
    fn    = @(x) rosenbrock(x);
    gn    = @(x) rosenbrock(x');
@@ -34,7 +34,7 @@ else
    cfe  = varargin{4};
    
    % Get particle distances from the solution
-   flat_locs = reshape(hist.state      , [size(hist.state,1), ui.nps *ui.niter]);
+   flat_locs = reshape(hist.state, [size(hist.state,1), ui.nps *ui.niter]);
    flat_locs = flat_locs';
    flat_objs = hist.obj(:); %reshape(hist.obj        , [ui.nps *ui.niter, 1]);
    %big_sol   = repmat( hist.best_state', [ui.nps *ui.niter]);
@@ -62,11 +62,13 @@ if nargin == 0
    %params = fit_quadratic([blocs(:,1),blocs(:,2),flat_objs(msk)],repmat([-400,400],6,1));
    
    %[myBetas, X] = llsqfit(flat_objs(msk),blocs);
-   design = sq_design(blocs);
-   myBetas = lmfit(design, flat_objs(msk));
+   design = sq_design(blocs, {'x_1','x_2'});
+   lm = fitlm(design(:,2:end), flat_objs(msk));
+   
+   myBetas = table2array(lm.Coefficients(:,1));
 else
 
-   [betas, regressors, labels, squares] = ...
+   [betas, ~, labels, squares] = ...
       llsqfit(flat_objs(msk), blocs(:,1:end-1), cfe.labels(1:end-1,1));
 
    for i = 1:length(labels)
@@ -125,7 +127,11 @@ unitDir  = -1*[dfdx/gradNorm, dfdy/gradNorm];
 figure();
 % Plot the Rosenbrock Function.
 subaxis(2,2,1)
+   hold on
    plot_2D_fn( bnds(1,:), bnds(2,:), inc, inc, 'incs', gn, 'none');
+   plot3(flat_locs(msk,1), flat_locs(msk,2), flat_objs(msk,:), 'og')
+   plot3(sol(1,1), sol(1,2), rosenbrock(sol),'or')
+   hold off
    title('\bf{Response Surface (Global)}')
 
 
@@ -179,6 +185,8 @@ subaxis(2,2,3)
    % Plot them
    plot3(pontoxax(:,1),pontoxax(:,2),btranxval,'-b')
    plot3(pontoyax(:,1),pontoyax(:,2),btranyval,'-m')
+   
+   plot3(flat_locs(msk,1), flat_locs(msk,2), flat_objs(msk,:), 'og')
    plot3(sol(1,1),sol(1,2),rosenbrock(sol),'or')
 
    %legend({'Fit Surf.','Obj Fn.','X-Transect @ Best','Y-Transect @ Best' ...
