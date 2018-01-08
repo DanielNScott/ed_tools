@@ -10,7 +10,6 @@ plot_eig = 1;
 plot_gof = 1;
 plot_cov = 1;
 
-
 % Get number of parameters being optimized
 n_params = length(ref_state);
 
@@ -52,23 +51,29 @@ for prc = thresholds
 
     [betas, stats] = robustfit(design(:,2:end), objs(prctile_msk));
     
-    % Only plot curvature terms
-    %if sqs_only
-    %    subset = (n_params + 2):length(betas);
-    %end
-
-    n_obs = sum(prctile_msk);
-
-    fim = vec2sym(betas(n_params+2:end));
-    diag_msk = logical(eye(n_params));
-    fim(diag_msk(:)) = fim(diag_msk(:))*2;
-    
-    %sigma = regularize(fim);
+    %----------------------------------------------------------------------%
+    %           Betas, the FIM, and the inverse covariance matrix          %
+    %----------------------------------------------------------------------%
+    % Taking the likelihood to be approximately gaussian: 
+    %
+    %         p = a*exp( (1/2) * x' * sigma^-1 * x)
+    %   -log(p) = (1/2) * x' * sigma^-1 * x - log(a)
+    %
+    % hence:
+    % -log(p)'' = sigma^-1            for diagonal terms
+    % -log(p)'' = (1/2) * sigma^-1    for off diagonal terms
+    %
+    % while:
+    %    beta = (1/2) * sigma^-1      for each term.
+    %
+    % So we take the betas and construct the inverse of the covariance.
+    %----------------------------------------------------------------------%
+    inv_covar = 2*vec2sym(betas(n_params+2:end));
 
     % Inverse of FIM gives covariance matrix, eigenvalues / vecs give
     % hierarchy of directional uncertainty.
-    covar = inv(fim);
-    [eigenvecs, eigenvals] = eig( covar );
+    covar = inv(inv_covar);
+    [eigenvecs, eigenvals] = eig(covar);
     
     eigenvals = diag(eigenvals);
     evratios  = abs(eigenvals ./ min(eigenvals));
