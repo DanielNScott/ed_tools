@@ -34,7 +34,7 @@ else
    plot_state_hist_seq(cfe,data,hist,nfo,ui,save);
 end
 
-plot_fit_stats(cfe,hist,ui,save);
+%plot_fit_stats(cfe,hist,ui,save);
 
 plot_param_stars(hist,cfe,ui.opt_type,ui.state_ref,save);
 

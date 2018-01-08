@@ -65,6 +65,14 @@ while [  $iter -le $niter_safe ]; do
 
    # Process the output.
    matlab -nodisplay -nosplash -r addpath\(genpath\(\'${path_tools}\'\)\),run_job\(${job_num},1,${proc_loc}\),exit 1>>out_m.txt 2>>out_m.err
+  
+   # Copy the stdout and stderr off node-local scratch
+   cp out_ed.txt ${job_loc_safe}/out_ed.txt
+   cp out_ed.err ${job_loc_safe}/out_ed.err
+   cp out_m.txt ${job_loc_safe}/out_m.txt
+   cp out_m.err ${job_loc_safe}/out_m.err
+   cp out.txt ${job_loc_safe}/out.txt
+   cp out.err ${job_loc_safe}/out.err
    
    let iter=$iter+1 
 done

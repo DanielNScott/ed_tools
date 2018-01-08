@@ -20,11 +20,18 @@ phi    = phi_1 + phi_2;                                     % Shorthand
 chi    = 2/(phi - 2 + sqrt(phi^2 - 4*phi));                 % Constrictor
 %Vmax   = (ss_rng - ss_cent)*2;                             % Limit velocity to dynamic range.
 
-locs = rand(nps,ndim) + repmat(ss_cent - 0.5,nps,1);        % Initialize positions, recenter
-locs = locs .* repmat(ss_rng,nps,1);                        % Expand range
+% Imported back from 'production':
+spread = repmat(bnds(:,2) - bnds(:,1),1,nps);               % Compute parameter spreads
+cents  = repmat(bnds(:,1) + spread(:,1)/2 ,1,nps);          % Compute centers of ranges
+         
+locs = (rand(2,nps) - 0.5) .*spread + cents;                % Recenter & expand rands.
+vels = (rand(2,nps) - 0.5) .*spread;                        % 
 
-vels = rand(nps,ndim) + repmat(ss_cent - 0.5,nps,1);        % Initialize velocities, recenter
-vels = vels .* repmat(ss_rng,nps,1);                        % Expand range
+locs = locs';
+vels = vels';
+
+% Useful diagnostic:
+%quiver(locs(:,1), locs(:,2), vels(:,1), vels(:,2), 'o')
 
 bests = fn(locs);                                           % Initialize particle objectives
 loci  = locs;                                               % Set locations of bests as current
