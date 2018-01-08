@@ -64,7 +64,7 @@ for iter = 1:niter
    disp(['Iteration: ' num2str(iter)])
    
    % Now start actually doing things.
-   if cfe.run_xtrnl
+   if cfe.multi_node
       wait_for(run_flag_fname,10,1)
       load(pso_mat_fname)
       %if iter > 1
@@ -112,11 +112,8 @@ for iter = 1:niter
       % we want to deal with partial sums of e.g. days/months, depending on what      %
       % observations are available. We process these here.                            %
       %-------------------------------------------------------------------------------%
-      if ui.persist
-         pred = run_ed(state, cfe.labels, ui.pfts, ui.verbose);
-      else
-         pred = import_poly(pwd,ui.verbose);
-      end
+      pred = import_poly(pwd,ui.verbose);
+
       if iter == 1
          vdisp('Preprocessing the observational data... ',0,ui.verbose);
          obs = preproc_obs(obs, pred.namelist, ui.opt_metadata);
@@ -200,7 +197,7 @@ for iter = 1:niter
    end
    
    
-   if cfe.run_xtrnl
+   if cfe.multi_node
       vdisp(['Deleting ' run_flag_fname],1,ui.verbose)
       delete(run_flag_fname)
       pause(10)

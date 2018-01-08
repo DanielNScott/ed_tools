@@ -18,10 +18,9 @@
 %  - read_dir           Runs using a specified directory to obtain ED output. (Use 1 iter...)
 %------------------------------------------------------------------------------------------%
 model          = 'Rosenbrock';   % See note above.
-prior_pdf      = 'uniform';      % Prior pdfs can be gaussian, uniform, or gammas.
-opt_type       = 'PSO';          % Optimization type can be DRAM, SA, PSO, or NM
+opt_type       = 'PSO';          % Optimization type can be PSO, or NM
 niter          = 3;              % Number of iterations for outermost loop over simulations.
-verbose        = 1;              % Verbosity: -1=>Silent, 0=>Progress Ind, 1=>Debug
+verbose        = 1;              % Verbosity: 0=>Progress Ind, 1=>Debug
 multiplier     = 1.00;           % Multiplicative factor applied to initial parameters.
 opt_mat_check  = 0;              % Check for opt.mat at startup?
 %------------------------------------------------------------------------------------------%
@@ -30,41 +29,13 @@ opt_mat_check  = 0;              % Check for opt.mat at startup?
 %------------------------------------------------------------------------------------------%
 %                   Job Resource Allocation And Node-Binding Settings                      %
 %------------------------------------------------------------------------------------------%
-sim_location  = 'external';    % Either 'local' or 'external'. Local iff sim_parallel = 1.
-sim_parallel  = 4;             % Simulation parallelization. How many simultaneous ed runs?
-sim_file_sys  = 'local';       % File system to write data to in jobs, 'local' or 'working'
+sim_location  = 'local';       % Either 'local' or 'external'. Local iff sim_parallel = 1.
 alloc_method  = 'upfront';     % 'sbsr', 'upfront', 'old', or 'local'
 
 job_queue = 'moorcroft_6100';  % The queue jobs will be submitted to if running externally.
 job_wtime = 2;                 % Expected wall completion time per job iteration, in min.
 job_mem   = 300;               % Expected per-cpu-per-job memory requirement in MB
-
-persist = 0;                   % Which job-type should be used? Set =1 for persistent matlab 
-% NOTE: optimize_ed will not run properly if called from wrap_script.sh!
 %------------------------------------------------------------------------------------------%
-
-
-%------------------------------------------------------------------------------------------%
-%                           SA Specific Parameters                                         %
-% These all must be set, but won't do anything if the model is not running SA.             %
-% Note: For geometric cooling sched. temp = mantissa ^ (-iter/niter * exp_mult)            %
-%------------------------------------------------------------------------------------------%
-acc_crit   = 'Boltzmann';   % Acceptance Criteria: Boltzmann or Log_Decay
-cool_sched = 'Geometric';   % Cooling Schedule: Geometric, Linear, or Logarithmic
-temp_start = 800;           % Starting Temperature of SA (1k max)
-mantissa   = 4;             % See note above. Default to 4.
-exp_mult   = 2;             % See note above. Default to 2.
-%------------------------------------------------------------------------------------------%
-
-
-%------------------------------------------------------------------------------------------%
-%                          DRAM Specific Parameters                                        %
-% These all must be set, but won't do anything if the model is not running DRAM.           %
-%------------------------------------------------------------------------------------------%
-ndr = 1;                      % Max # delayed rejection steps. 1 or 2
-adapt_freq = 100;             % Freq @ which to adapt covar. matrix
-%------------------------------------------------------------------------------------------%
-
 
 
 %------------------------------------------------------------------------------------------%
@@ -102,8 +73,8 @@ p_shrink  = 1/2;                 % Shrinking scale parameter
 %  - opt_data_dir is the directory holding data we want to optimize against. (ED2.1 only)  %
 %------------------------------------------------------------------------------------------%
 %rundir = '/n/moorcroftfs2/dscott/runfiles/optim/pso_10/';
-rundir  = 'C:\Users\Dan\Workspace - Matlab\moorcroft_lab\opt_alg\';
-opt_data_dir = '/n/moorcroftfs2/dscott/data/USHa_MC_BAG_Unc/';    % If applicable
+rundir  = '/home/dan/projects/harvard/local_sims/optimize_ed_test/';
+opt_data_dir = '/n/moorcroftfs2/dscott/data/USHa_MC_BAG_Unc/';
 %------------------------------------------------------------------------------------------%
 
 

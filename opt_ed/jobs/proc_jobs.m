@@ -3,74 +3,6 @@ function [ hist ] = proc_jobs( cfe, hist, ui )
 %   Detailed explanation goes here
 
 switch ui.opt_type
-   case({'DRAM','SA'})
-   %----------------------------------------------------------------------------------%
-   %                                Book Keeping                                      %
-   %----------------------------------------------------------------------------------%
-   if cfe.iter == 1
-      hist.out_first  = out;
-      hist.out_best   = out;
-      hist.iter_best  = 1;
-   end
-
-   if cfe.obj_prop <= min(hist.obj)
-      print_banner(cfe,data,hist,ui,'new best');
-      hist.out_best  = data.out;
-      hist.iter_best = cfe.iter;
-   end
-   %----------------------------------------------------------------------------------%
-
-
-
-   %----------------------------------------------------------------------------------%
-   %                          Calculate Weights of Priors                             %
-   %----------------------------------------------------------------------------------%
-   if strcmp(opt_type,'DRAM')
-      vdisp('Calculating the weights of the priors... ',0,ui.verbose);
-      cfe.prop_prior_wgt = get_prior_wgt(data.state_prop  , ...
-                                          cfe.means         , ...
-                                          cfe.sdevs         , ...
-                                          cfe.theta       , ...
-                                          cfe.ga_k        , ...
-                                          ui.prior_pdf_type, ...
-                                          ui.prior_pdf);
-   end
-   %----------------------------------------------------------------------------------%
-
-
-
-   %----------------------------------------------------------------------------------%
-   %                                Calculate Alpha                                   %
-   %----------------------------------------------------------------------------------%
-   vdisp('Calculating the rejection factor... ',0,ui.verbose);
-   cfe.alpha = get_alpha(cfe,ui);
-   print_banner(cfe,data,hist,ui,'a/r criteria');
-   %----------------------------------------------------------------------------------%
-
-
-
-   %----------------------------------------------------------------------------------%
-   %                             Determine Acceptance                                 %
-   % If we accept step, exit the delayed_reject loop and move on to the next iter.    %
-   %----------------------------------------------------------------------------------%
-   cfe.accept_test_rand = rand();
-
-   if cfe.accept_test_rand < cfe.alpha(cfe.idr)
-      % Accept this step and record acceptance in the history
-      cfe.acc_step       = 1;
-
-      % Mark proposed state and objective as 'current'
-      cfe.obj   = cfe.obj_prop;
-      data.state = data.state_prop;
-
-      % Update current prior weight if we're doing DRAM
-      if strcmp(ui.opt_type,'DRAM')
-         curr_prior_wgt    = cfe.prop_prior_wgt(cfe.idr);
-      end
-   end
-   print_banner(cfe,data,hist,ui,'acceptance/rejection');
-   %----------------------------------------------------------------------------------%
-   
    case('PSO')
       % Create a mask for those objectives which are better than previous particle bests.
       obj = hist.obj(:,cfe.iter);
@@ -84,7 +16,7 @@ switch ui.opt_type
       min_msk = hist.pbo == min(hist.pbo);
       hist.best_state = hist.pbs(:,min_msk);
 
-      %if cfe.run_xtrnl
+      %if cfe.multi_node
       %   fmt        = get_fmt(length(better_msk));
       %   prfx       = '/job_';
       %   num_best   = num2str(find(min_msk),fmt);

@@ -10,15 +10,7 @@ if any(strcmp(ui.opt_type,{'PSO','NM'}))
    if strcmp(ui.opt_type,'PSO')
       hist.vels      (:,:,cfe.iter) = data.vels;
    end
-else
-   hist.acc       (cfe.iter  ) = cfe.acc_step;
-   hist.state     (:,cfe.iter) = data.state;
-   hist.state_prop(:,cfe.iter) = data.state_prop;
-   hist.obj       (cfe.iter  ) = cfe.obj;
-   hist.obj_prop  (cfe.iter  ) = cfe.obj_prop;
 end
-
-hist.acc_rate                = sum(hist.acc(1:cfe.iter))/cfe.iter;
 
 if sum(strcmp(ui.model,{'ED2.1','out.mat','read_dir'}))
    if cfe.iter == 1                                        % Do we need to create 'hist_stats'?

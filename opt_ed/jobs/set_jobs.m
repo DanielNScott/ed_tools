@@ -39,8 +39,8 @@ for job_num = first_job:njobs
       niter_input = niter;
    end
 
-   setup_dirs(job_num,niter_input,fmt,ui.job_wtime,ui.job_mem,ui.job_queue,ui.sim_file_sys ...
-             ,state_input,labels,ui.pfts,ui.persist,ui.verbose);
+   setup_dirs(job_num,niter_input,fmt,ui.job_wtime,ui.job_mem,ui.job_queue ...
+             ,state_input,labels,ui.pfts,ui.verbose);
 
    %--- Decide to skip submission or not ---%
    if iter > 1 && not(restart) && upfront_alloc
@@ -69,11 +69,7 @@ for job_num = first_job:njobs
       % Submit the current job.
       !srun -J job_${job_num} -t ${job_wtime} --mem=${job_mem} ./run_job.sh  ${job_num} ${niter_input} &
    else
-      if ui.persist
-         !sbatch ./wrap_script.sh -p ${opt_name} './run_job.sh ${job_num} ${niter_input} ${proc_loc}' &
-      else
-         !sbatch ./wrap_script.sh -p ${opt_name} './run_job_xtrnl.sh ${job_num} ${niter_input} ${proc_loc}' &
-      end
+      !sbatch ./wrap_script.sh -p ${opt_name} './run_job_xtrnl.sh ${job_num} ${niter_input} ${proc_loc}' &
    end
    cd('../')
    vdisp(' ',1,ui.verbose)

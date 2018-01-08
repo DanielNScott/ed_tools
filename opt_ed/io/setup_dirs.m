@@ -1,5 +1,5 @@
-function [ ] = setup_dirs( job_num, niter, fmt, job_wtime, job_mem, partition, sim_file_sys ...
-                         , state_prop, labels, pfts, persist, verbose )
+function [ ] = setup_dirs( job_num, niter, fmt, job_wtime, job_mem, partition ...
+                         , state_prop, labels, pfts, verbose )
 %SET_DIRS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -25,10 +25,8 @@ for fnum = 1:numel(file_list)
    end
 end
 
-if ~persist
-   if verbose >= 1; disp('Writing config.xml...'); end
-   write_config_xml(state_prop, labels, pfts);
-end
+if verbose >= 1; disp('Writing config.xml...'); end
+write_config_xml(state_prop, labels, pfts);
 
 %vdisp('Writing job config: ',1,verbose);
 %save([pwd '/job_config.mat'],'job_num','niter')
@@ -38,10 +36,31 @@ fclose(run_flag_fid);
 
 vdisp('Calling set_scheduler_opts...',1,verbose)
 job_name = ['job_', num2str(job_num,fmt)];
-set_scheduler_opts(job_name,job_wtime,job_mem,niter,partition,sim_file_sys)
+set_scheduler_opts(job_name,job_wtime,job_mem,niter,partition)
 
 vdisp('Moving one directory up...',1,verbose)
 cd('../')
+
+end
+
+function [ ] = set_scheduler_opts( job_name, time, mem, niter, partition )
+%SET_SCHEDULER_OPTS Summary of this function goes here
+%   Detailed explanation goes here
+
+fname = 'wrap_script.sh';
+lnums = [12,13,14,15];
+
+
+A = regexp( fileread(fname), '\n', 'split'); 
+
+A(lnums) = {['#SBATCH -t ' num2str(time*niter)] ...
+           ,['#SBATCH -p ' partition] ...
+           ,['#SBATCH --mem=' num2str(mem)] ...
+          ,['#SBATCH -J ' job_name]};
+        
+fid = fopen(fname, 'w');
+fprintf(fid, '%s\n', A{:});
+fclose(fid);
 
 end
 
