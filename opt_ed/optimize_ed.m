@@ -4,7 +4,7 @@ function [] = optimize_ed(settings_fname)
 [ui, cfe, obs, hist] = setup_optim(settings_fname);
 
 % Outer program loop for iterative optimization algorithms
-while cfe.iter < niter
+while cfe.iter < ui.niter
    
    disp('------------------------------------------')
    disp(['Beginning iteration ' num2str(cfe.iter+1)])

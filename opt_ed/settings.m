@@ -1,12 +1,7 @@
 %==========================================================================================%
-% This file defines the variables needed to control 'optimize_ed'.                         %
-%                                                                                          %
-% Optimization algorithms available:                                                       %
-% 'DRAM': Adaptive Metropolis Hastings with Delayed Rejection                              %
-%   'SA': Simulated Annealing                                                              %
-%  'PSO': Canonical Particle Swarm Optimization                                            %
+% This file defines the variables needed to control 'optimize_ed', i.e. for finding        %
+% optima and testing the optimization algorithms.
 %==========================================================================================%
-% Options for both testing the algorithm and optimizing ED follow...
 %
 % Options for the 'model' field:
 %  - ED2.1              Runs the ED model.
@@ -23,20 +18,17 @@ niter          = 3;              % Number of iterations for outermost loop over 
 verbose        = 1;              % Verbosity: 0=>Progress Ind, 1=>Debug
 multiplier     = 1.00;           % Multiplicative factor applied to initial parameters.
 opt_mat_check  = 0;              % Check for opt.mat at startup?
-%------------------------------------------------------------------------------------------%
-
+resub_override = 0;              % If master crashed but jobs didn't, turn this on.
 
 %------------------------------------------------------------------------------------------%
 %                   Job Resource Allocation And Node-Binding Settings                      %
 %------------------------------------------------------------------------------------------%
-sim_location  = 'local';       % Either 'local' or 'external'. Local iff sim_parallel = 1.
+sim_location  = 'local';       % Either 'local' or 'external'.
 alloc_method  = 'upfront';     % 'sbsr', 'upfront', 'old', or 'local'
 
 job_queue = 'moorcroft_6100';  % The queue jobs will be submitted to if running externally.
 job_wtime = 2;                 % Expected wall completion time per job iteration, in min.
 job_mem   = 300;               % Expected per-cpu-per-job memory requirement in MB
-%------------------------------------------------------------------------------------------%
-
 
 %------------------------------------------------------------------------------------------%
 %                          PSO Specific Parameters                                         %
@@ -47,24 +39,15 @@ nps   = 4;                    % Number of particles, i.e. simultaneous ED runs.
 phi_1 = 4.1;                  % Governs strength of attractor at local best
 phi_2 = 4.1;                  % Governs strength of attractor at neighbors' best
 top   = 'Von Neumann';        % Topology. Currently only Von-Neumann supported.
-%------------------------------------------------------------------------------------------%
-
-
 
 %------------------------------------------------------------------------------------------%
 %                            Nelder-Mead Algorithm Settings                                %
-%------------------------------------------------------------------------------------------%
-% Note: sim_parallel will be overridden temporarily in the initialization of the simplexes
-% if it is > 1. 
 %------------------------------------------------------------------------------------------%
 nsimp     = 4;                   % Number of simplexes to run simultaneously.
 p_reflect = 1;                   % Reflection scale parameter
 p_expand  = 2;                   % Expansion scale parameter
 p_cntrct  = -1/2;                % Contraction scale parameter
 p_shrink  = 1/2;                 % Shrinking scale parameter
-%------------------------------------------------------------------------------------------%
-
-
 
 %------------------------------------------------------------------------------------------%
 % General I/O Settings:                                                                    %
@@ -72,11 +55,8 @@ p_shrink  = 1/2;                 % Shrinking scale parameter
 %    titled 'analy' in which the model's output can be found.                              %
 %  - opt_data_dir is the directory holding data we want to optimize against. (ED2.1 only)  %
 %------------------------------------------------------------------------------------------%
-%rundir = '/n/moorcroftfs2/dscott/runfiles/optim/pso_10/';
-rundir  = '/home/dan/projects/harvard/local_sims/optimize_ed_test/';
-opt_data_dir = '/n/moorcroftfs2/dscott/data/USHa_MC_BAG_Unc/';
-%------------------------------------------------------------------------------------------%
-
+rundir = '/n/moorcroftfs2/dscott/runfiles/optim/pso_10/';
+opt_data_dir = '/n/moorcroftfs4/dscott/data/USHa_MC_BAG_Unc/';
 
 %------------------------------------------------------------------------------------------%
 % ED specific options... (Ignore if you're running a toy problem)                          %
@@ -144,22 +124,14 @@ params = { ...
 };
 
 state_ref = [1.0; 0.3463; 0.333; 1.0; 1.1274; 0.62; 5.1; 0.528; 0.0; 20.0];
-%------------------------------------------------------------------------------------------%
-
-
 
 %------------------------------------------------------------------------------------------%
 % Test specific options, these do nothing with model = 'ED2.1'                             %
 %------------------------------------------------------------------------------------------%
 if strcmp(model,'Rosenbrock')
-   params = {... Name  ,   Initial Value  ,  Sdev,    Rng, Msk
-                  'x1' , (rand() - 0.5) *6,  0.5 , [-3,3], 1; ...
-                  'x2' , (rand() - 0.5) *6,  0.5 , [-3,3], 1; ...
-                  'x4' , (rand() - 0.5) *6,  0.5 , [-3,3], 0; ...
-                  'x5' , (rand() - 0.5) *6,  0.5 , [-3,3], 0; ...
-                  'x6' , (rand() - 0.5) *6,  0.5 , [-3,3], 0; ...
-                  'x7' , (rand() - 0.5) *6,  0.5 , [-3,3], 0; ...
+   params = {... % Name  Tag, PFTs,   Initial Value  ,  Sdev,    Rng, Msk
+                  'x1' ,  'pft',   [6:11], (rand() - 0.5) *6,  0.5 , [-3,3], 1; ...
+                  'x2' ,  'pft',   [6:11], (rand() - 0.5) *6,  0.5 , [-3,3], 1; ...
             };
 end
-%------------------------------------------------------------------------------------------%
 %==========================================================================================%

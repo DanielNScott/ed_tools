@@ -82,7 +82,7 @@ for iter = 1:niter
       if job_num == 0;
          state = ui.state_ref;
       else
-         state = state_prop(:,job_num);
+         %state = state_prop(:,job_num);
       end
       
       vdisp('State: ',1,ui.verbose)

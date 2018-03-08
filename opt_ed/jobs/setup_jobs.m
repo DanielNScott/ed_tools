@@ -1,5 +1,5 @@
-function [] = set_jobs(iter,njobs,fmt,restart,state_prop,labels,ui)
-%SET_JOBS Summary of this function goes here
+function [] = setup_jobs(iter,njobs,fmt,restart,state_prop,labels,ui)
+%SETUP_JOBS Summary of this function goes here
 %   Detailed explanation goes here
 
 vdisp('----- Output from set_jobs() ------',1,ui.verbose)

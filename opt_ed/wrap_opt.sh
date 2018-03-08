@@ -13,6 +13,8 @@
 #SBATCH -p partition             # Partition to submit to
 #SBATCH --mem=1000               # Memory required per node in MB
 #SBATCH -J job_name              # Job Name 
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=dnscott87@gmail.com
 #------------------------------------------------------------------------------------------#
 
 #----- Submitting the job -------------------------------------------------------------
