@@ -37,6 +37,8 @@ while cfe.iter < ui.niter
    end
    
    hist = proc_jobs  (cfe,hist,ui);
+   hist.iter_best = find(hist.stats.total_likely == max(hist.stats.total_likely));
+   hist.msk_best = hist.obj == min(min(hist.obj));
    
    %hist       = update_hist (cfe,hist,ui);
    %hist       = gen_state   (cfe,hist,nfo,ui);

@@ -16,7 +16,12 @@ stats.Sx2       = 0;          % Sum of square of obs.             sum((obs      
 stats.Sy2       = 0;          % Sum of square of pred.            sum((pred         )^2)
 stats.SPxy      = 0;          % Sum of product of obs. and pred.  sum((obs*pred     )  )
 
-stats.total_likely = 0;       % Weighted sum of all likelihoods, to be objective fn.
+stats.total_likely          = 0;       % Weighted sum of all likelihoods, to be objective fn.
+stats.total_likely_c_pool   = 0;       % 
+stats.total_likely_c_flux   = 0;       % 
+stats.total_likely_c13_pool = 0;       % 
+stats.total_likely_c13_flux = 0;       % 
+stats.total_likely_not_c    = 0;       % 
 %-----------------------------------------------------------------------------------------%
 
 resolutions = fieldnames(obs);                           % What data resolutions exist?
@@ -44,6 +49,8 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          type    = metadata_row{3};                      % Get the "type" of data.
          out_fld = metadata_row{4};                      % Get data's field name in output
          rework  = metadata_row{5};                      % See if the data was "re-worked";
+         use     = metadata_row{6};                      % Determine if this field should be ignored
+         c_class = metadata_row{7};                      % Determine if data is C, C-13 or other
 
          if rework                                       % If so change the path in the out
             out_fld(2) = 'Y';                            % struct to reworked copy under "Y".
@@ -115,7 +122,33 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          end
 
          % Update total likelihood
-         stats.total_likely = stats.total_likely + nansum(stats.likely.(res).(fld));   
+         stats.total_likely = stats.total_likely + nansum(stats.likely.(res).(fld));
+         
+         % Update likelihood partitions for C-13, C, and non-carbon respectively
+         switch (c_class)
+            case ('C13 pool')
+            stats.total_likely_c13_pool = stats.total_likely_c13_pool + nansum(stats.likely.(res).(fld));
+            
+            case ('C13 flux')
+            stats.total_likely_c13_flux = stats.total_likely_c13_flux + nansum(stats.likely.(res).(fld));
+            
+            case ('C pool')
+            stats.total_likely_c_pool = stats.total_likely_c_pool + nansum(stats.likely.(res).(fld));
+            
+            case ('C flux')
+            stats.total_likely_c_flux = stats.total_likely_c_flux + nansum(stats.likely.(res).(fld));
+            
+            case ('Not C')
+            stats.total_likely_not_c = stats.total_likely_not_c + nansum(stats.likely.(res).(fld));
+               
+            otherwise
+            disp(['Field ', fld, ' at resolution ', res, ' has invalid carbon class tag in opt_metadata.'])
+         end
+         
+         % Can check that things add up:
+         % check = stats.total_likely_c_pool + stats.total_likely_c_flux + stats.total_likely_c13_pool ...
+         %    + stats.total_likely_c13_flux + stats.total_likely_not_c == stats.total_c
+
       end
    end
 end
