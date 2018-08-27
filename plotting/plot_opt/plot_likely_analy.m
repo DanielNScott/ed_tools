@@ -1,4 +1,4 @@
-function [ ] = plot_likely_analy( iter_best, opt_type, stats, save )
+function [ ] = plot_likely_analy( iter_best, stats, save, fileID)
 %PLOT_LIKELY_ANALY Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -16,10 +16,8 @@ function [ ] = plot_likely_analy( iter_best, opt_type, stats, save )
 %   iter_best = iter_best;
 %end
 
-
-
 if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
-   figname = 'Likelihoods Analy Pies';
+   figname = 'Likelihood analysis, difference proportions';
    figure('Name',figname)
    set(gcf,'Color',[1,1,1])
    %gen_new_fig(figname)
@@ -67,17 +65,17 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
 
       % Figure out which names to use in legend and finalize 'better' and 'worse' matrices.
       pad = false(size(bmask));
-      if numel(better(~bmask)) > 0;
+      if numel(better(~bmask)) > 0
          mbetr  = sum(better(~bmask));
-         bnames = [keptnames(bmask), {'Other Improvements'}];
+         bnames = [keptnames(bmask), {'Other'}];
       else
          mbetr  = [];
          bnames = keptnames(bmask);
       end
 
-      if numel(worse(~wmask)) > 0;
+      if numel(worse(~wmask)) > 0
          mwors  = sum(worse(~wmask));
-         wnames = [{'Other Worsenings'}, keptnames([pad wmask])  ];
+         wnames = [{'Other'}, keptnames([pad wmask])  ];
       else
          mwors  = [];
          wnames = keptnames([pad wmask]);
@@ -136,10 +134,9 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
 
    set(gcf,'Position',[1 1 1280 1024]);
    set(gcf, 'Color', 'white');
-   if save; export_fig( gcf, figname, '-jpg', '-r150' ); end
+   if save; latex_figure(gcf, figname, fileID); end
    
-   
-   figname = 'Likelihoods Analy Bars';
+   figname = 'Likelihood analysis, change by data set';
    figure('Name',figname)
    set(gcf,'Color',[1,1,1])
    rdegs = 15;
@@ -164,7 +161,7 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
          
          if isfield(stats,'ref')
             ref_likely(row_ind) = -1*nansum(stats.ref.likely.(res).(obs));
-         end         
+         end
       end
    end
 
@@ -188,8 +185,8 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
    set(gca,'XGrid','on')
    set(gca,'YGrid','on')
    set(gca,'YMinorGrid','off')
-   ylabel('-1 * Log Likelihood')
-   title('\bf{Data Likelihoods}')
+   ylabel('-log($\mathcal{L}$)', 'interpreter','latex')
+   title('\bf{Data likelihoods}')
    
    subaxis(2,1,2,'S',0.015,'P',0.03,'M',0.03,'MB',0.05)
       ref_diffs = end_likely - ref_likely ;
@@ -203,12 +200,13 @@ if 1%strcmp(opt_type,'PSO') || iter_best ~= 1
       set(gca,'XGrid','on')
       set(gca,'YGrid','on')
       set(gca,'YMinorGrid','off')
-      ylabel('-1 * Log Likelihood')
-      title('\bf{\Delta_{objective} (Obj_{best} - Obj_{ref})}')
+      ylabel('-log($\mathcal{L}$)', 'interpreter','latex')
+      title('\bf{Difference between refererence and best}')
    
    set(gcf,'Position',[1 1 1280 1024]);
    set(gcf, 'Color', 'white');
-   if save; export_fig( gcf, figname, '-jpg', '-r150' ); end
+   if save; latex_figure(gcf, figname, fileID); end
+
 end
 
 

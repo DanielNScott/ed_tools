@@ -1,4 +1,4 @@
-function [ ] = plot_state_hist_pso( iter, obj, state, state_ref, nps, labels, save )
+function [ ] = plot_state_hist_pso( iter, obj, state, state_ref, nps, labels, save, fileID )
 %PLOT_STATE_HISTORY Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,7 +12,7 @@ nlabs  = numel(labels);
 %    labels(q_msk) = q_flds;
 % end
 
-figname = 'State History';                               % Name a new fig.
+figname = 'State history';                               % Name a new fig.
 gen_new_fig(figname)                                     % And create it
 
 nparams = size(state,1);
@@ -45,7 +45,7 @@ for iplt = 1:nlabs
       rvals = repmat(state_ref(iplt),1,iter);
 
       hold on
-      if nps > 60;
+      if nps > 60
          marker = '.';
       else
          marker = 'o';
@@ -60,7 +60,7 @@ for iplt = 1:nlabs
           xlabel('Iterations')
       end
       
-      if mod(iplt,2) == 1;
+      if mod(iplt,2) == 1
          ylabel('Parameter Values')
       end
       raw_title = labels{iplt};
@@ -68,9 +68,7 @@ for iplt = 1:nlabs
       title(['\bf{' raw_title '}' ])
 end
 
-if save;
-    export_fig( gcf, figname, '-jpg', '-r150' );
-end
+if save; latex_figure(gcf, figname, fileID); end
    
 end
 

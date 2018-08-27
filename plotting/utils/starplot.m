@@ -1,4 +1,4 @@
-function [] = starplot(data,labels,figname,lgnd,save)
+function [] = starplot(data,labels,figname,lgnd,save,fileID)
 
 for i = 1:size(data,2)
    std_data(:,i) = data(:,i)/max(data(:,i)); 
@@ -85,8 +85,7 @@ end
 legend([dhand{:}],lgnd);
 %xlabel('Conifer Parameters','Color',[0,0,0])
 
-if save;
-    export_fig(gcf, figname, '-jpg', '-r150' );
-end
+if save; latex_figure(gcf, figname, fileID); end
+
 
 end

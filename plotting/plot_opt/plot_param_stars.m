@@ -1,4 +1,4 @@
-function [ ] = plot_param_stars( hist,cfe,opt_type,state_ref,save )
+function [ ] = plot_param_stars( hist,cfe,opt_type,state_ref,save,fileID)
 %PLOT_PARAM_STARS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -65,7 +65,7 @@ lgnd = 'Best';
 % starplot(hw_params,hw_param_names,'Hardwood Parameters',save)
 % starplot(sh_params,sh_param_names,'Shared Parameters',save)
 
-starplot(best_params',labels,'Parameter Star Plot',lgnd,save);
+starplot(best_params',labels,'Parameter star plot',lgnd,save,fileID);
 
 end
 

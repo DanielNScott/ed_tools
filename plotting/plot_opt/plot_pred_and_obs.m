@@ -1,4 +1,4 @@
-function [ ] = plot_pred_and_obs(obj,iter_best,out_best,stats,out_ref,obs,opt_type,opt_metadata,save )
+function [ ] = plot_pred_and_obs(obj,iter_best,out_best,stats,out_ref,obs,opt_type,opt_metadata,save,fileID)
 %PLOT_LIKELY_ANALY Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -89,7 +89,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          data_name = {[res ' ' fld]};
          data_name = char_sub(data_name,'_',' ');
          data_name = char_sub(data_name,'.',' ');
-         data_name = data_name{1};
+         data_name = ['Detail:', data_name{1}];
          %---------------------------------------------%
 
          
@@ -219,11 +219,11 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          end
          
          legend({'Ref', 'Best'})
-         title(['\bf{' data_name ' Likelihoods by Datum}'])
+         title(['\bf{-log($\mathcal{L}$)}', 'interpreter','latex'])
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
          set(gca,'XGrid','on')
-         ylabel('-1 * Log Likelihood')
+         ylabel('-log($\mathcal{L}$)', 'interpreter','latex')
          %xlabel(xlab)
          set(gca,'XTickLabel','')
 
@@ -249,11 +249,11 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
          end
          
          legend({'Ref', 'Best'},'Location','SouthEast')
-         title(['\bf{Cumulative Sums of ' data_name ' Likelihoods}'])
+         title('\bf{Cumulative sums of -log($\mathcal{L}$)}', 'interpreter','latex')
          set(gca,'YGrid','on')
          set(gca,'YMinorGrid','off')
          set(gca,'XGrid','on')
-         ylabel('-1 * Log Likelihood')
+         ylabel('-log($\mathcal{L}$)', 'interpreter','latex')
          %xlabel(xlab)
          set(gca,'XTickLabel','')
          
@@ -270,11 +270,11 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             set(gca,'XLim',[0,datalen]);
          end
          
-         title(['\bf{\Delta_{log likely} by Datum}'])
+         title('\bf{Cumulative change in -log($\mathcal{L}$)}', 'interpreter','latex')
          set(gca,'YGrid','on')
          set(gca,'XGrid','on')
          set(gca,'YMinorGrid','off')
-         ylabel('-1 * Log Likelihood')
+         ylabel('-log($\mathcal{L}$)', 'interpreter','latex')
          set(gca,'XTickLabel','')
          
          % Plot associated (detailed) likelihood changes.     %
@@ -313,7 +313,7 @@ for res_num = 1:numel(resolutions)                       % Cycle through the res
             end
          end
          
-         if save; export_fig( gcf, data_name, '-jpg', '-r150' ); end
+      if save; latex_figure(gcf, data_name, fileID); end
       end
    end
 end

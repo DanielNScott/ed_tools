@@ -1,13 +1,17 @@
-function [betas, design, labels, design_fn] = fit_quad_to_pso_objs(tmin, tmax, tuse, locs, objs, params, ref_state)
+function [cov, betas, design, labels, design_fn] = fit_quad_to_pso_objs(tmin, tmax, tuse, nevals, locs, objs, params, ref_state, save, fileID)
+% 
+% Summary: Fit 
+
+set(0,'DefaultAxesXGrid','on')
+set(0,'DefaultAxesYGrid','on')
 
 % Other control variables
 cut_mort = 1;
-sqs_only = 1;
 censor   = 0;
 tstep    = 0.25;
 
-plot_eig = 1;
-plot_gof = 1;
+plot_eig = 0;
+plot_gof = 0;
 plot_cov = 1;
 
 % Get number of parameters being optimized
@@ -35,9 +39,16 @@ all_evals = [];
 all_evecs = [];
 all_covar = [];
 
+all_LD_rho = [];
+all_rho_used = [];
+all_cond = [];
+
+all_nevals = [];
+
 thresholds = tmin:tstep:tmax;
 use_index  = find(tmin:tstep:tmax == tuse);
 for prc = thresholds
+    disp(' ')
     disp(['Processing threshold: ', num2str(prc)])
     
     % Mask out percentile of data in terms of euclidean distance.
@@ -49,8 +60,18 @@ for prc = thresholds
     [design, labels] = sq_design( best_p_locs(:, 1:n_params), params );
     design_fn = @(x) sq_design(x);
 
+    % Use robust fit to get weightings
     [betas, stats] = robustfit(design(:,2:end), objs(prctile_msk));
+    wgts = stats.w'*eye(length(stats.w));
     
+    % Can verify this is correct by entering "wgted_des\wgted_obj"
+    % to get same betas
+    wgted_des = sqrt(wgts)*design;
+    wgted_obj = sqrt(wgts)*objs(prctile_msk);
+    
+    %
+    %[ridge(wgted_obj, wgted_des(:,2:end), 0, 0), wgted_des\wgted_obj, robustfit(design(:,2:end), objs(prctile_msk))]
+
     %----------------------------------------------------------------------%
     %           Betas, the FIM, and the inverse covariance matrix          %
     %----------------------------------------------------------------------%
@@ -68,15 +89,47 @@ for prc = thresholds
     %
     % So we take the betas and construct the inverse of the covariance.
     %----------------------------------------------------------------------%
-    inv_covar = 2*vec2sym(betas(n_params+2:end));
+    inv_covar = vec2sym(betas(n_params+2:end));
+    
+    for i = 1:n_params
+        inv_covar(i,i) = 2*inv_covar(i,i);
+    end
 
     % Inverse of FIM gives covariance matrix, eigenvalues / vecs give
     % hierarchy of directional uncertainty.
     covar = inv(inv_covar);
+    %covar = nearestSPD(covar);
+    disp(['cond: ', num2str(cond(inv_covar))])
     [eigenvecs, eigenvals] = eig(covar);
-    
     eigenvals = diag(eigenvals);
-    evratios  = abs(eigenvals ./ min(eigenvals));
+
+    %[U,S] = svd(covar);
+    %M = U * S * S' * U';
+    %new_eigenvals = eig(M);
+
+    % Check if any eigenvalues are less than 0
+    reg = 1;
+    [~, LD_rho] = regularize(inv_covar, 0);
+    
+    rho = -0.05; % So rho starts at 0.
+    while reg && rho < 1
+        rho = min(rho + 0.05,1);
+
+        [inv_covar_reg, rho] = regularize(inv_covar, rho);
+        cond_num = cond(inv_covar_reg);
+        covar = inv(inv_covar_reg);
+        [eigenvecs, eigenvals] = eig(covar);
+        eigenvals = diag(eigenvals);
+        
+        reg = sum(eigenvals > 0)/length(eigenvals) < 1;
+    end
+    if reg
+        disp('Failure to recover positive eigenvalues.')
+    else
+        disp(['accepted rho: ', num2str(rho)])
+        %diff = sym2vec(abs((covar - inv(inv_covar))./inv(inv_covar)))';
+        %disp(diff)
+    end
     
     % Unpack inverted FIM into covariance matrix terms
     covar_terms = sym2vec(covar);
@@ -86,13 +139,19 @@ for prc = thresholds
     all_evals = [all_evals, eigenvals      ];
     all_evecs = [all_evecs, eigenvecs(:)   ]; % (:) stacks cols.
     all_covar = [all_covar, covar_terms    ];
+    all_LD_rho = [all_LD_rho, LD_rho    ];
+    all_rho_used = [all_rho_used, rho  ];
+    all_cond = [all_cond, cond_num  ];
     
     if prc == tuse
         save_stats  = stats;
         save_betas  = betas;
         save_design = design;
+        save_evecs  = eigenvecs;
+        save_evals  = eigenvals;
         save_best_p = best_p_locs;
         save_covar  = covar_terms;
+        save_diag   = diag(covar);
         use_prctile_msk = prctile_msk;
     end
 end
@@ -111,78 +170,149 @@ if censor
     coefficients_of_variation(delete,:) = NaN;
 end
 
+% Get short, unique param names
+params = short_pnames(params);
 
-
-figure()
-abbrev_labels = {'vmf_c_o', 'q_c_o', 'grf_c_o', 'vmf_h_w', 'q_h_w', 'grf_h_w', 'str', 'rtr', 'rrf'};
-
-subplot(2,2,1)
+figname = 'Fit parameters';
+figure('Name', figname)
+% Fit surface weights
+subplot(2,3,1)
+%npts = floor((tmin:tstep:tmax)*size(locs,1)/100);
 plot(thresholds, all_betas(sq_selector,:)');
-title('Regression Weights')
+xlim([min(thresholds), max(thresholds)])
+%line([size(locs,1)*tuse/100, size(locs,1)*tuse/100], ylim, 'LineStyle','--', 'Color', 'r')
+line([tuse, tuse], ylim, 'LineStyle','--', 'Color', 'r')
+title('Surface parameters')
 xlabel('Inclusion Threshold [percentile]')
-ylabel('Loading []')
-%legend(labels(sq_selector))
-%line([use_prctile, use_prctile],get(gca,'YLim'))
+%xlabel('Inclusion threshold [points]')
+ylabel('Regression weight')
 
-subplot(2,2,2)
-plot(thresholds, abs(all_covar'));
-title('Covariance Matrix Elements')
-xlabel('Inclusion Threshold [percentile]')
-ylabel('Element Value []')
-%legend(labels(sq_selector))
-%line([use_prctile, use_prctile],get(gca,'YLim'))
-
-subplot(2,2,3)
+% Weight coefficients of variation
+subplot(2,3,2)
 plot(thresholds, coefficients_of_variation);
-title('Weight Coefficients of Variation')
+title('Weight Estimate CVs')
 xlabel('Inclusion Threshold [percentile]')
 ylabel('S.E. as % of Mean [%]')
-%legend(labels(sq_selector))
-%line([use_prctile, use_prctile],get(gca,'YLim'))
 
-ax = subplot(2,2,4);
+% Covariance matrix elements
+subplot(2,3,3)
+semilogy(thresholds, abs(all_covar'));
+title('Covariance Matrix Elements')
+xlabel('Inclusion Threshold [percentile]')
+ylabel('Element Value')
+
+% Covariance matrix eigenvalues
+ax = subplot(2,3,4);
 set(gca,'NextPlot','replacechildren', 'ColorOrder', linspecer(9));
 semilogy(thresholds, all_evals');
 colormap(ax, parula);
-[~, hObj] = legend(abbrev_labels);
-hL = findobj(hObj,'type','line');  % get the lines, not text
-set(hL,'linewidth',2)              % set their width property
+%[~, hObj] = legend(abbrev_labels);
+%hL = findobj(hObj,'type','line');  % get the lines, not text
+%set(hL,'linewidth',2)              % set their width property
 
-title('Eigenvalues')
+title('Eigenvalues of \Sigma')
 xlabel('Inclusion Threshold [percentile]')
 
-if plot_cov
+% Goodness of Fit Stuff
+subplot(2,3,5)
+distances = dist(ref_state, save_best_p');
+plot(distances, save_stats.resid, 'o')
+xlim([0, max(distances)]);
+line(xlim, [0, 0], 'LineStyle', '--', 'Color', 'b')
+title('Residuals by Dist')
+xlabel('Distance')
+ylabel('Residual')
+
+% Coverage in each dimension
+%subplot(2,4,6)
+%boxplot(save_best_p(:,1:n_params), 'positions', 1:n_params, 'labels', params)
+%title('Parameter Coverage')
+%xlabel('Parameters')
+%ylabel('Parameter Values')
+
+subplot(2,3,6)
+ax = plotyy(thresholds, [all_LD_rho; all_rho_used], thresholds, all_cond);
+title('Regularization')
+xlabel('Threshold [prctile]')
+ylabel(ax(1), 'Identity mixing fraction')
+ylabel(ax(2), 'Condition number')
+
+set(gcf, 'Position', [100, 108, 1672, 840])
+
+if save; latex_figure(gcf, figname, fileID); end
+
+figname = 'Uncertainty covariance';
+figure('Name',figname)
+% Covariance matrix as heat map
+%subplot(1,2,1)
+heatmap(params, params, corrcov(vec2sym(save_covar)), 'Colormap', parula);
+caxis([-1,1])
+title('Uncertainty covariance')
+if save; latex_figure(gcf, figname, fileID); end
+
+figname = 'Unit eigenvectors';
+figure('Name', figname)
+subplot(2,1,1)
+b = bar(save_evals(end:-1:(end-nevals+1)), 'FaceColor','flat');
+set(gca,'yscale','log')
+title('Eigenvalues')
+xlabel('Eigenvector num.')
+ylabel('Eigenvalue')
+
+subplot(2,1,2)
+bar(save_evecs(:,end:-1:(end-nevals+1)))
+title('Unit eigenvectors')
+xlabel('Parameters')
+ylabel('Loadings')
+xticklabels(params)
+set(gcf, 'Position', [95, 420, 1148, 542])
+axis tight
+if save; latex_figure(gcf, figname, fileID); end
+
+
+if plot_cov     
     cov = vec2sym(save_covar);
-    figure()
-    suptitle('95% CRs By Parameter Pair')
+    lb = [];
+    ub = [];
+    figname = 'Pairwise uncertainties';
+    figure('Name', figname)
     for i = 1:n_params
         for j = i:n_params
             subplot(n_params, n_params, (i-1)*n_params + j)
-
             try
-                error_ellipse([cov(i,i), cov(i,j); cov(j,i), cov(j,j)])
-                if i == 1; title(abbrev_labels{j}); end
-                lims = [min([xlim, ylim]), max([xlim, ylim])];
-                set(gca, 'XLim', lims);
-                set(gca, 'YLim', lims);
+                if i ==j
+                    histogram(save_best_p(:,i))
+
+                    ylimit = get(gca,'YLim');
+                    lb(i) = ref_state(i) - sqrt(save_diag(i));
+                    ub(i) = ref_state(i) + sqrt(save_diag(i));
+                    line([lb(i),lb(i)], [0,ylimit(2)], 'LineStyle', '--', 'Color', 'r')
+                    line([ub(i),ub(i)], [0,ylimit(2)], 'LineStyle', '--', 'Color', 'r')
+                    
+                    %legend({'marginal', '95% CI'})
+                    title(params{i})
+                else
+                    error_ellipse([cov(i,i), cov(i,j); cov(j,i), cov(j,j)], ref_state)
+                    axis('equal')
+                    
+                    xbnd = sqrt(save_diag(i));
+                    ybnd = sqrt(save_diag(j));
+                    
+                    hold on
+                    errorbar(ref_state(1), ref_state(2), ybnd, ybnd, xbnd, xbnd, 'o')
+                    hold off
+                    
+                    title([params{i}, '*', params{j}])
+                    %legend({'95% CR', '95% CIs'})
+                end 
             catch exception
                 disp(exception)
             end
         end
     end
+    if save; latex_figure(gcf, figname, fileID); end
 end
 
-if plot_gof
-    % Goodness of Fit Stuff
-    figure()
-    subplot(1,2,1)
-    plot(save_stats.resid)
-    title('\bf{Residuals}')
-
-    subplot(1,2,2)
-    hist(save_stats.resid)
-    title('\bf{Residual Histogram}')
-end
 
 if plot_eig
     % Plot the eigenvalues and eigenvectors
@@ -214,14 +344,22 @@ if plot_eig
     %xlabel('Inclusion Threshold [percentile]')
     xlim([-1,1])
     ylim([-1,1])
+end
 
+if plot_gof
+    % Goodness of Fit Stuff
+    figure()
+    subplot(1,2,1)
+    plot(save_stats.resid)
+    title('\bf{Residuals}')
+
+    subplot(1,2,2)
+    hist(save_stats.resid)
+    title('\bf{Residual Histogram}')
 end
 
 
-
 end
-
-
 
 % Approximate parameter 95% CI's and CR:
 %
@@ -238,7 +376,7 @@ end
 % Here p is the dimension of the gaussian, n is number of subjects.
 
 
-function [sigma] = regularize(S)
+function [sigma, rho] = regularize(S, rho)
 
     % OAS shrinkage applied to FIM
     % This is justified because regularizing the eigenvalues of a matrix's
@@ -249,19 +387,18 @@ function [sigma] = regularize(S)
     % structured estimator, formula (3) in the article [1]
     mu = trace(S)/p;
     F = mu*eye(p);
-
-    % rho = (1-(2/p)*trace(S^2)+trace(S)^2)/((n+1-2/p)*(trace(S^2)-1/p*trace(S)^2));
-    c1 = 1-2/p;
-    c2 = n+1-2/p;
-    c3 = 1-n/p;
-    rho = (c1*trace(S^2) + trace(S)^2) / (c2*trace(S^2) + c3*trace(S)^2);
+    
+    if rho == 0
+        % rho = (1-(2/p)*trace(S^2)+trace(S)^2)/((n+1-2/p)*(trace(S^2)-1/p*trace(S)^2));
+        c1 = 1-2/p;
+        c2 = n+1-2/p;
+        c3 = 1-n/p;
+        rho = (c1*trace(S^2) + trace(S)^2) / (c2*trace(S^2) + c3*trace(S)^2);
+        
+        disp(['      LD rho: ', num2str(rho)])
+    end
 
     % regularization, formula (4) in the paper [1]
     sigma = (1-rho)*S + rho*F;
-
-end
-
-
-function [] = plots(all_betas)
 
 end
